@@ -37,37 +37,4 @@ namespace TeamCityApi.Domain
         [JsonProperty("artifacts")]
         public ArtifactsReference ArtifactsReference { get; set; }
     }
-
-    public class ArtifactsReference
-    {
-        private IHttpClientWrapper _http;
-
-        public string Href { get; set; }
-
-        public Lazy<List<File>> Files { get; set; }
-
-        internal void InitHttp(IHttpClientWrapper http)
-        {
-            _http = http;
-        }
-
-        private List<File> GetFiles()
-        {
-            return null;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("Href: {0}", Href);
-        }
-    }
-
-    public class File
-    {
-        public int Size { get; set; }
-        public DateTime ModificationTime { get; set; }
-        public string Name { get; set; }
-        public string Href { get; set; }
-        public string ContentHref { get; set; }
-    }
 }

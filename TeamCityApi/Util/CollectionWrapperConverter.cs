@@ -18,10 +18,19 @@ namespace TeamCityApi.Util
             JObject jObject = JObject.Load(reader);
 
             JToken contentToken = jObject["content"];
+            JToken childrenToken = jObject["children"];
 
             serializer.Populate(jObject.CreateReader(), file);
 
-            file.ContentHref = contentToken["href"].Value<string>();
+            if (contentToken != null)
+            {
+                file.ContentHref = contentToken["href"].Value<string>();
+            }
+
+            if (childrenToken != null)
+            {
+                file.ChildrenHref = childrenToken["href"].Value<string>();
+            }
 
             return file;
         }

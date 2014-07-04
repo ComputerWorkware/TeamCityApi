@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityApi", "TeamCityApi\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityApi.Tests", "TeamCityApi.Tests\TeamCityApi.Tests.csproj", "{463B5CFF-4CA8-4458-8229-2BC9DDC9A365}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamCityConsole", "TeamCityConsole\TeamCityConsole.csproj", "{4F6ED404-338C-4213-B312-72A8208CF656}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{463B5CFF-4CA8-4458-8229-2BC9DDC9A365}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{463B5CFF-4CA8-4458-8229-2BC9DDC9A365}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{463B5CFF-4CA8-4458-8229-2BC9DDC9A365}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F6ED404-338C-4213-B312-72A8208CF656}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F6ED404-338C-4213-B312-72A8208CF656}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F6ED404-338C-4213-B312-72A8208CF656}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F6ED404-338C-4213-B312-72A8208CF656}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

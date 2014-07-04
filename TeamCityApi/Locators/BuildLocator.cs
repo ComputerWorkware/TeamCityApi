@@ -42,8 +42,10 @@ namespace TeamCityApi.Locators
             return With("tags", formattedTags);
         }
 
-        public BuildLocator WithBuildConfiguration(BuildTypeLocator locator)
+        public BuildLocator WithBuildConfiguration(Action<BuildTypeLocator> locatorAction)
         {
+            var locator = new BuildTypeLocator();
+            locatorAction(locator);
             return With("buildType", string.Format("({0})", locator));
         }
 

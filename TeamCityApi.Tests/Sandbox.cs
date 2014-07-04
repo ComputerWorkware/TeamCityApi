@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Locators;
@@ -22,16 +23,27 @@ namespace TeamCityApi.Tests
         {
             var buildClient = CreateBuildClient();
 
-            Build build = buildClient.ById(45).Result;
+            Build build = buildClient.ById("45").Result;
         }
 
+        [Fact]
+        public void Build_Artifacts()
+        {
+            var buildClient = CreateBuildClient();
+
+            Build build = buildClient.ById("45").Result;
+
+            List<File> files = build.ArtifactsReference.GetFiles().Result;
+        }
 
         [Fact]
         public void GetFiles()
         {
             BuildClient buildClient = CreateBuildClient();
 
-            List<File> result = buildClient.GetFiles(46).Result;
+            List<File> result = buildClient.GetFiles(48).Result;
+
+            List<File> files = result.First().GetChildren().Result;
         }
 
         public class BuildConfig

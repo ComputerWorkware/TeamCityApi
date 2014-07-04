@@ -54,9 +54,10 @@ namespace TeamCityApi
 
             using (var httpClient = Create())
             {
-                Stream stream = await httpClient.GetStreamAsync(requestUri);
+                HttpResponseMessage response = await httpClient.GetAsync(requestUri);
+                response.EnsureSuccessStatusCode();
 
-                return stream;
+                return await response.Content.ReadAsStreamAsync();
             }
         }
 
