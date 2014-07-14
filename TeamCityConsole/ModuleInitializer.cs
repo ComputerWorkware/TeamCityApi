@@ -36,9 +36,7 @@ namespace TeamCityConsole
                 stream.Read(assemblyData, 0, assemblyData.Length);
 
                 return Assembly.Load(assemblyData);
-
             }
-
         }
     }
 }

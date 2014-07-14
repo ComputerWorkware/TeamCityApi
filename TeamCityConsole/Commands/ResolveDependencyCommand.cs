@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace TeamCityConsole.Commands
 
         public ResolveDependencyCommand()
         {
-            var http = new HttpClientWrapper(AppSettings.Default.teamcityuri, AppSettings.Default.username, AppSettings.Default.password);
+            var http = new HttpClientWrapper(Settings.TeamCityUri, Settings.Username, Settings.Password);
             _downloader = new FileDownloader(http);
             _client = new TeamCityClient(http);
         }
@@ -32,7 +33,7 @@ namespace TeamCityConsole.Commands
         public ResolveDependencyCommand(IFileDownloader downloader)
         {
             _downloader = downloader;
-            _client = new TeamCityClient(AppSettings.Default.teamcityuri, AppSettings.Default.username, AppSettings.Default.password);
+            _client = new TeamCityClient(Settings.TeamCityUri, Settings.Username, Settings.Password);
         }
 
         public async Task Execute(object options)
@@ -73,13 +74,31 @@ namespace TeamCityConsole.Commands
                 return;
             }
 
-            var build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id);
+            Property pathRules = dependency.Properties.FirstOrDefault(x => x.Name.Equals("pathRules", StringComparison.InvariantCultureIgnoreCase));
+
+            var rules = new List<PathRule>();
+
+            if (pathRules != null && string.IsNullOrWhiteSpace(pathRules.Value) == false)
+            {
+                rules = PathRule.Parse(pathRules.Value);
+            }
+
+            Build build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id);
 
             _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));
 
             Log.Debug("{0}-{1}", build.BuildTypeId, build.Number);
 
-            List<File> files = await build.ArtifactsReference.GetFiles();
+            List<File> files;
+
+            if (rules.Any())
+            {
+                files = rules.Select(x => x.GetFile(build.Href + "/artifacts/content/")).ToList();
+            }
+            else
+            {
+                files = await build.ArtifactsReference.GetFiles();
+            }
 
             await DownloadFiles("assemblies", files);
 

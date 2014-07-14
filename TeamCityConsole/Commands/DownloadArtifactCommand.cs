@@ -6,6 +6,7 @@ using NLog;
 using TeamCityApi;
 using TeamCityApi.Domain;
 using TeamCityConsole.Options;
+using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
 
 namespace TeamCityConsole.Commands
@@ -14,11 +15,23 @@ namespace TeamCityConsole.Commands
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        private readonly IFileSystem _fileSystem;
+
+        public DownloadArtifactCommand() : this(new FileSystem())
+        {
+            
+        }
+
+        public DownloadArtifactCommand(IFileSystem fileSystem)
+        {
+            _fileSystem = fileSystem;
+        }
+
         public async Task Execute(object options)
         {
             var artifactOptions = options as GetArtifactOptions;
 
-            var client = new TeamCityClient(AppSettings.Default.teamcityuri, AppSettings.Default.username, AppSettings.Default.password);
+            var client = new TeamCityClient(Settings.TeamCityUri, Settings.Username, Settings.Password);
 
             Build build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.ConfigTypeId);
 
@@ -38,7 +51,7 @@ namespace TeamCityConsole.Commands
                 else
                 {
                     List<File> children = await file.GetChildren();
-                    await DownloadFiles(Path.Combine(destPath, file.Name), children);
+                    await DownloadFiles(_fileSystem.CombinePath(destPath, file.Name), children);
                 }
             }
         }
@@ -49,9 +62,10 @@ namespace TeamCityConsole.Commands
 
             Log.Debug("Downloading: {0}", destFileName);
 
-            EnsureDirectoryExists(destFileName);
+            _fileSystem.EnsureDirectoryExists(destFileName);
 
-            var http = new HttpClientWrapper(AppSettings.Default.teamcityuri, AppSettings.Default.username,AppSettings.Default.password);
+            var http = new HttpClientWrapper(Settings.TeamCityUri, Settings.Username, Settings.Password);
+
             using (Stream stream = await http.GetStream(file.ContentHref))
             {
                 using (var fileStream = new FileStream(destFileName, FileMode.Create))
@@ -61,7 +75,7 @@ namespace TeamCityConsole.Commands
             }
         }
 
-        private static string BuildFullName(string destPath, File file)
+        private string BuildFullName(string destPath, File file)
         {
             //split the unix like name that comes from TC
             string[] pathParts = file.Name.Split('/');
@@ -69,24 +83,7 @@ namespace TeamCityConsole.Commands
             //join them back using the proper separator for the environment
             string properPath = string.Join(Path.DirectorySeparatorChar.ToString(), pathParts);
 
-            return Path.Combine(destPath, properPath);
-        }
-
-        private static void EnsureDirectoryExists(string filePath)
-        {
-            string directoryName = Path.GetDirectoryName(filePath);
-
-            if (directoryName == null)
-            {
-                return;
-            }
-
-            if (Directory.Exists(directoryName))
-            {
-                return;
-            }
-
-            Directory.CreateDirectory(directoryName);
+            return _fileSystem.CombinePath(destPath, properPath);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace TeamCityApi.Domain
 
         public bool HasChildren
         {
-            get { return ChildrenHref != null; }
+            get { return string.IsNullOrWhiteSpace(ChildrenHref) == false; }
         }
 
         public bool HasContent

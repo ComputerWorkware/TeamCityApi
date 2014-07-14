@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TeamCityConsole")]
+[assembly: AssemblyTitle("TeamCityConsole.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Computer Workware Inc.")]
-[assembly: AssemblyProduct("TeamCityConsole")]
-[assembly: AssemblyCopyright("Copyright Compouter Workware Inc. ©  2014")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("TeamCityConsole.Tests")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9aabcc88-cc4e-47f0-8ebc-01c3f65db740")]
+[assembly: Guid("1a203286-b106-4695-92b8-08f1dcea90b4")]
 
 // Version information for an assembly consists of the following four values:
 //

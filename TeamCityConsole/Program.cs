@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -20,6 +21,8 @@ namespace TeamCityConsole
 
         static void Main(string[] args)
         {
+            DisplayAssemblyInfo();
+
             ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions));
 
             if (result.Errors.OfType<HelpRequestedError>().Any())
@@ -60,13 +63,22 @@ namespace TeamCityConsole
             {
                 Console.WriteLine(e);
             }
-
-            
         }
 
         private static string GetVerb(object options)
         {
             return options.GetType().GetCustomAttribute<VerbAttribute>().Name;
+        }
+
+        private static void DisplayAssemblyInfo()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+
+            Console.Out.WriteLine("Product: {0}", fvi.ProductName);
+            Console.Out.WriteLine("Company: {0}", fvi.CompanyName);
+            Console.Out.WriteLine("Assembly version: {0}", assembly.GetName().Version);
+            Console.Out.WriteLine("File version: {0}", fvi.FileVersion);
         }
     }
 }
