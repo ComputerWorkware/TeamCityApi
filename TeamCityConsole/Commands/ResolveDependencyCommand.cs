@@ -18,8 +18,11 @@ namespace TeamCityConsole.Commands
         private readonly TeamCityClient _client;
 
         private readonly IFileDownloader _downloader;
+        private readonly IFileSystem _fileSystem;
 
         private const string ConfigFile = "dependencies.config";
+
+        private DependencyConfig _dependencyConfig;
 
         private readonly Dictionary<string, BuildInfo> _builds = new Dictionary<string, BuildInfo>();
 
@@ -28,26 +31,48 @@ namespace TeamCityConsole.Commands
             var http = new HttpClientWrapper(Settings.TeamCityUri, Settings.Username, Settings.Password);
             _downloader = new FileDownloader(http);
             _client = new TeamCityClient(http);
+            _fileSystem = new FileSystem();
         }
 
-        public ResolveDependencyCommand(IFileDownloader downloader)
+        public ResolveDependencyCommand(IFileDownloader downloader, IFileSystem fileSystem)
         {
             _downloader = downloader;
+            _fileSystem = fileSystem;
             _client = new TeamCityClient(Settings.TeamCityUri, Settings.Username, Settings.Password);
         }
 
         public async Task Execute(object options)
         {
-            var dependenciesOptions = options as GetDependenciesOptions;
+            var dependenciesOptions = (GetDependenciesOptions)options;
 
-            await ResolveDependencies(dependenciesOptions.ConfigTypeId);
+            if (_fileSystem.FileExists(ConfigFile))
+            {
+                string json = _fileSystem.ReadAllTextFromFile(ConfigFile);
+                _dependencyConfig = JsonConvert.DeserializeObject<DependencyConfig>(json);
+            }
+            else
+            {
+                _dependencyConfig = new DependencyConfig();
+            }
+
+            string configTypeId = string.IsNullOrEmpty(dependenciesOptions.BuildConfigId)
+                ? _dependencyConfig.BuildConfigId
+                : dependenciesOptions.BuildConfigId;
+
+            await ResolveDependencies(configTypeId);
         }
 
         public async Task ResolveDependencies(string id)
         {
             await ResolveDependenciesInternal(id);
 
-            string json = JsonConvert.SerializeObject(_builds.Values.ToList(), Newtonsoft.Json.Formatting.Indented);
+            _dependencyConfig = new DependencyConfig
+            {
+                BuildConfigId = id,
+                BuildInfos = _builds.Values.ToList()
+            };
+
+            string json = JsonConvert.SerializeObject(_dependencyConfig, Newtonsoft.Json.Formatting.Indented);
 
             System.IO.File.WriteAllText(ConfigFile, json);
         }

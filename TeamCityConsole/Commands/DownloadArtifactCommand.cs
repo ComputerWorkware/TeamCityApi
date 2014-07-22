@@ -33,7 +33,7 @@ namespace TeamCityConsole.Commands
 
             var client = new TeamCityClient(Settings.TeamCityUri, Settings.Username, Settings.Password);
 
-            Build build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.ConfigTypeId);
+            Build build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.BuildConfigId);
 
             List<File> files = await build.ArtifactsReference.GetFiles();
 

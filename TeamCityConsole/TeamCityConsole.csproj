@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\BuildInfo.cs" />
     <Compile Include="Commands\DownloadArtifactCommand.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\ResolveDependencyCommand.cs" />

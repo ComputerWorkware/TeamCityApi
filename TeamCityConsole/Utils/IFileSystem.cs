@@ -8,8 +8,10 @@ namespace TeamCityConsole.Utils
         string CombinePath(params string[] paths);
         bool DirectoryExists(string path);
         void CreateDirectory(string path);
+        bool FileExists(string path);
         string GetDirectoryName(string path);
         void EnsureDirectoryExists(string filePath);
+        string ReadAllTextFromFile(string path);
     }
 
     class FileSystem : IFileSystem
@@ -34,6 +36,11 @@ namespace TeamCityConsole.Utils
             Directory.CreateDirectory(path);
         }
 
+        public bool FileExists(string path)
+        {
+            return File.Exists(path);
+        }
+
         public string GetDirectoryName(string path)
         {
             return Path.GetDirectoryName(path);
@@ -54,6 +61,11 @@ namespace TeamCityConsole.Utils
             }
 
             Directory.CreateDirectory(directoryName);
+        }
+
+        public string ReadAllTextFromFile(string path)
+        {
+            return File.ReadAllText(path);
         }
     }
 }
