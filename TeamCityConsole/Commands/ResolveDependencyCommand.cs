@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
 using TeamCityApi;
 using TeamCityApi.Domain;
+using TeamCityConsole.Model;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
+using File = TeamCityApi.Domain.File;
 
 namespace TeamCityConsole.Commands
 {
@@ -15,9 +18,10 @@ namespace TeamCityConsole.Commands
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly TeamCityClient _client;
+        private readonly ITeamCityClient _client;
 
         private readonly IFileDownloader _downloader;
+
         private readonly IFileSystem _fileSystem;
 
         private const string ConfigFile = "dependencies.config";
@@ -34,47 +38,41 @@ namespace TeamCityConsole.Commands
             _fileSystem = new FileSystem();
         }
 
-        public ResolveDependencyCommand(IFileDownloader downloader, IFileSystem fileSystem)
+        public ResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem)
         {
             _downloader = downloader;
             _fileSystem = fileSystem;
-            _client = new TeamCityClient(Settings.TeamCityUri, Settings.Username, Settings.Password);
+            _client = client;
         }
 
         public async Task Execute(object options)
         {
             var dependenciesOptions = (GetDependenciesOptions)options;
 
-            if (_fileSystem.FileExists(ConfigFile))
-            {
-                string json = _fileSystem.ReadAllTextFromFile(ConfigFile);
-                _dependencyConfig = JsonConvert.DeserializeObject<DependencyConfig>(json);
-            }
-            else
-            {
-                _dependencyConfig = new DependencyConfig();
-            }
+            dependenciesOptions.Validate();
 
-            string configTypeId = string.IsNullOrEmpty(dependenciesOptions.BuildConfigId)
-                ? _dependencyConfig.BuildConfigId
-                : dependenciesOptions.BuildConfigId;
+            _dependencyConfig = LoadConfigfile(dependenciesOptions, ConfigFile);
 
-            await ResolveDependencies(configTypeId);
+            await ResolveDependencies(_dependencyConfig.BuildConfigId);
         }
 
         public async Task ResolveDependencies(string id)
         {
             await ResolveDependenciesInternal(id);
 
-            _dependencyConfig = new DependencyConfig
+            var dependencyConfig = new DependencyConfig
             {
                 BuildConfigId = id,
-                BuildInfos = _builds.Values.ToList()
+                BuildInfos = _builds.Values.ToList(),
+                OutputPath = _dependencyConfig.OutputPath
             };
 
-            string json = JsonConvert.SerializeObject(_dependencyConfig, Newtonsoft.Json.Formatting.Indented);
+            if (_dependencyConfig.Equals(dependencyConfig) == false)
+            {
+                string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
 
-            System.IO.File.WriteAllText(ConfigFile, json);
+                System.IO.File.WriteAllText(ConfigFile, json);               
+            }
         }
 
         private async Task ResolveDependenciesInternal(string buildConfigId)
@@ -83,9 +81,7 @@ namespace TeamCityConsole.Commands
 
             BuildConfig buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
 
-            List<DependencyDefinition> artifactDependencies = buildConfig.ArtifactDependencies;
-
-            foreach (var dependency in artifactDependencies)
+            foreach (var dependency in buildConfig.ArtifactDependencies)
             {
                 await ResolveDependency(dependency);
             }
@@ -99,35 +95,36 @@ namespace TeamCityConsole.Commands
                 return;
             }
 
-            Property pathRules = dependency.Properties.FirstOrDefault(x => x.Name.Equals("pathRules", StringComparison.InvariantCultureIgnoreCase));
-
-            var rules = new List<PathRule>();
-
-            if (pathRules != null && string.IsNullOrWhiteSpace(pathRules.Value) == false)
-            {
-                rules = PathRule.Parse(pathRules.Value);
-            }
-
             Build build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id);
 
             _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));
 
             Log.Debug("{0}-{1}", build.BuildTypeId, build.Number);
 
-            List<File> files;
+            List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
 
-            if (rules.Any())
-            {
-                files = rules.Select(x => x.GetFile(build.Href + "/artifacts/content/")).ToList();
-            }
-            else
-            {
-                files = await build.ArtifactsReference.GetFiles();
-            }
+            //if rules are defined we create fake files with the reference to the TC resources in order to download.
+            List<File> files = artifactRules.Select(x => x.CreateTeamCityFileReference(build.Href + "/artifacts/content/")).ToList();
 
-            await DownloadFiles("assemblies", files);
+            await DownloadFiles(_dependencyConfig.OutputPath, files);
 
             await ResolveDependenciesInternal(build.BuildTypeId);
+        }
+
+        private static List<ArtifactRule> GetArtifactRules(DependencyDefinition dependency)
+        {
+            Property artifactRulesProperty =
+                dependency.Properties.FirstOrDefault(
+                    x => x.Name.Equals("pathRules", StringComparison.InvariantCultureIgnoreCase));
+
+            if (artifactRulesProperty == null || string.IsNullOrWhiteSpace(artifactRulesProperty.Value))
+            {
+                throw new Exception(string.Format("Missing or invalid Artifact dependency. ProjectId: {0}", dependency.SourceBuildConfig.ProjectId));
+            }
+
+            List<ArtifactRule> artifactRules = ArtifactRule.Parse(artifactRulesProperty.Value);
+
+            return artifactRules;
         }
 
         private async Task DownloadFiles(string destPath, IEnumerable<File> files)
@@ -144,6 +141,37 @@ namespace TeamCityConsole.Commands
                     await DownloadFiles(destPath, children);
                 }
             }
+        }
+
+        private DependencyConfig LoadConfigfile(GetDependenciesOptions options, string fileName)
+        {
+            string fullPath = Path.GetFullPath(".");
+
+            if (string.IsNullOrEmpty(options.ConfigFilePath) == false)
+            {
+                fullPath = Path.GetFullPath(options.ConfigFilePath);
+            }
+
+            fullPath = Path.Combine(fullPath, fileName);
+
+            Log.Debug("Loading config file: {0}", fullPath);
+
+            if (_fileSystem.FileExists(fullPath))
+            {
+                string json = _fileSystem.ReadAllTextFromFile(fullPath);
+                return JsonConvert.DeserializeObject<DependencyConfig>(json);
+            }
+            
+            if (options.Force)
+            {
+                Log.Debug("Config file not found. Using command line BuildConfigId: {0}", options.BuildConfigId);
+                return new DependencyConfig {BuildConfigId = options.BuildConfigId, OutputPath = options.OutputPath};
+            }
+
+            throw new Exception(
+                string.Format(
+                    "Unable to find {0}. Specify Force option on command line to create the file or provide a proper path using the ConfigFilePath option.",
+                    fullPath));
         }
     }
 }

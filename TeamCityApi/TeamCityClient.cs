@@ -3,7 +3,13 @@ using TeamCityApi.Clients;
 
 namespace TeamCityApi
 {
-    public class TeamCityClient
+    public interface ITeamCityClient
+    {
+        IBuildClient Builds { get; }
+        IBuildConfigClient BuildConfigs { get; }
+    }
+
+    public class TeamCityClient : ITeamCityClient
     {
         private readonly IHttpClientWrapper _http;
 

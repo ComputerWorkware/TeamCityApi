@@ -53,15 +53,18 @@ namespace TeamCityConsole
                 }
             });
 
-            Task downloadTask = command.Execute(options);
 
             try
             {
-                Task.WaitAny(displayTask, downloadTask);
+                Task downloadTask = command.Execute(options);
+                downloadTask.Wait();
             }
-            catch (Exception e)
+            catch (AggregateException e)
             {
-                Console.WriteLine(e);
+                foreach (Exception innerException in e.Flatten().InnerExceptions)
+                {
+                    Console.Out.WriteLine(innerException);
+                }
             }
         }
 

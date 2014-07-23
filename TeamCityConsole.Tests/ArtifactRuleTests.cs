@@ -10,14 +10,14 @@ using File = TeamCityApi.Domain.File;
 
 namespace TeamCityConsole.Tests
 {
-    public class PathRuleTests
+    public class ArtifactRuleTests
     {
         public class Parse
         {
             [Fact]
             public void Should_handle_empty_strings()
             {
-                List<PathRule> pathRules = PathRule.Parse(string.Empty);
+                List<ArtifactRule> pathRules = ArtifactRule.Parse(string.Empty);
 
                 Assert.Empty(pathRules);
             }
@@ -25,7 +25,7 @@ namespace TeamCityConsole.Tests
             [Fact]
             public void Should_handle_empty_with_line_breaks()
             {
-                List<PathRule> pathRules = PathRule.Parse(Environment.NewLine);
+                List<ArtifactRule> pathRules = ArtifactRule.Parse(Environment.NewLine);
 
                 Assert.Empty(pathRules);
             }
@@ -33,53 +33,53 @@ namespace TeamCityConsole.Tests
             [Fact]
             public void Should_handle_single_rule()
             {
-                List<PathRule> pathRules = PathRule.Parse("source=>dest");
+                List<ArtifactRule> pathRules = ArtifactRule.Parse("source=>dest");
 
-                PathRule pathRule = pathRules[0];
+                ArtifactRule artifactRule = pathRules[0];
 
-                Assert.Equal("source", pathRule.Source);
-                Assert.Equal("dest", pathRule.Dest);
+                Assert.Equal("source", artifactRule.Source);
+                Assert.Equal("dest", artifactRule.Dest);
             }
 
             [Fact]
             public void Should_handle_single_rule_with_whitespace_padding()
             {
-                List<PathRule> pathRules = PathRule.Parse("  source  => dest  ");
+                List<ArtifactRule> pathRules = ArtifactRule.Parse("  source  => dest  ");
 
-                PathRule pathRule = pathRules[0];
+                ArtifactRule artifactRule = pathRules[0];
 
-                Assert.Equal("source", pathRule.Source);
-                Assert.Equal("dest", pathRule.Dest);
+                Assert.Equal("source", artifactRule.Source);
+                Assert.Equal("dest", artifactRule.Dest);
             }
 
             [Fact]
             public void Should_handle_single_rule_with_new_line()
             {
-                List<PathRule> pathRules = PathRule.Parse("source=>dest"+Environment.NewLine);
+                List<ArtifactRule> pathRules = ArtifactRule.Parse("source=>dest"+Environment.NewLine);
 
                 Assert.Equal(1, pathRules.Count);
 
-                PathRule pathRule = pathRules[0];
+                ArtifactRule artifactRule = pathRules[0];
 
-                Assert.Equal("source", pathRule.Source);
-                Assert.Equal("dest", pathRule.Dest);
+                Assert.Equal("source", artifactRule.Source);
+                Assert.Equal("dest", artifactRule.Dest);
             }
 
             [Fact]
             public void Should_handle_single_rule_with_source_only()
             {
-                List<PathRule> pathRules = PathRule.Parse("source=>");
+                List<ArtifactRule> pathRules = ArtifactRule.Parse("source=>");
 
-                PathRule pathRule = pathRules[0];
+                ArtifactRule artifactRule = pathRules[0];
 
-                Assert.Equal("source", pathRule.Source);
-                Assert.Equal(string.Empty, pathRule.Dest);
+                Assert.Equal("source", artifactRule.Source);
+                Assert.Equal(string.Empty, artifactRule.Dest);
             }
 
             [Fact]
             public void Should_handle_multiple_rules()
             {
-                List<PathRule> pathRules = PathRule.Parse("source=>dest" + Environment.NewLine + "source2=>dest2");
+                List<ArtifactRule> pathRules = ArtifactRule.Parse("source=>dest" + Environment.NewLine + "source2=>dest2");
 
                 Assert.Equal(2, pathRules.Count);
 
@@ -94,7 +94,7 @@ namespace TeamCityConsole.Tests
             [Fact]
             public void Should_handle_multiple_rules_with_left_side_only()
             {
-                List<PathRule> pathRules = PathRule.Parse("source=>dest" + Environment.NewLine + "source2=>");
+                List<ArtifactRule> pathRules = ArtifactRule.Parse("source=>dest" + Environment.NewLine + "source2=>");
 
                 Assert.Equal(2, pathRules.Count);
 
@@ -121,7 +121,7 @@ namespace TeamCityConsole.Tests
                     Name = "Cwi.Core.dll"
                 };
 
-                File file = PathRule.ParseSource(source);
+                File file = ArtifactRule.ParseSource(source);
 
                 Assert.Equal(expected.ContentHref, file.ContentHref);
                 Assert.Equal(expected.Name, file.Name);
@@ -138,7 +138,7 @@ namespace TeamCityConsole.Tests
                     Name = "Cwi.Core.dll"
                 };
 
-                File file = PathRule.ParseSource(source);
+                File file = ArtifactRule.ParseSource(source);
 
                 Assert.Equal(expected.ContentHref, file.ContentHref);
                 Assert.Equal(expected.Name, file.Name);
@@ -155,7 +155,7 @@ namespace TeamCityConsole.Tests
                     Name = "release"
                 };
 
-                File file = PathRule.ParseSource(source);
+                File file = ArtifactRule.ParseSource(source);
 
                 Assert.Null(file.ContentHref);
                 Assert.Equal(expected.ChildrenHref, file.ChildrenHref);

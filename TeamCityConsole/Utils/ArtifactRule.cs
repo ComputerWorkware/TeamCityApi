@@ -6,19 +6,19 @@ using TeamCityApi.Domain;
 
 namespace TeamCityConsole.Utils
 {
-    public class PathRule
+    public class ArtifactRule
     {
         public string Source { get; set; }
         public string Dest { get; set; }
 
-        public static List<PathRule> Parse(string rulesString)
+        public static List<ArtifactRule> Parse(string rulesString)
         {
             IEnumerable<string> lines = ParseLines(rulesString);
 
             return lines.Where(line => !string.IsNullOrWhiteSpace(line)).Select(line => ParseLine(line)).ToList();
         }
 
-        public File GetFile(string basePath)
+        public File CreateTeamCityFileReference(string basePath)
         {
             File file = ParseSource(basePath+Source);
 
@@ -37,16 +37,16 @@ namespace TeamCityConsole.Utils
             return lines;
         }
 
-        private static PathRule ParseLine(string line)
+        private static ArtifactRule ParseLine(string line)
         {
             string[] pathParts = line.Split(new []{"=>"}, StringSplitOptions.None);
 
             if (pathParts.Length == 2)
             {
-                return new PathRule {Source = pathParts[0].Trim(), Dest = pathParts[1].Trim()};
+                return new ArtifactRule {Source = pathParts[0].Trim(), Dest = pathParts[1].Trim()};
             }
 
-            return new PathRule {Source = pathParts[0].Trim()};
+            return new ArtifactRule {Source = pathParts[0].Trim()};
         }
 
         public static File ParseSource(string sourceStr)

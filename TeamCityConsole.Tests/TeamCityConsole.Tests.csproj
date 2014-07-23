@@ -52,7 +52,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PathRuleTests.cs" />
+    <Compile Include="Commands\ResolveDependencyCommandTests.cs" />
+    <Compile Include="DependencyConfigTests.cs" />
+    <Compile Include="GetDependenciesOptionsTests.cs" />
+    <Compile Include="ArtifactRuleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
