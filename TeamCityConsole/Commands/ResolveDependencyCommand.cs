@@ -51,7 +51,7 @@ namespace TeamCityConsole.Commands
 
             dependenciesOptions.Validate();
 
-            _dependencyConfig = LoadConfigfile(dependenciesOptions, ConfigFile);
+            _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
 
             await ResolveDependencies(_dependencyConfig.BuildConfigId);
         }
@@ -143,7 +143,7 @@ namespace TeamCityConsole.Commands
             }
         }
 
-        private DependencyConfig LoadConfigfile(GetDependenciesOptions options, string fileName)
+        internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)
         {
             string fullPath = Path.GetFullPath(".");
 
