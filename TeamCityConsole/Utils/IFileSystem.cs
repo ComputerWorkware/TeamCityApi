@@ -12,6 +12,7 @@ namespace TeamCityConsole.Utils
         string GetDirectoryName(string path);
         void EnsureDirectoryExists(string filePath);
         string ReadAllTextFromFile(string path);
+        void WriteAllTextToFile(string path, string contents);
     }
 
     class FileSystem : IFileSystem
@@ -66,6 +67,11 @@ namespace TeamCityConsole.Utils
         public string ReadAllTextFromFile(string path)
         {
             return File.ReadAllText(path);
+        }
+
+        public void WriteAllTextToFile(string path, string contents)
+        {
+            File.WriteAllText(path, contents);
         }
     }
 }

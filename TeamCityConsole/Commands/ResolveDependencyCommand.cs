@@ -43,6 +43,7 @@ namespace TeamCityConsole.Commands
             _downloader = downloader;
             _fileSystem = fileSystem;
             _client = client;
+
         }
 
         public async Task Execute(object options)
@@ -51,12 +52,22 @@ namespace TeamCityConsole.Commands
 
             dependenciesOptions.Validate();
 
+            string configFullPath = GetConfigFullPath(dependenciesOptions, ConfigFile);
+
             _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
 
-            await ResolveDependencies(_dependencyConfig.BuildConfigId);
+            DependencyConfig dependencyConfig = await ResolveDependencies(_dependencyConfig.BuildConfigId);
+
+            //only writes the file if changes were made to the config.
+            if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
+            {
+                string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
+
+                _fileSystem.WriteAllTextToFile(configFullPath, json);
+            }
         }
 
-        public async Task ResolveDependencies(string id)
+        public async Task<DependencyConfig> ResolveDependencies(string id)
         {
             await ResolveDependenciesInternal(id);
 
@@ -67,12 +78,7 @@ namespace TeamCityConsole.Commands
                 OutputPath = _dependencyConfig.OutputPath
             };
 
-            if (_dependencyConfig.Equals(dependencyConfig) == false)
-            {
-                string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
-
-                System.IO.File.WriteAllText(ConfigFile, json);               
-            }
+            return dependencyConfig;
         }
 
         private async Task ResolveDependenciesInternal(string buildConfigId)
@@ -145,14 +151,7 @@ namespace TeamCityConsole.Commands
 
         internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)
         {
-            string fullPath = Path.GetFullPath(".");
-
-            if (string.IsNullOrEmpty(options.ConfigFilePath) == false)
-            {
-                fullPath = Path.GetFullPath(options.ConfigFilePath);
-            }
-
-            fullPath = Path.Combine(fullPath, fileName);
+            string fullPath = GetConfigFullPath(options, fileName);
 
             Log.Debug("Loading config file: {0}", fullPath);
 
@@ -172,6 +171,19 @@ namespace TeamCityConsole.Commands
                 string.Format(
                     "Unable to find {0}. Specify Force option on command line to create the file or provide a proper path using the ConfigFilePath option.",
                     fullPath));
+        }
+
+        private static string GetConfigFullPath(GetDependenciesOptions options, string fileName)
+        {
+            string fullPath = Path.GetFullPath(".");
+
+            if (string.IsNullOrEmpty(options.ConfigFilePath) == false)
+            {
+                fullPath = Path.GetFullPath(options.ConfigFilePath);
+            }
+
+            fullPath = Path.Combine(fullPath, fileName);
+            return fullPath;
         }
     }
 }

@@ -68,6 +68,7 @@
     <Compile Include="GetDependenciesOptionsTests.cs" />
     <Compile Include="ArtifactRuleTests.cs" />
     <Compile Include="Helpers\AutoNSubstituteDataAttribute.cs" />
+    <Compile Include="Helpers\DomainExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,7 @@ using CommandLine;
 namespace TeamCityConsole.Options
 {
     [Verb(Verbs.GetDependencies, HelpText = "Download dependencies using the chained artifact dependencies")]
-    class GetDependenciesOptions
+    public class GetDependenciesOptions
     {
         [Option('c', "BuildConfigId", Required = false, HelpText = "Configuration Id")]
         public string BuildConfigId { get; set; }
@@ -22,6 +22,7 @@ namespace TeamCityConsole.Options
         {
             OutputPath = "assemblies";
         }
+
         public void Validate()
         {
             if (Force && string.IsNullOrEmpty(BuildConfigId))
