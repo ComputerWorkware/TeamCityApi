@@ -30,20 +30,11 @@ namespace TeamCityConsole.Commands
 
         private readonly Dictionary<string, BuildInfo> _builds = new Dictionary<string, BuildInfo>();
 
-        public ResolveDependencyCommand()
-        {
-            var http = new HttpClientWrapper(Settings.TeamCityUri, Settings.Username, Settings.Password);
-            _downloader = new FileDownloader(http);
-            _client = new TeamCityClient(http);
-            _fileSystem = new FileSystem();
-        }
-
         public ResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem)
         {
             _downloader = downloader;
             _fileSystem = fileSystem;
             _client = client;
-
         }
 
         public async Task Execute(object options)

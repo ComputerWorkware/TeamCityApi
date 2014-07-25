@@ -38,6 +38,9 @@
     <Reference Include="CommandLine">
       <HintPath>..\CommandLine.dll</HintPath>
     </Reference>
+    <Reference Include="Funq">
+      <HintPath>..\packages\Funq.1.0.0\lib\net40\Funq.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -99,6 +102,11 @@
   <ItemGroup>
     <EmbeddedResource Include="..\TeamCityApi\bin\Debug\TeamCityApi.dll">
       <Link>assemblies\TeamCityApi.dll</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\packages\Funq.1.0.0\lib\net40\Funq.dll">
+      <Link>assemblies\Funq.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

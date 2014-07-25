@@ -6,21 +6,20 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
+using Funq;
+using TeamCityApi;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
+using TeamCityConsole.Utils;
 
 namespace TeamCityConsole
 {
     class Program
     {
-        private static readonly Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>
-        {
-            {Verbs.GetArtifacts, new DownloadArtifactCommand()},
-            {Verbs.GetDependencies, new ResolveDependencyCommand()},
-        };
-
         static void Main(string[] args)
         {
+            var container = SetupContainer();
+
             DisplayAssemblyInfo();
 
             ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions));
@@ -41,7 +40,7 @@ namespace TeamCityConsole
 
             dynamic options = result.Value;
 
-            ICommand command = Commands[GetVerb(options)];
+            ICommand command = container.ResolveNamed<ICommand>(GetVerb(options));
 
             Task displayTask = Task.Run(async () =>
             {
@@ -82,6 +81,26 @@ namespace TeamCityConsole
             Console.Out.WriteLine("Company: {0}", fvi.CompanyName);
             Console.Out.WriteLine("Assembly version: {0}", assembly.GetName().Version);
             Console.Out.WriteLine("File version: {0}", fvi.FileVersion);
+        }
+
+        private static Container SetupContainer()
+        {
+            var container = new Container();
+
+            container.Register<IHttpClientWrapper>(new HttpClientWrapper(Settings.TeamCityUri, Settings.Username,
+                Settings.Password));
+
+            container.Register<ITeamCityClient>(x => new TeamCityClient(x.Resolve<IHttpClientWrapper>()));
+
+            container.Register<IFileDownloader>(x => new FileDownloader(x.Resolve<IHttpClientWrapper>()));
+
+            container.Register<IFileSystem>(new FileSystem());
+
+            container.Register<ICommand>(Verbs.GetDependencies,
+                x => new ResolveDependencyCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileDownloader>(), x.Resolve<IFileSystem>()));
+
+            container.Register<ICommand>(Verbs.GetArtifacts, x => new DownloadArtifactCommand(x.Resolve<IFileSystem>()));
+            return container;
         }
     }
 }
