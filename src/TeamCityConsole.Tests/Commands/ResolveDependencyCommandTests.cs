@@ -196,7 +196,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 Assert.Equal(buildConfigId, config.BuildConfigId);
                 Assert.Empty(config.BuildInfos);
-                Assert.Equal("assemblies", config.OutputPath);
+                Assert.Equal(options.OutputPath, config.OutputPath);
             }
         }
 
