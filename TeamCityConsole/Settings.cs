@@ -4,19 +4,20 @@ namespace TeamCityConsole
 {
     public class Settings
     {
-        public static string TeamCityUri
-        {
-            get { return ConfigurationManager.AppSettings["teamcityuri"]; }
-        }
+        public string TeamCityUri { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string SelfUpdateBuildConfigId { get; set; }
 
-        public static string Username
+        public static Settings CreateFromConfig()
         {
-            get { return ConfigurationManager.AppSettings["username"]; }
-        }
-
-        public static string Password
-        {
-            get { return ConfigurationManager.AppSettings["password"]; }
+            return new Settings
+            {
+                TeamCityUri = ConfigurationManager.AppSettings["teamcityuri"],
+                Username = ConfigurationManager.AppSettings["username"],
+                Password = ConfigurationManager.AppSettings["password"],
+                SelfUpdateBuildConfigId = ConfigurationManager.AppSettings["selfUpdateBuildConfigId"],
+            };
         }
     }
 }

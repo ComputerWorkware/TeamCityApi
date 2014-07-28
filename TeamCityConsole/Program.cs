@@ -22,7 +22,7 @@ namespace TeamCityConsole
 
             DisplayAssemblyInfo();
 
-            ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions));
+            ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions), typeof(SelfUpdateOptions));
 
             if (result.Errors.OfType<HelpRequestedError>().Any())
             {
@@ -87,8 +87,11 @@ namespace TeamCityConsole
         {
             var container = new Container();
 
-            container.Register<IHttpClientWrapper>(new HttpClientWrapper(Settings.TeamCityUri, Settings.Username,
-                Settings.Password));
+            Settings settings = Settings.CreateFromConfig();
+            AssemblyMetada assemblyMetada = new AssemblyMetada();
+
+            container.Register<IHttpClientWrapper>(new HttpClientWrapper(settings.TeamCityUri, settings.Username,
+                settings.Password));
 
             container.Register<ITeamCityClient>(x => new TeamCityClient(x.Resolve<IHttpClientWrapper>()));
 
@@ -100,6 +103,10 @@ namespace TeamCityConsole
                 x => new ResolveDependencyCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileDownloader>(), x.Resolve<IFileSystem>()));
 
             container.Register<ICommand>(Verbs.GetArtifacts, x => new DownloadArtifactCommand(x.Resolve<IFileSystem>()));
+
+            container.Register<ICommand>(Verbs.SelfUpdate,
+                x => new UpdateCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileSystem>(), x.Resolve<IFileDownloader>(), assemblyMetada, settings));
+
             return container;
         }
     }

@@ -13,6 +13,10 @@ namespace TeamCityConsole.Utils
         void EnsureDirectoryExists(string filePath);
         string ReadAllTextFromFile(string path);
         void WriteAllTextToFile(string path, string contents);
+        Stream OpenFile(string path, FileMode fileMode);
+        Stream CreateFile(string path);
+        void MoveFile(string sourceFileName, string destFileName);
+        void DeleteFile(string fileName);
     }
 
     class FileSystem : IFileSystem
@@ -72,6 +76,26 @@ namespace TeamCityConsole.Utils
         public void WriteAllTextToFile(string path, string contents)
         {
             File.WriteAllText(path, contents);
+        }
+
+        public Stream OpenFile(string path, FileMode fileMode)
+        {
+            return File.Open(path, fileMode);
+        }
+
+        public Stream CreateFile(string path)
+        {
+            return File.Create(path);
+        }
+
+        public void MoveFile(string sourceFileName, string destFileName)
+        {
+            File.Move(sourceFileName, destFileName);
+        }
+
+        public void DeleteFile(string fileName)
+        {
+            File.Delete(fileName);
         }
     }
 }
