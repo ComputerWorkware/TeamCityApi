@@ -43,13 +43,13 @@ namespace TeamCityConsole
             dynamic verb = GetVerb(options);
 
             ICommand command = container.ResolveNamed<ICommand>(verb);
-
+#if !DEBUG
             if (verb != Verbs.SelfUpdate)
             {
                 ICommand updateCommand = container.ResolveNamed<ICommand>(Verbs.SelfUpdate);
                 updateCommand.Execute(null).Wait();
             }
-
+#endif
             Task displayTask = Task.Run(async () =>
             {
                 Console.Out.WriteLine("Processing");
