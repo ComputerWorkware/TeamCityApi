@@ -40,11 +40,19 @@ namespace TeamCityConsole
 
             dynamic options = result.Value;
 
-            ICommand command = container.ResolveNamed<ICommand>(GetVerb(options));
+            dynamic verb = GetVerb(options);
+
+            ICommand command = container.ResolveNamed<ICommand>(verb);
+
+            if (verb != Verbs.SelfUpdate)
+            {
+                ICommand updateCommand = container.ResolveNamed<ICommand>(Verbs.SelfUpdate);
+                updateCommand.Execute(null).Wait();
+            }
 
             Task displayTask = Task.Run(async () =>
             {
-                Console.Out.WriteLine("Downloading");
+                Console.Out.WriteLine("Processing");
                 while (true)
                 {
                     Console.Out.Write(".");
@@ -57,6 +65,7 @@ namespace TeamCityConsole
             {
                 Task downloadTask = command.Execute(options);
                 downloadTask.Wait();
+                Console.Out.WriteLine("");
             }
             catch (AggregateException e)
             {
