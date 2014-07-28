@@ -106,7 +106,12 @@ namespace TeamCityConsole.Commands
             List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
 
             //if rules are defined we create fake files with the reference to the TC resources in order to download.
-            List<File> files = artifactRules.Select(x => x.CreateTeamCityFileReference(build.Href + "/artifacts/content/")).ToList();
+            //List<File> files = artifactRules.Select(x => x.CreateTeamCityFileReference(build.Href + "/artifacts/content/")).ToList();
+            List<PathFilePair> files = artifactRules.Select(x => new PathFilePair
+            {
+                File = x.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
+                Path = x.Dest
+            }).ToList();
 
             await DownloadFiles(_dependencyConfig.OutputPath, files);
         }
@@ -127,18 +132,23 @@ namespace TeamCityConsole.Commands
             return artifactRules;
         }
 
-        private async Task DownloadFiles(string destPath, IEnumerable<File> files)
+        private async Task DownloadFiles(string destPath, IEnumerable<PathFilePair> files)
         {
-            foreach (File file in files)
+            foreach (PathFilePair file in files)
             {
-                if (file.HasContent)
+                if (file.File.HasContent)
                 {
-                    await _downloader.Download(destPath, file);
+                    await _downloader.Download(file.Path, file.File);
                 }
                 else
                 {
-                    List<File> children = await file.GetChildren();
-                    await DownloadFiles(destPath, children);
+                    List<File> children = await file.File.GetChildren();
+                    IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
+                    {
+                        File = x,
+                        Path = System.IO.Path.Combine(file.Path, x.Name)
+                    });
+                    await DownloadFiles(destPath, childPairs);
                 }
             }
         }
@@ -178,6 +188,12 @@ namespace TeamCityConsole.Commands
 
             fullPath = Path.Combine(fullPath, fileName);
             return fullPath;
+        }
+
+        private class PathFilePair
+        {
+            public string Path { get; set; }
+            public File File { get; set; }
         }
     }
 }

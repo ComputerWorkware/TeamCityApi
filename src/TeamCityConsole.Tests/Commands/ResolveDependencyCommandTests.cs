@@ -31,7 +31,7 @@ namespace TeamCityConsole.Tests.Commands
                 IFixture fixture)
             {
                 var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("file.dll => assemblies")
+                    .WithPathRules("file.dll => src/assemblies")
                     .Create();
 
                 var buildConfig = fixture.Build<BuildConfig>()
@@ -51,7 +51,40 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                downloader.Received().Download(options.OutputPath, Arg.Any<File>());
+                downloader.Received().Download("src\\assemblies", Arg.Any<File>());
+            }
+
+            [Theory]
+            [AutoNSubstituteData]
+            internal void Should_download_file_from_dependency_with_rule_destination_as_target_directory(
+                ITeamCityClient client,
+                IFileDownloader downloader,
+                IFileSystem fileSystem,
+                string buildConfigId,
+                IFixture fixture)
+            {
+                var dependencyDefinition = fixture.Build<DependencyDefinition>()
+                    .WithPathRules("file.dll => src/assemblies")
+                    .Create();
+
+                var buildConfig = fixture.Build<BuildConfig>()
+                    .WithId(buildConfigId)
+                    .WithDependencies(dependencyDefinition)
+                    .Create();
+
+                client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+
+                ConfigureDependency(client, dependencyDefinition, fixture);
+
+                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
+
+                var options = fixture.Build<GetDependenciesOptions>()
+                    .WithForce(buildConfigId)
+                    .Create();
+
+                command.Execute(options).Wait();
+
+                downloader.Received().Download("src\\assemblies", Arg.Any<File>());
             }
 
             [Theory]
@@ -65,7 +98,7 @@ namespace TeamCityConsole.Tests.Commands
             {
                 //2 files are defined in the path rules
                 var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("fileA.dll => assemblies"+Environment.NewLine+"fileB.dll=>assemblies")
+                    .WithPathRules("fileA.dll => src/assemblies"+Environment.NewLine+"fileB.dll=>src/assemblies")
                     .Create();
 
                 var buildConfig = fixture.Build<BuildConfig>()
@@ -86,7 +119,7 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                downloader.Received(2).Download(options.OutputPath, Arg.Any<File>());
+                downloader.Received(2).Download("src\\assemblies", Arg.Any<File>());
             }
 
             [Theory]
@@ -102,7 +135,7 @@ namespace TeamCityConsole.Tests.Commands
                 
                 //configure A -> B
                 var dependencyDefinitionB = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("fileB.dll => assemblies")
+                    .WithPathRules("fileB.dll => src/assemblies")
                     .Create();
 
                 var buildConfig = fixture.Build<BuildConfig>()
@@ -116,7 +149,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 //configure B -> C
                 var dependencyDefinitionC = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("fileC.dll => assemblies")
+                    .WithPathRules("fileC.dll => src/assemblies")
                     .Create();
 
                 buildConfigB.ArtifactDependencies.Add(dependencyDefinitionC);
@@ -132,8 +165,8 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                downloader.Received().Download(options.OutputPath, Arg.Is<File>(file => file.Name == "fileB.dll"));
-                downloader.Received().Download(options.OutputPath, Arg.Is<File>(file => file.Name == "fileC.dll"));
+                downloader.Received().Download("src\\assemblies", Arg.Is<File>(file => file.Name == "fileB.dll"));
+                downloader.Received().Download("src\\assemblies", Arg.Is<File>(file => file.Name == "fileC.dll"));
             }
         }
 

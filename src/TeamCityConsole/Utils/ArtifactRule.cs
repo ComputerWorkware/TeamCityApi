@@ -43,7 +43,7 @@ namespace TeamCityConsole.Utils
 
             if (pathParts.Length == 2)
             {
-                return new ArtifactRule {Source = pathParts[0].Trim(), Dest = pathParts[1].Trim()};
+                return new ArtifactRule { Source = pathParts[0].Trim(), Dest = pathParts[1].Trim().Replace('/', '\\') };
             }
 
             return new ArtifactRule {Source = pathParts[0].Trim()};
