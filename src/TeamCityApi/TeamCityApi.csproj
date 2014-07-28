@@ -36,6 +36,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\CommonAssemblyInfo.cs">
+      <Link>CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Clients\BuildClient.cs" />
     <Compile Include="Clients\BuildConfigClient.cs" />
     <Compile Include="Clients\ChangeClient.cs" />

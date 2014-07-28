@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <TeamCityApiPath Condition="$(TeamCityApi) == '' Or $(TeamCityApi) == '*Undefined*'">..\TeamCityApi\$(OutputPath)</TeamCityApiPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommandLine">
       <HintPath>..\CommandLine.dll</HintPath>
@@ -58,6 +61,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CommonAssemblyInfo.cs">
+      <Link>CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="Model\BuildInfo.cs" />
     <Compile Include="Model\DependencyConfig.cs" />
@@ -103,7 +109,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\TeamCityApi\bin\Debug\TeamCityApi.dll">
+    <EmbeddedResource Include="$(TeamCityApiPath)TeamCityApi.dll">
       <Link>assemblies\TeamCityApi.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
