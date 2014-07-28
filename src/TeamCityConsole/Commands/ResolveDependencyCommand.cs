@@ -82,6 +82,11 @@ namespace TeamCityConsole.Commands
             {
                 await ResolveDependency(dependency);
             }
+
+            foreach (var dependency in buildConfig.ArtifactDependencies)
+            {
+                await ResolveDependenciesInternal(dependency.SourceBuildConfig.Id);
+            }
         }
 
         private async Task ResolveDependency(DependencyDefinition dependency)
@@ -104,8 +109,6 @@ namespace TeamCityConsole.Commands
             List<File> files = artifactRules.Select(x => x.CreateTeamCityFileReference(build.Href + "/artifacts/content/")).ToList();
 
             await DownloadFiles(_dependencyConfig.OutputPath, files);
-
-            await ResolveDependenciesInternal(build.BuildTypeId);
         }
 
         private static List<ArtifactRule> GetArtifactRules(DependencyDefinition dependency)
