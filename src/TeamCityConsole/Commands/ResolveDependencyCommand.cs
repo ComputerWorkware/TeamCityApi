@@ -14,7 +14,7 @@ using File = TeamCityApi.Domain.File;
 
 namespace TeamCityConsole.Commands
 {
-    class ResolveDependencyCommand : ICommand
+    public class ResolveDependencyCommand : ICommand
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -30,6 +30,8 @@ namespace TeamCityConsole.Commands
 
         private readonly Dictionary<string, BuildInfo> _builds = new Dictionary<string, BuildInfo>();
 
+        private string _configFullPath;
+
         public ResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem)
         {
             _downloader = downloader;
@@ -41,7 +43,7 @@ namespace TeamCityConsole.Commands
         {
             var dependenciesOptions = (GetDependenciesOptions)options;
 
-            string configFullPath = GetConfigFullPath(dependenciesOptions, ConfigFile);
+            _configFullPath = GetConfigFullPath(dependenciesOptions, ConfigFile);
 
             _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
 
@@ -52,7 +54,7 @@ namespace TeamCityConsole.Commands
             {
                 string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
 
-                _fileSystem.WriteAllTextToFile(configFullPath, json);
+                _fileSystem.WriteAllTextToFile(_configFullPath, json);
             }
         }
 
@@ -104,12 +106,13 @@ namespace TeamCityConsole.Commands
 
             List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
 
-            //if rules are defined we create fake files with the reference to the TC resources in order to download.
-            //List<File> files = artifactRules.Select(x => x.CreateTeamCityFileReference(build.Href + "/artifacts/content/")).ToList();
+            string basePath = PathHelper.PathRelativeTo(Path.GetDirectoryName(_configFullPath), _fileSystem.GetWorkingDirectory());
+
+            //create fake files with the reference to the TC resources in order to download.
             List<PathFilePair> files = artifactRules.Select(x => new PathFilePair
             {
                 File = x.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
-                Path = x.Dest
+                Path = Path.Combine(basePath, x.Dest)
             }).ToList();
 
             await DownloadFiles(files);
@@ -157,6 +160,12 @@ namespace TeamCityConsole.Commands
 
         internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)
         {
+            if (options.Force)
+            {
+                Log.Debug("Config file not found. Using command line BuildConfigId: {0}", options.BuildConfigId);
+                return new DependencyConfig { BuildConfigId = options.BuildConfigId };
+            }
+
             string fullPath = GetConfigFullPath(options, fileName);
 
             Log.Debug("Loading config file: {0}", fullPath);
@@ -167,29 +176,59 @@ namespace TeamCityConsole.Commands
                 return JsonConvert.DeserializeObject<DependencyConfig>(json);
             }
             
-            if (options.Force)
-            {
-                Log.Debug("Config file not found. Using command line BuildConfigId: {0}", options.BuildConfigId);
-                return new DependencyConfig {BuildConfigId = options.BuildConfigId};
-            }
-
             throw new Exception(
                 string.Format(
                     "Unable to find {0}. Specify Force option on command line to create the file or provide a proper path using the ConfigFilePath option.",
                     fullPath));
         }
 
-        private static string GetConfigFullPath(GetDependenciesOptions options, string fileName)
+        private string GetConfigFullPath(GetDependenciesOptions options, string fileName)
         {
-            string fullPath = Path.GetFullPath(".");
+            string fullPath = _fileSystem.GetWorkingDirectory();
 
             if (string.IsNullOrEmpty(options.ConfigFilePath) == false)
             {
-                fullPath = Path.GetFullPath(options.ConfigFilePath);
+                fullPath = _fileSystem.GetFullPath(options.ConfigFilePath);
             }
 
             fullPath = Path.Combine(fullPath, fileName);
+            bool fileExists = _fileSystem.FileExists(fullPath);
+            while (fileExists == false && IsAtRootLevel(fullPath) == false)
+            {
+                fullPath = LookOneLevelUp(fullPath);
+                fileExists = _fileSystem.FileExists(fullPath);
+            }
+
+            if (fileExists == false)
+            {
+                throw new Exception("Config file not found.");
+            }
+
             return fullPath;
+        }
+
+        private string LookOneLevelUp(string fullPath)
+        {
+            string dir = Path.GetDirectoryName(fullPath);
+
+            var parts = dir.Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length > 2)
+            {
+                dir = string.Join(Path.DirectorySeparatorChar.ToString(), parts.Take(parts.Length - 1));               
+            }
+            else
+            {
+                dir = parts[0] + Path.DirectorySeparatorChar;
+            }
+
+            return Path.Combine(dir, Path.GetFileName(fullPath));
+        }
+
+        private bool IsAtRootLevel(string fullPath)
+        {
+            int partsCount = fullPath.Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries).Length;
+            return partsCount <= 2;
         }
 
         private class PathFilePair

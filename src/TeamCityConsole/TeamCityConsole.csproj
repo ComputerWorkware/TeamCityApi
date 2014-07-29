@@ -82,6 +82,7 @@
     <Compile Include="Utils\IFileDownloader.cs" />
     <Compile Include="Utils\IFileSystem.cs" />
     <Compile Include="Utils\ArtifactRule.cs" />
+    <Compile Include="Utils\PathHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

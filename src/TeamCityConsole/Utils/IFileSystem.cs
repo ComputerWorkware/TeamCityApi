@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace TeamCityConsole.Utils
 {
@@ -17,6 +18,9 @@ namespace TeamCityConsole.Utils
         Stream CreateFile(string path);
         void MoveFile(string sourceFileName, string destFileName);
         void DeleteFile(string fileName);
+        string GetFullPath(string path);
+        string GetApplicationBaseDirectory();
+        string GetWorkingDirectory();
     }
 
     class FileSystem : IFileSystem
@@ -96,6 +100,21 @@ namespace TeamCityConsole.Utils
         public void DeleteFile(string fileName)
         {
             File.Delete(fileName);
+        }
+
+        public string GetFullPath(string path)
+        {
+            return Path.GetFullPath(path);
+        }
+
+        public string GetApplicationBaseDirectory()
+        {
+            return AppDomain.CurrentDomain.BaseDirectory;
+        }
+
+        public string GetWorkingDirectory()
+        {
+            return Path.GetFullPath(".");
         }
     }
 }
