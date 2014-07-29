@@ -91,6 +91,8 @@ namespace TeamCityConsole.Commands
 
         private async Task ResolveDependency(DependencyDefinition dependency)
         {
+            Log.Debug("Trying to fetch depedency: {0}", dependency.SourceBuildConfig.Id);
+
             if (_builds.ContainsKey(dependency.SourceBuildConfig.Id))
             {
                 Log.Info("Dependency already fetched. Skipping: {0}", dependency.SourceBuildConfig.Id);
@@ -101,7 +103,7 @@ namespace TeamCityConsole.Commands
 
             _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));
 
-            Log.Debug("{0}-{1}", build.BuildTypeId, build.Number);
+            Log.Debug("Downloading artifacts from: {0}-{1}", build.BuildTypeId, build.Number);
 
             List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
 
@@ -114,6 +116,8 @@ namespace TeamCityConsole.Commands
             }).ToList();
 
             await DownloadFiles(_dependencyConfig.OutputPath, files);
+
+            Log.Debug("Done fetching depedencies for: {0}", dependency.SourceBuildConfig.Id);
         }
 
         private static List<ArtifactRule> GetArtifactRules(DependencyDefinition dependency)
@@ -138,6 +142,7 @@ namespace TeamCityConsole.Commands
             {
                 if (file.File.HasContent)
                 {
+                    Log.Debug("Downloading {0} to {1}", file.File.Name, file.Path);
                     await _downloader.Download(file.Path, file.File);
                 }
                 else

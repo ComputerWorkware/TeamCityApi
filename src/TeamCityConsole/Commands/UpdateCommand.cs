@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using NLog;
 using TeamCityApi;
 using TeamCityApi.Domain;
 using TeamCityConsole.Utils;
@@ -10,6 +11,8 @@ namespace TeamCityConsole.Commands
 {
     class UpdateCommand : ICommand
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private readonly ITeamCityClient _client;
 
         private readonly IFileSystem _fileSystem;
@@ -31,15 +34,19 @@ namespace TeamCityConsole.Commands
 
         public async Task Execute(object options)
         {
+            Log.Debug("Trying to self update");
+
             Build build = await _client.Builds.LastSuccessfulBuildFromConfig(_settings.SelfUpdateBuildConfigId);
 
             if (build.Number == _assemblyMetada.FileVersion)
             {
+                Log.Debug("No update available.");
                 return;
             }
 
-            string exePath = _assemblyMetada.Location;
+            Log.Info("Preparing to update version {0} to {1}.", _assemblyMetada.FileVersion, build.Number);
 
+            string exePath = _assemblyMetada.Location;
 
             string renamedPath = exePath + ".old";
             Move(exePath, renamedPath);
@@ -51,6 +58,8 @@ namespace TeamCityConsole.Commands
             };
 
             await _downloader.Download(Path.GetDirectoryName(exePath), file);
+
+            Log.Info("Update complete.");
         }
 
         protected void Move(string oldPath, string newPath)

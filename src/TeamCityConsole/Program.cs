@@ -50,22 +50,11 @@ namespace TeamCityConsole
                 updateCommand.Execute(null).Wait();
             }
 #endif
-            Task displayTask = Task.Run(async () =>
-            {
-                Console.Out.WriteLine("Processing");
-                while (true)
-                {
-                    Console.Out.Write(".");
-                    await Task.Delay(400);
-                }
-            });
-
 
             try
             {
                 Task downloadTask = command.Execute(options);
                 downloadTask.Wait();
-                Console.Out.WriteLine("");
             }
             catch (AggregateException e)
             {
