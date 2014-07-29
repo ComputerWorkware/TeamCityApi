@@ -66,7 +66,6 @@ namespace TeamCityConsole.Commands
             {
                 BuildConfigId = id,
                 BuildInfos = _builds.Values.ToList(),
-                OutputPath = _dependencyConfig.OutputPath
             };
 
             return dependencyConfig;
@@ -115,7 +114,7 @@ namespace TeamCityConsole.Commands
                 Path = x.Dest
             }).ToList();
 
-            await DownloadFiles(_dependencyConfig.OutputPath, files);
+            await DownloadFiles(files);
 
             Log.Debug("Done fetching depedencies for: {0}", dependency.SourceBuildConfig.Id);
         }
@@ -136,7 +135,7 @@ namespace TeamCityConsole.Commands
             return artifactRules;
         }
 
-        private async Task DownloadFiles(string destPath, IEnumerable<PathFilePair> files)
+        private async Task DownloadFiles(IEnumerable<PathFilePair> files)
         {
             foreach (PathFilePair file in files)
             {
@@ -153,7 +152,7 @@ namespace TeamCityConsole.Commands
                         File = x,
                         Path = System.IO.Path.Combine(file.Path, x.Name)
                     });
-                    await DownloadFiles(destPath, childPairs);
+                    await DownloadFiles(childPairs);
                 }
             }
         }
@@ -173,7 +172,7 @@ namespace TeamCityConsole.Commands
             if (options.Force)
             {
                 Log.Debug("Config file not found. Using command line BuildConfigId: {0}", options.BuildConfigId);
-                return new DependencyConfig {BuildConfigId = options.BuildConfigId, OutputPath = options.OutputPath};
+                return new DependencyConfig {BuildConfigId = options.BuildConfigId};
             }
 
             throw new Exception(

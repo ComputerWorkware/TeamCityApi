@@ -20,7 +20,6 @@ namespace TeamCityConsole.Tests
                 {
                     BuildConfigId = config.BuildConfigId,
                     BuildInfos = config.BuildInfos.ToList(),
-                    OutputPath = config.OutputPath
                 };
 
                 Assert.Equal(config, otherConfig);
@@ -44,7 +43,6 @@ namespace TeamCityConsole.Tests
                 {
                     BuildConfigId = config.BuildConfigId,
                     BuildInfos = buildInfos,
-                    OutputPath = config.OutputPath
                 };
 
                 Assert.Equal(config, otherConfig);
@@ -58,7 +56,6 @@ namespace TeamCityConsole.Tests
                 {
                     BuildConfigId = config.BuildConfigId,
                     BuildInfos = config.BuildInfos.ToList(),
-                    OutputPath = config.OutputPath
                 };
 
                 //add the item that should make it fail

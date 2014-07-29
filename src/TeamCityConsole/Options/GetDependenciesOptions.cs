@@ -15,14 +15,6 @@ namespace TeamCityConsole.Options
         [Option('f', "Force", HelpText = "Force creation of configuration file")]
         public bool Force { get; set; }
 
-        [Option('o', "OutputPath", Required = false, HelpText = "Path to the artifact output")]
-        public string OutputPath { get; set; }
-
-        public GetDependenciesOptions()
-        {
-            OutputPath = "assemblies";
-        }
-
         public void Validate()
         {
             if (Force && string.IsNullOrEmpty(BuildConfigId))

@@ -229,7 +229,6 @@ namespace TeamCityConsole.Tests.Commands
 
                 Assert.Equal(buildConfigId, config.BuildConfigId);
                 Assert.Empty(config.BuildInfos);
-                Assert.Equal(options.OutputPath, config.OutputPath);
             }
         }
 
@@ -252,26 +251,7 @@ namespace TeamCityConsole.Tests.Commands
                 DependencyConfig config = command.LoadConfigFile(options, fileName);
 
                 Assert.Equal(options.BuildConfigId, config.BuildConfigId);
-                Assert.Equal(options.OutputPath, config.OutputPath);
                 Assert.Empty(config.BuildInfos);
-            }
-
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_default_output_folder_to_assemblies_if_not_specified(
-                ITeamCityClient client,
-                IFileDownloader downloader,
-                IFileSystem fileSystem,
-                string fileName)
-            {
-                fileSystem.FileExists(Arg.Any<string>()).Returns(false);
-                var options = new GetDependenciesOptions {Force = true}; 
-
-                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
-
-                DependencyConfig config = command.LoadConfigFile(options, fileName);
-
-                Assert.Equal("assemblies", config.OutputPath);
             }
 
             [Theory]
@@ -319,8 +299,7 @@ namespace TeamCityConsole.Tests.Commands
       ""BuildConfigId"": ""DependencyConfig1"",
       ""CommitHash"": ""e5a9aa677cc88ff48c42749a26ebac736535e87c""
     }
-  ],
-  ""OutputPath"": ""assemblies""
+  ]
 }";
 
                 fileSystem.FileExists(Arg.Any<string>()).Returns(true);
@@ -331,7 +310,6 @@ namespace TeamCityConsole.Tests.Commands
                 DependencyConfig config = command.LoadConfigFile(options, fileName);
 
                 Assert.Equal("MyConfig", config.BuildConfigId);
-                Assert.Equal("assemblies", config.OutputPath);
                 Assert.Equal(2, config.BuildInfos.Count);
             }
         }
