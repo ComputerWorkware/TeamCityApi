@@ -6,21 +6,15 @@ namespace TeamCityConsole.Options
     [Verb(Verbs.GetDependencies, HelpText = "Download dependencies using the chained artifact dependencies")]
     public class GetDependenciesOptions
     {
-        [Option('c', "BuildConfigId", Required = false, HelpText = "Configuration Id")]
+        [Option('i', "init", Required = false, HelpText = "Specify the build configuration id used to initializ a new dependencies.config")]
         public string BuildConfigId { get; set; }
 
         [Option('p', "ConfigFilePath", Required = false, HelpText = "Path to the configuration file")]
         public string ConfigFilePath { get; set; }
 
-        [Option('f', "Force", HelpText = "Force creation of configuration file")]
-        public bool Force { get; set; }
-
-        public void Validate()
+        public bool Force
         {
-            if (Force && string.IsNullOrEmpty(BuildConfigId))
-            {
-                throw new Exception("BuildConfigId is required when Force option is specified.");
-            }
+            get { return string.IsNullOrWhiteSpace(BuildConfigId) == false; }
         }
     }
 }

@@ -46,7 +46,7 @@ namespace TeamCityConsole.Tests.Commands
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 
                 var options = fixture.Build<GetDependenciesOptions>()
-                    .WithForce(buildConfigId)
+                    .With(x => x.BuildConfigId, buildConfigId)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -79,7 +79,7 @@ namespace TeamCityConsole.Tests.Commands
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 
                 var options = fixture.Build<GetDependenciesOptions>()
-                    .WithForce(buildConfigId)
+                    .With(x => x.BuildConfigId, buildConfigId)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -113,7 +113,7 @@ namespace TeamCityConsole.Tests.Commands
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 
                 var options = fixture.Build<GetDependenciesOptions>()
-                    .WithForce(buildConfigId)
+                    .With(x => x.BuildConfigId, buildConfigId)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -159,7 +159,7 @@ namespace TeamCityConsole.Tests.Commands
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 
                 var options = fixture.Build<GetDependenciesOptions>()
-                    .WithForce(buildConfigId)
+                    .With(x => x.BuildConfigId, buildConfigId)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -220,7 +220,7 @@ namespace TeamCityConsole.Tests.Commands
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 
                 var options = fixture.Build<GetDependenciesOptions>()
-                    .WithForce(buildConfigId)
+                    .With(x => x.BuildConfigId, buildConfigId)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -244,7 +244,6 @@ namespace TeamCityConsole.Tests.Commands
                 string fileName)
             {
                 fileSystem.FileExists(Arg.Any<string>()).Returns(false);
-                options.Force = true;
 
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 
@@ -264,7 +263,7 @@ namespace TeamCityConsole.Tests.Commands
                 string fileName)
             {
                 fileSystem.FileExists(Arg.Any<string>()).Returns(false);
-                options.Force = false;
+                options.BuildConfigId = null;
 
                 var command = new ResolveDependencyCommand(client, downloader, fileSystem);
 

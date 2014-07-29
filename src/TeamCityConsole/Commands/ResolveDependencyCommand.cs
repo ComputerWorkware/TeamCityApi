@@ -41,8 +41,6 @@ namespace TeamCityConsole.Commands
         {
             var dependenciesOptions = (GetDependenciesOptions)options;
 
-            dependenciesOptions.Validate();
-
             string configFullPath = GetConfigFullPath(dependenciesOptions, ConfigFile);
 
             _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
