@@ -110,6 +110,11 @@ namespace TeamCityConsole.Commands
 
             string basePath = PathHelper.PathRelativeTo(Path.GetDirectoryName(_configFullPath), _fileSystem.GetWorkingDirectory());
 
+            if (string.IsNullOrWhiteSpace(basePath))
+            {
+                basePath = ".";
+            }
+
             //create fake files with the reference to the TC resources in order to download.
             List<PathFilePair> files = artifactRules.Select(x => new PathFilePair
             {

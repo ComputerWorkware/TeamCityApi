@@ -57,7 +57,37 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download("somedir\\assemblies", Arg.Any<File>());
+                command.Downloader.Received().Download(".\\somedir\\assemblies", Arg.Any<File>());
+            }
+
+            [Theory]
+            [AutoNSubstituteData]
+            internal void Should_handle_emtpy_destination_directory_on_Path_Rule(
+                TestResolveDependencyCommand command,
+                string buildConfigId,
+                IFixture fixture)
+            {
+                var dependencyDefinition = fixture.Build<DependencyDefinition>()
+                    .WithPathRules("file.dll => ")
+                    .Create();
+
+                var buildConfig = fixture.Build<BuildConfig>()
+                    .WithId(buildConfigId)
+                    .WithDependencies(dependencyDefinition)
+                    .Create();
+
+                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+
+                ConfigureDependency(command.Client, dependencyDefinition, fixture);
+
+                var options = fixture.Build<GetDependenciesOptions>()
+                    .With(x => x.BuildConfigId, buildConfigId)
+                    .Without(x => x.ConfigFilePath)
+                    .Create();
+
+                command.Execute(options).Wait();
+
+                command.Downloader.Received().Download(".", Arg.Any<File>());
             }
 
             [Theory]
@@ -89,8 +119,8 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                command.Downloader.Received(1).Download("path1\\assemblies", Arg.Any<File>());
-                command.Downloader.Received(1).Download("path2\\assemblies", Arg.Any<File>());
+                command.Downloader.Received(1).Download(".\\path1\\assemblies", Arg.Any<File>());
+                command.Downloader.Received(1).Download(".\\path2\\assemblies", Arg.Any<File>());
             }
 
             [Theory]
@@ -164,7 +194,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download("src\\assemblies", Arg.Any<File>());
+                command.Downloader.Received().Download(".\\src\\assemblies", Arg.Any<File>());
             }
 
             [Theory]
@@ -207,29 +237,9 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                command.Downloader.Received().Download("src\\assemblies", Arg.Is<File>(file => file.Name == "fileB.dll"));
-                command.Downloader.Received().Download("src\\assemblies", Arg.Is<File>(file => file.Name == "fileC.dll"));
+                command.Downloader.Received().Download(".\\src\\assemblies", Arg.Is<File>(file => file.Name == "fileB.dll"));
+                command.Downloader.Received().Download(".\\src\\assemblies", Arg.Is<File>(file => file.Name == "fileC.dll"));
             }
-        }
-
-        private static BuildConfig ConfigureDependency(ITeamCityClient client, DependencyDefinition dependencyDefinition, IFixture fixture)
-        {
-            Build build = fixture.Build<Build>()
-                .With(x => x.BuildTypeId, dependencyDefinition.SourceBuildConfig.Id)
-                .Create();
-
-            BuildConfig buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(dependencyDefinition.SourceBuildConfig.Id)
-                    .WithNoDependencies()
-                    .Create();
-
-            client.BuildConfigs.GetByConfigurationId(dependencyDefinition.SourceBuildConfig.Id)
-                .Returns(Task.FromResult(buildConfig));
-
-            client.Builds.LastSuccessfulBuildFromConfig(dependencyDefinition.SourceBuildConfig.Id)
-                .Returns(Task.FromResult(build));
-
-            return buildConfig;
         }
 
         public class Config
@@ -394,6 +404,26 @@ namespace TeamCityConsole.Tests.Commands
                 Assert.True(exception.Message.StartsWith("Config file not found"));
             }
 
+        }
+
+        private static BuildConfig ConfigureDependency(ITeamCityClient client, DependencyDefinition dependencyDefinition, IFixture fixture)
+        {
+            Build build = fixture.Build<Build>()
+                .With(x => x.BuildTypeId, dependencyDefinition.SourceBuildConfig.Id)
+                .Create();
+
+            BuildConfig buildConfig = fixture.Build<BuildConfig>()
+                    .WithId(dependencyDefinition.SourceBuildConfig.Id)
+                    .WithNoDependencies()
+                    .Create();
+
+            client.BuildConfigs.GetByConfigurationId(dependencyDefinition.SourceBuildConfig.Id)
+                .Returns(Task.FromResult(buildConfig));
+
+            client.Builds.LastSuccessfulBuildFromConfig(dependencyDefinition.SourceBuildConfig.Id)
+                .Returns(Task.FromResult(build));
+
+            return buildConfig;
         }
 
         public class TestResolveDependencyCommand : ResolveDependencyCommand
