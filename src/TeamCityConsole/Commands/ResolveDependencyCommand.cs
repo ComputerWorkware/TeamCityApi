@@ -79,10 +79,9 @@ namespace TeamCityConsole.Commands
 
             BuildConfig buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
 
-            foreach (var dependency in buildConfig.ArtifactDependencies)
-            {
-                await ResolveDependency(dependency);
-            }
+            var tasks = buildConfig.ArtifactDependencies.Select(ResolveDependency).ToArray();
+
+            await Task.WhenAll(tasks);
 
             foreach (var dependency in buildConfig.ArtifactDependencies)
             {
@@ -102,7 +101,10 @@ namespace TeamCityConsole.Commands
 
             Build build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id);
 
-            _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));
+            lock (_builds)
+            {
+                _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));                
+            }
 
             Log.Debug("Downloading artifacts from: {0}-{1}", build.BuildTypeId, build.Number);
 
@@ -145,12 +147,15 @@ namespace TeamCityConsole.Commands
 
         private async Task DownloadFiles(IEnumerable<PathFilePair> files)
         {
+            List<Task> tasks = new List<Task>();
+
             foreach (PathFilePair file in files)
             {
                 if (file.File.HasContent)
                 {
                     Log.Debug("Downloading {0} to {1}", file.File.Name, file.Path);
-                    await _downloader.Download(file.Path, file.File);
+                    Task task = _downloader.Download(file.Path, file.File);
+                    tasks.Add(task);
                 }
                 else
                 {
@@ -160,9 +165,12 @@ namespace TeamCityConsole.Commands
                         File = x,
                         Path = System.IO.Path.Combine(file.Path, x.Name)
                     });
-                    await DownloadFiles(childPairs);
+                    Task task = DownloadFiles(childPairs);
+                    tasks.Add(task);
                 }
             }
+
+            await Task.WhenAll(tasks);
         }
 
         internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)
