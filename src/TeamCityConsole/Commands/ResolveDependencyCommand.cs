@@ -43,7 +43,9 @@ namespace TeamCityConsole.Commands
         {
             var dependenciesOptions = (GetDependenciesOptions)options;
 
-            _configFullPath = GetConfigFullPath(dependenciesOptions, ConfigFile);
+            _configFullPath = dependenciesOptions.Force
+                ? Path.Combine(_fileSystem.GetWorkingDirectory(), ConfigFile)
+                : GetConfigFullPath(dependenciesOptions, ConfigFile);
 
             _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
 
@@ -191,44 +193,28 @@ namespace TeamCityConsole.Commands
                 fullPath = _fileSystem.GetFullPath(options.ConfigFilePath);
             }
 
-            fullPath = Path.Combine(fullPath, fileName);
-            bool fileExists = _fileSystem.FileExists(fullPath);
-            while (fileExists == false && IsAtRootLevel(fullPath) == false)
+            IEnumerable<string> probingPaths = GetProbingPaths(fullPath, fileName);
+            foreach (var probingPath in probingPaths)
             {
-                fullPath = LookOneLevelUp(fullPath);
-                fileExists = _fileSystem.FileExists(fullPath);
+                if (_fileSystem.FileExists(probingPath))
+                {
+                    return probingPath;
+                }
             }
 
-            if (fileExists == false)
-            {
-                throw new Exception("Config file not found.");
-            }
-
-            return fullPath;
+            throw new Exception("Config file not found.");
         }
 
-        private string LookOneLevelUp(string fullPath)
+        private IEnumerable<string> GetProbingPaths(string directoryName, string fileName)
         {
-            string dir = Path.GetDirectoryName(fullPath);
+            IList<string> pathParts = PathHelper.GetPathParts(directoryName);
 
-            var parts = dir.Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
-
-            if (parts.Length > 2)
+            for (int i = pathParts.Count ; i > 0 ; i--)
             {
-                dir = string.Join(Path.DirectorySeparatorChar.ToString(), parts.Take(parts.Length - 1));               
-            }
-            else
-            {
-                dir = parts[0] + Path.DirectorySeparatorChar;
-            }
 
-            return Path.Combine(dir, Path.GetFileName(fullPath));
-        }
-
-        private bool IsAtRootLevel(string fullPath)
-        {
-            int partsCount = fullPath.Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries).Length;
-            return partsCount <= 2;
+                string path = string.Join(Path.DirectorySeparatorChar.ToString(), pathParts.Take(i));
+                yield return path + Path.DirectorySeparatorChar + fileName;
+            }
         }
 
         private class PathFilePair

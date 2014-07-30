@@ -62,7 +62,7 @@ namespace TeamCityConsole.Tests.Commands
                 IFixture fixture)
             {
                 var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("file.dll => src/assemblies")
+                    .WithPathRules("file.dll => somedir/assemblies")
                     .Create();
 
                 var buildConfig = fixture.Build<BuildConfig>()
@@ -81,24 +81,16 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download("src\\assemblies", Arg.Any<File>());
+                command.Downloader.Received().Download("somedir\\assemblies", Arg.Any<File>());
             }
 
             [Theory]
             [AutoNSubstituteData]
             internal void Should_download_each_dependency_in_the_path_rules(
-                ITeamCityClient client,
-                IFileDownloader downloader,
-                IFileSystem fileSystem,
+                TestResolveDependencyCommand command,
                 string buildConfigId,
                 IFixture fixture)
             {
-                fileSystem.FileExists(@"c:\projects\projectA\dependencies.config").Returns(true);
-
-                fileSystem.GetWorkingDirectory().Returns(@"c:\projects\projectA\src");
-
-                fileSystem.GetFullPath(@"src\assemblies").Returns(@"c:\projects\projectA\src\assemblies");
-
                 //2 files are defined in the path rules
                 var dependencyDefinition = fixture.Build<DependencyDefinition>()
                     .WithPathRules("fileA.dll => src/assemblies"+Environment.NewLine+"fileB.dll=>src/assemblies")
@@ -109,11 +101,9 @@ namespace TeamCityConsole.Tests.Commands
                     .WithDependencies(dependencyDefinition)
                     .Create();
 
-                client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                ConfigureDependency(client, dependencyDefinition, fixture);
-
-                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
+                ConfigureDependency(command.Client, dependencyDefinition, fixture);
 
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
@@ -123,7 +113,7 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                downloader.Received(2).Download("..\\src\\assemblies", Arg.Any<File>());
+                command.Downloader.Received(2).Download("src\\assemblies", Arg.Any<File>());
             }
 
             [Theory]
@@ -196,40 +186,36 @@ namespace TeamCityConsole.Tests.Commands
             [Theory]
             [AutoNSubstituteData]
             internal void Should_initialize_DependencyConfig_with_empty_BuildInfos_list(
-                ITeamCityClient client, 
-                IFileDownloader downloader, 
-                IFileSystem fileSystem, 
+                TestResolveDependencyCommand command,
                 string buildConfigId, 
                 IFixture fixture)
             {
-                fileSystem.FileExists(Arg.Any<string>()).Returns(true);
+                command.FileSystem.FileExists(@"c:\projects\projectA\dependencies.config").Returns(false);
 
                 BuildConfig buildConfig = fixture.Build<BuildConfig>()
                     .WithId(buildConfigId)
                     .WithNoDependencies()
                     .Create();
 
-                client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
                 DependencyConfig config = null;
 
-                fileSystem.When(x => x.WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>()))
+                command.FileSystem.When(x => x.WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>()))
                     .Do(info =>
                     {
                         var content = info.Args()[1] as string;
                         config = Json.Deserialize<DependencyConfig>(content);
                     });
 
-                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
-
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.BuildConfigId)
+                    .Without(x => x.ConfigFilePath)
                     .Create();
 
                 command.Execute(options).Wait();
 
-                fileSystem.Received().WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>());
+                command.FileSystem.Received().WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>());
 
                 Assert.Equal(buildConfigId, config.BuildConfigId);
                 Assert.Empty(config.BuildInfos);
@@ -241,15 +227,11 @@ namespace TeamCityConsole.Tests.Commands
             [Theory]
             [AutoNSubstituteData]
             internal void Should_initialize_new_config_from_command_line_options(
-                ITeamCityClient client,
-                IFileDownloader downloader,
-                IFileSystem fileSystem,
+                TestResolveDependencyCommand command,
                 GetDependenciesOptions options,
                 string fileName)
             {
-                fileSystem.FileExists(Arg.Any<string>()).Returns(false);
-
-                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
+                command.FileSystem.FileExists(Arg.Any<string>()).Returns(false);
 
                 DependencyConfig config = command.LoadConfigFile(options, fileName);
 
@@ -259,19 +241,19 @@ namespace TeamCityConsole.Tests.Commands
 
             [Theory]
             [AutoNSubstituteData]
-            internal void Should_throw_exception_if_Force_option_not_set(
-                ITeamCityClient client,
-                IFileDownloader downloader,
-                IFileSystem fileSystem,
+            internal void Should_throw_exception_if_Force_is_false_AND_Config_file_not_found(
+                TestResolveDependencyCommand command,
                 GetDependenciesOptions options,
                 string fileName)
             {
-                fileSystem.FileExists(Arg.Any<string>()).Returns(false);
+                command.FileSystem.FileExists(Arg.Any<string>()).Returns(false);
+
+                //BuildConfigId set to null will cause Force == false
                 options.BuildConfigId = null;
 
-                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
+                Exception exception = Assert.Throws<Exception>(() => command.LoadConfigFile(options, fileName));
 
-                Assert.Throws<Exception>(() => command.LoadConfigFile(options, fileName));
+                Assert.True(exception.Message.StartsWith("Config file not found"));
             }
         }
 
@@ -280,11 +262,8 @@ namespace TeamCityConsole.Tests.Commands
             [Theory]
             [AutoNSubstituteData]
             internal void Load_options_from_file(
-                ITeamCityClient client,
-                IFileDownloader downloader,
-                IFileSystem fileSystem,
-                GetDependenciesOptions options,
-                string fileName)
+                TestResolveDependencyCommand command,
+                IFixture fixture)
             {
                 string json = @"
 {
@@ -304,14 +283,14 @@ namespace TeamCityConsole.Tests.Commands
     }
   ]
 }";
-                options.BuildConfigId = null;
+                var options = fixture.Build<GetDependenciesOptions>()
+                    .Without(x => x.BuildConfigId)
+                    .Without(x => x.ConfigFilePath)
+                    .Create();
 
-                fileSystem.FileExists(Arg.Any<string>()).Returns(true);
-                fileSystem.ReadAllTextFromFile(Arg.Any<string>()).Returns(json);
+                command.FileSystem.ReadAllTextFromFile(command.DefaultConfigLocation).Returns(json);
 
-                var command = new ResolveDependencyCommand(client, downloader, fileSystem);
-
-                DependencyConfig config = command.LoadConfigFile(options, fileName);
+                DependencyConfig config = command.LoadConfigFile(options, "dependencies.config");
 
                 Assert.Equal("MyConfig", config.BuildConfigId);
                 Assert.Equal(2, config.BuildInfos.Count);
@@ -417,6 +396,7 @@ namespace TeamCityConsole.Tests.Commands
             public ITeamCityClient Client { get; private set; }
             public IFileDownloader Downloader { get; private set; }
             public IFileSystem FileSystem { get; private set; }
+            public string DefaultConfigLocation { get; private set; }
 
             public TestResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem) 
                 : base(client, downloader, fileSystem)
@@ -425,8 +405,10 @@ namespace TeamCityConsole.Tests.Commands
                 Downloader = downloader;
                 FileSystem = fileSystem;
 
+                DefaultConfigLocation = @"c:\projects\projectA\dependencies.config";
+
                 FileSystem.GetWorkingDirectory().Returns(@"c:\projects\projectA");
-                FileSystem.FileExists(@"c:\projects\projectA\dependencies.config").Returns(true);
+                FileSystem.FileExists(DefaultConfigLocation).Returns(true);
                 FileSystem.GetFullPath(@"src\assemblies").Returns(@"c:\projects\projectA\src\assemblies");
             }
         }
