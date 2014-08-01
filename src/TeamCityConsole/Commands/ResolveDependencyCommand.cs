@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Newtonsoft.Json;
 using NLog;
 using TeamCityApi;
@@ -18,6 +19,8 @@ namespace TeamCityConsole.Commands
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        private readonly ActionBlock<PathFilePair> _downloadActionBlock;
+
         private readonly ITeamCityClient _client;
 
         private readonly IFileDownloader _downloader;
@@ -32,11 +35,43 @@ namespace TeamCityConsole.Commands
 
         private string _configFullPath;
 
+        BroadcastBlock<PathFilePair> pairBroadcast;
+
         public ResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem)
         {
             _downloader = downloader;
             _fileSystem = fileSystem;
             _client = client;
+
+            var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 8 };
+
+            pairBroadcast = new BroadcastBlock<PathFilePair>(pair => pair, options);
+
+            var directoryTransformation = new TransformManyBlock<PathFilePair, PathFilePair>(pair => HandleDirectory(pair), options);
+
+            _downloadActionBlock = new ActionBlock<PathFilePair>(pair => HandleFileDownload(pair), options);
+
+            pairBroadcast.LinkTo(directoryTransformation, pair => pair.File.HasChildren);
+            directoryTransformation.LinkTo(pairBroadcast);
+            pairBroadcast.LinkTo(_downloadActionBlock, pair => pair.File.HasContent);
+        }
+
+        private IEnumerable<PathFilePair> HandleDirectory(PathFilePair pair)
+        {
+            List<File> children = pair.File.GetChildren().Result;
+            IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
+            {
+                File = x,
+                Path = Path.Combine(pair.Path, x.Name)
+            });
+
+            return childPairs;
+        }
+
+        private void HandleFileDownload(PathFilePair pair)
+        {
+            Log.Debug("Downloading {0} to {1}", pair.File.Name, pair.Path);
+            _downloader.Download(pair.Path, pair.File);
         }
 
         public async Task Execute(object options)
@@ -64,6 +99,18 @@ namespace TeamCityConsole.Commands
         {
             await ResolveDependenciesInternal(id);
 
+            _downloadActionBlock.Complete();
+
+            try
+            {
+                _downloadActionBlock.Completion.Wait();
+            }
+            catch (Exception)
+            {
+                
+                throw;
+            }
+
             var dependencyConfig = new DependencyConfig
             {
                 BuildConfigId = id,
@@ -79,7 +126,7 @@ namespace TeamCityConsole.Commands
 
             BuildConfig buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
 
-            var tasks = buildConfig.ArtifactDependencies.Select(ResolveDependency).ToArray();
+            var tasks = buildConfig.ArtifactDependencies.Select(ResolveDependency);
 
             await Task.WhenAll(tasks);
 
@@ -147,30 +194,27 @@ namespace TeamCityConsole.Commands
 
         private async Task DownloadFiles(IEnumerable<PathFilePair> files)
         {
-            List<Task> tasks = new List<Task>();
-
-            foreach (PathFilePair file in files)
+            foreach (var pair in files)
             {
-                if (file.File.HasContent)
-                {
-                    Log.Debug("Downloading {0} to {1}", file.File.Name, file.Path);
-                    Task task = _downloader.Download(file.Path, file.File);
-                    tasks.Add(task);
-                }
-                else
-                {
-                    List<File> children = await file.File.GetChildren();
-                    IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
-                    {
-                        File = x,
-                        Path = System.IO.Path.Combine(file.Path, x.Name)
-                    });
-                    Task task = DownloadFiles(childPairs);
-                    tasks.Add(task);
-                }
+                pairBroadcast.Post(pair);
             }
-
-            await Task.WhenAll(tasks);
+            //foreach (PathFilePair file in files)
+            //{
+            //    if (file.File.HasContent)
+            //    {
+            //        _downloadActionBlock.Post(file);
+            //    }
+            //    else
+            //    {
+            //        List<File> children = await file.File.GetChildren();
+            //        IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
+            //        {
+            //            File = x,
+            //            Path = System.IO.Path.Combine(file.Path, x.Name)
+            //        });
+            //        await DownloadFiles(childPairs);
+            //    }
+            //}
         }
 
         internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)
@@ -230,10 +274,12 @@ namespace TeamCityConsole.Commands
             }
         }
 
-        private class PathFilePair
-        {
-            public string Path { get; set; }
-            public File File { get; set; }
-        }
+        
+    }
+
+    public class PathFilePair
+    {
+        public string Path { get; set; }
+        public File File { get; set; }
     }
 }
