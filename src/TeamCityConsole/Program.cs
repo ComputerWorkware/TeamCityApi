@@ -22,7 +22,7 @@ namespace TeamCityConsole
 
             DisplayAssemblyInfo();
 
-            ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions), typeof(SelfUpdateOptions));
+            ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions), typeof(SelfUpdateOptions), typeof(SetConfigOptions));
 
             if (result.Errors.OfType<HelpRequestedError>().Any())
             {
@@ -85,7 +85,9 @@ namespace TeamCityConsole
         {
             var container = new Container();
 
-            Settings settings = Settings.CreateFromConfig();
+            Settings settings = new Settings();
+            settings.Load();
+
             AssemblyMetada assemblyMetada = new AssemblyMetada();
 
             container.Register<IHttpClientWrapper>(new HttpClientWrapper(settings.TeamCityUri, settings.Username,
@@ -104,6 +106,9 @@ namespace TeamCityConsole
 
             container.Register<ICommand>(Verbs.SelfUpdate,
                 x => new UpdateCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileSystem>(), x.Resolve<IFileDownloader>(), assemblyMetada, settings));
+
+            container.Register<ICommand>(Verbs.SetConfig,
+                x => new SetConfigCommand(settings));
 
             return container;
         }

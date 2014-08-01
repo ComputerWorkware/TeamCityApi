@@ -31,7 +31,8 @@ namespace TeamCityConsole.Commands
         {
             var artifactOptions = options as GetArtifactOptions;
 
-            Settings settings = Settings.CreateFromConfig();
+            Settings settings = new Settings();
+            settings.Load();
 
             var client = new TeamCityClient(settings.TeamCityUri, settings.Username, settings.Password);
 
@@ -65,7 +66,9 @@ namespace TeamCityConsole.Commands
             Log.Debug("Downloading: {0}", destFileName);
 
             _fileSystem.EnsureDirectoryExists(destFileName);
-            Settings settings = Settings.CreateFromConfig();
+            Settings settings = new Settings();
+            settings.Load();
+
             var http = new HttpClientWrapper(settings.TeamCityUri, settings.Username, settings.Password);
 
             using (Stream stream = await http.GetStream(file.ContentHref))

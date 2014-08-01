@@ -5,5 +5,6 @@
         public const string GetArtifacts = "get-artifacts";
         public const string GetDependencies = "get-dependencies";
         public const string SelfUpdate = "self-update";
+        public const string SetConfig = "set-config";
     }
 }
