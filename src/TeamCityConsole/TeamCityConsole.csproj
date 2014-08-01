@@ -64,6 +64,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Commands\SetConfigCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="Model\BuildInfo.cs" />
     <Compile Include="Model\DependencyConfig.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Options\GetArtifactOptions.cs" />
     <Compile Include="Options\GetDependenciesOptions.cs" />
     <Compile Include="Options\SelfUpdateOptions.cs" />
+    <Compile Include="Options\SetConfigOptions.cs" />
     <Compile Include="Options\Verbs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
