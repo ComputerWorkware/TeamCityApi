@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using Funq;
+using NLog;
 using TeamCityApi;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
@@ -16,6 +17,8 @@ namespace TeamCityConsole
 {
     class Program
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         static void Main(string[] args)
         {
             var container = SetupContainer();
@@ -60,7 +63,7 @@ namespace TeamCityConsole
             {
                 foreach (Exception innerException in e.Flatten().InnerExceptions)
                 {
-                    Console.Out.WriteLine(innerException);
+                    Log.Fatal(innerException);
                 }
             }
         }
