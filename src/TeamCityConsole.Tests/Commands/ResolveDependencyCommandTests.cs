@@ -57,7 +57,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(".\\somedir\\assemblies", Arg.Any<File>());
+                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\somedir\\assemblies"));
             }
 
             [Theory]
@@ -87,7 +87,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(".", Arg.Any<File>());
+                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == "."));
             }
 
             [Theory]
@@ -119,8 +119,8 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                command.Downloader.Received(1).Download(".\\path1\\assemblies", Arg.Any<File>());
-                command.Downloader.Received(1).Download(".\\path2\\assemblies", Arg.Any<File>());
+                command.Downloader.Received(1).Download(Arg.Is<PathFilePair>(x => x.Path == ".\\path1\\assemblies"));
+                command.Downloader.Received(1).Download(Arg.Is<PathFilePair>(x => x.Path == ".\\path2\\assemblies"));
             }
 
             [Theory]
@@ -161,7 +161,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(@"..\src\assemblies", Arg.Any<File>());
+                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == "..\\src\\assemblies"));
             }
         }
 
@@ -194,7 +194,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(".\\src\\assemblies", Arg.Any<File>());
+                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies"));
             }
 
             [Theory]
@@ -237,8 +237,8 @@ namespace TeamCityConsole.Tests.Commands
                 command.Execute(options).Wait();
 
                 //ensures 2 files were downloaded
-                command.Downloader.Received().Download(".\\src\\assemblies", Arg.Is<File>(file => file.Name == "fileB.dll"));
-                command.Downloader.Received().Download(".\\src\\assemblies", Arg.Is<File>(file => file.Name == "fileC.dll"));
+                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileB.dll"));
+                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileC.dll"));
             }
         }
 
@@ -429,16 +429,16 @@ namespace TeamCityConsole.Tests.Commands
         public class TestResolveDependencyCommand : ResolveDependencyCommand
         {
             public ITeamCityClient Client { get; private set; }
-            public IFileDownloader Downloader { get; private set; }
             public IFileSystem FileSystem { get; private set; }
+            public IDownloadDataFlow Downloader { get; private set; }
             public string DefaultConfigLocation { get; private set; }
 
-            public TestResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem) 
-                : base(client, downloader, fileSystem)
+            public TestResolveDependencyCommand(ITeamCityClient client, IFileSystem fileSystem, IDownloadDataFlow downloadDataFlow) 
+                : base(client, fileSystem, downloadDataFlow)
             {
                 Client = client;
-                Downloader = downloader;
                 FileSystem = fileSystem;
+                Downloader = downloadDataFlow;
 
                 DefaultConfigLocation = @"c:\projects\projectA\dependencies.config";
 

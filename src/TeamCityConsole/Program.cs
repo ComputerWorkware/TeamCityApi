@@ -97,10 +97,12 @@ namespace TeamCityConsole
 
             container.Register<IFileDownloader>(x => new FileDownloader(x.Resolve<IHttpClientWrapper>()));
 
+            container.Register<IDownloadDataFlow>(x => new DownloadDataFlow(x.Resolve<IFileDownloader>()));
+
             container.Register<IFileSystem>(new FileSystem());
 
             container.Register<ICommand>(Verbs.GetDependencies,
-                x => new ResolveDependencyCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileDownloader>(), x.Resolve<IFileSystem>()));
+                x => new ResolveDependencyCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileSystem>(), x.Resolve<IDownloadDataFlow>()));
 
             container.Register<ICommand>(Verbs.GetArtifacts, x => new DownloadArtifactCommand(x.Resolve<IFileSystem>()));
 
