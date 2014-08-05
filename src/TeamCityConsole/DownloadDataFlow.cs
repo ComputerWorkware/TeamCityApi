@@ -23,7 +23,7 @@ namespace TeamCityConsole
 
         private readonly IFileDownloader _downloader;
 
-        BroadcastBlock<PathFilePair> _initialBroadcast;
+        ActionBlock<PathFilePair> _initialBroadcast;
 
         public Task Completion
         {
@@ -51,28 +51,7 @@ namespace TeamCityConsole
         {
             var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 8 };
 
-            _initialBroadcast = new BroadcastBlock<PathFilePair>(pair => pair, options);
-
-            var directoryTransformation = new TransformManyBlock<PathFilePair, PathFilePair>(pair => HandleDirectory(pair),
-                options);
-
-            var downloadActionBlock = new ActionBlock<PathFilePair>(pair => HandleFileDownload(pair), options);
-
-            _initialBroadcast.LinkTo(directoryTransformation, pair => pair.File.HasChildren);
-            directoryTransformation.LinkTo(_initialBroadcast);
-            _initialBroadcast.LinkTo(downloadActionBlock, pair => pair.File.HasContent);
-        }
-
-        private IEnumerable<PathFilePair> HandleDirectory(PathFilePair pair)
-        {
-            List<File> children = pair.File.GetChildren().Result;
-            IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
-            {
-                File = x,
-                Path = Path.Combine(pair.Path, x.Name)
-            });
-
-            return childPairs;
+            _initialBroadcast = new ActionBlock<PathFilePair>(pair => HandleFileDownload(pair), options);
         }
 
         private void HandleFileDownload(PathFilePair pair)
