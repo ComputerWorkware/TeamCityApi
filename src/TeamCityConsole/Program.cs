@@ -25,7 +25,9 @@ namespace TeamCityConsole
 
             DisplayAssemblyInfo();
 
-            ParserResult<object> result = Parser.Default.ParseArguments(args, typeof(GetArtifactOptions), typeof(GetDependenciesOptions), typeof(SelfUpdateOptions), typeof(SetConfigOptions));
+            Type[] optionTypes = GetOptionsInThisAssembly();
+
+            ParserResult<object> result = Parser.Default.ParseArguments(args, optionTypes);
 
             if (result.Errors.OfType<HelpRequestedError>().Any())
             {
@@ -116,6 +118,15 @@ namespace TeamCityConsole
                 x => new SetConfigCommand(settings));
 
             return container;
+        }
+
+        private static Type[] GetOptionsInThisAssembly()
+        {
+            IEnumerable<Type> types = from x in typeof(Program).Assembly.GetTypes()
+                where x.GetCustomAttribute<VerbAttribute>() != null
+                select x;
+
+            return types.ToArray();
         }
     }
 }
