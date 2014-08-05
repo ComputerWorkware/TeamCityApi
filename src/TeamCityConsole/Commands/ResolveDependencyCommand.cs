@@ -192,24 +192,23 @@ namespace TeamCityConsole.Commands
             }
 
             IEnumerable<string> probingPaths = GetProbingPaths(fullPath, fileName);
-            foreach (var probingPath in probingPaths)
+
+            string configPath = probingPaths.FirstOrDefault(x => _fileSystem.FileExists(x));
+
+            if (string.IsNullOrEmpty(configPath))
             {
-                if (_fileSystem.FileExists(probingPath))
-                {
-                    return probingPath;
-                }
+                throw new Exception("Config file not found. From command line use the '-i' option to create a new config file or '-p' to provide a custom path to the file.");
             }
 
-            throw new Exception("Config file not found.");
+            return configPath;
         }
 
-        private IEnumerable<string> GetProbingPaths(string directoryName, string fileName)
+        private static IEnumerable<string> GetProbingPaths(string directoryName, string fileName)
         {
             IList<string> pathParts = PathHelper.GetPathParts(directoryName);
 
             for (int i = pathParts.Count ; i > 0 ; i--)
             {
-
                 string path = string.Join(Path.DirectorySeparatorChar.ToString(), pathParts.Take(i));
                 yield return path + Path.DirectorySeparatorChar + fileName;
             }
