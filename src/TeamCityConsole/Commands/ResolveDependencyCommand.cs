@@ -19,11 +19,9 @@ namespace TeamCityConsole.Commands
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly ActionBlock<PathFilePair> _downloadActionBlock;
-
         private readonly ITeamCityClient _client;
 
-        private readonly IFileDownloader _downloader;
+        private readonly IDownloadDataFlow _downloadDataFlow;
 
         private readonly IFileSystem _fileSystem;
 
@@ -35,43 +33,11 @@ namespace TeamCityConsole.Commands
 
         private string _configFullPath;
 
-        BroadcastBlock<PathFilePair> pairBroadcast;
-
-        public ResolveDependencyCommand(ITeamCityClient client, IFileDownloader downloader, IFileSystem fileSystem)
+        public ResolveDependencyCommand(ITeamCityClient client, IFileSystem fileSystem, IDownloadDataFlow downloadDataFlow)
         {
-            _downloader = downloader;
             _fileSystem = fileSystem;
+            _downloadDataFlow = downloadDataFlow;
             _client = client;
-
-            var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 8 };
-
-            pairBroadcast = new BroadcastBlock<PathFilePair>(pair => pair, options);
-
-            var directoryTransformation = new TransformManyBlock<PathFilePair, PathFilePair>(pair => HandleDirectory(pair), options);
-
-            _downloadActionBlock = new ActionBlock<PathFilePair>(pair => HandleFileDownload(pair), options);
-
-            pairBroadcast.LinkTo(directoryTransformation, pair => pair.File.HasChildren);
-            directoryTransformation.LinkTo(pairBroadcast);
-            pairBroadcast.LinkTo(_downloadActionBlock, pair => pair.File.HasContent);
-        }
-
-        private IEnumerable<PathFilePair> HandleDirectory(PathFilePair pair)
-        {
-            List<File> children = pair.File.GetChildren().Result;
-            IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
-            {
-                File = x,
-                Path = Path.Combine(pair.Path, x.Name)
-            });
-
-            return childPairs;
-        }
-
-        private void HandleFileDownload(PathFilePair pair)
-        {
-            Log.Debug("Downloading {0} to {1}", pair.File.Name, pair.Path);
-            _downloader.Download(pair.Path, pair.File);
         }
 
         public async Task Execute(object options)
@@ -99,17 +65,9 @@ namespace TeamCityConsole.Commands
         {
             await ResolveDependenciesInternal(id);
 
-            _downloadActionBlock.Complete();
+            _downloadDataFlow.Complete();
 
-            try
-            {
-                _downloadActionBlock.Completion.Wait();
-            }
-            catch (Exception)
-            {
-                
-                throw;
-            }
+            await _downloadDataFlow.Completion;
 
             var dependencyConfig = new DependencyConfig
             {
@@ -171,7 +129,7 @@ namespace TeamCityConsole.Commands
                 Path = Path.Combine(basePath, x.Dest)
             }).ToList();
 
-            await DownloadFiles(files);
+            DownloadFiles(files);
 
             Log.Debug("Done fetching depedencies for: {0}", dependency.SourceBuildConfig.Id);
         }
@@ -192,29 +150,12 @@ namespace TeamCityConsole.Commands
             return artifactRules;
         }
 
-        private async Task DownloadFiles(IEnumerable<PathFilePair> files)
+        private void DownloadFiles(IEnumerable<PathFilePair> files)
         {
             foreach (var pair in files)
             {
-                pairBroadcast.Post(pair);
+                _downloadDataFlow.Download(pair);
             }
-            //foreach (PathFilePair file in files)
-            //{
-            //    if (file.File.HasContent)
-            //    {
-            //        _downloadActionBlock.Post(file);
-            //    }
-            //    else
-            //    {
-            //        List<File> children = await file.File.GetChildren();
-            //        IEnumerable<PathFilePair> childPairs = children.Select(x => new PathFilePair
-            //        {
-            //            File = x,
-            //            Path = System.IO.Path.Combine(file.Path, x.Name)
-            //        });
-            //        await DownloadFiles(childPairs);
-            //    }
-            //}
         }
 
         internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)

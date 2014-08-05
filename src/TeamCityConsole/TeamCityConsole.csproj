@@ -69,6 +69,7 @@
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Commands\UpdateCommand.cs" />
+    <Compile Include="DownloadDataFlow.cs" />
     <Compile Include="Model\BuildInfo.cs" />
     <Compile Include="Model\DependencyConfig.cs" />
     <Compile Include="Commands\DownloadArtifactCommand.cs" />
