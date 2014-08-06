@@ -22,68 +22,55 @@ namespace TeamCityApi
 
     public class HttpClientWrapper : IHttpClientWrapper
     {
-        private readonly string _hostname;
-        private readonly string _username;
-        private readonly string _password;
+        private readonly HttpClient _httpClient;
 
         public HttpClientWrapper(string hostname, string username, string password)
         {
-            _hostname = hostname;
-            _username = username;
-            _password = password;
+            _httpClient = Create(username, password, hostname);
         }
 
         public async Task<T> Get<T>(string url, params object[] args)
         {
             string requestUri = string.Format(url, args);
 
-            using (HttpClient httpClient = Create())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(requestUri);
-                response.EnsureSuccessStatusCode();
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
 
-                string json = await response.Content.ReadAsStringAsync();
+            string json = await response.Content.ReadAsStringAsync();
 
-                return Json.Deserialize<T>(json);
-            }
+            return Json.Deserialize<T>(json);
         }
 
         public async Task<Stream> GetStream(string url, params object[] args)
         {
             string requestUri = string.Format(url, args);
 
-            using (var httpClient = Create())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(requestUri);
-                response.EnsureSuccessStatusCode();
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
 
-                return await response.Content.ReadAsStreamAsync();
-            }
+            return await response.Content.ReadAsStreamAsync();
         }
 
         public async Task<string> GetString(string url, params object[] args)
         {
             string requestUri = string.Format(url, args);
 
-            using (HttpClient httpClient = Create())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(requestUri);
-                response.EnsureSuccessStatusCode();
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
 
-                return await response.Content.ReadAsStringAsync();
-            }
+            return await response.Content.ReadAsStringAsync();
         }
 
-        private HttpClient Create()
+        private HttpClient Create(string username, string password, string hostname)
         {
             var httpClientHandler = new HttpClientHandler
             {
-                Credentials = new NetworkCredential(_username, _password),
+                Credentials = new NetworkCredential(username, password),
             };
 
             var httpClient = new HttpClient(httpClientHandler)
             {
-                BaseAddress = new Uri("http://" + _hostname)
+                BaseAddress = new Uri("http://" + hostname)
             };
 
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
