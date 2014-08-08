@@ -23,11 +23,11 @@ namespace TeamCityConsole
 
         private readonly IFileDownloader _downloader;
 
-        ActionBlock<PathFilePair> _initialBroadcast;
+        ActionBlock<PathFilePair> _downloadActionBlock;
 
         public Task Completion
         {
-            get { return _initialBroadcast.Completion; }
+            get { return _downloadActionBlock.Completion; }
         }
 
         public DownloadDataFlow(IFileDownloader downloader)
@@ -39,25 +39,26 @@ namespace TeamCityConsole
 
         public void Complete()
         {
-            _initialBroadcast.Complete();
+            _downloadActionBlock.Complete();
         }
 
         public void Download(PathFilePair pair)
         {
-            _initialBroadcast.Post(pair);
+            _downloadActionBlock.Post(pair);
         }
 
         private void SetupDataFlow()
         {
             var options = new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 8 };
 
-            _initialBroadcast = new ActionBlock<PathFilePair>(pair => HandleFileDownload(pair), options);
+            _downloadActionBlock = new ActionBlock<PathFilePair>(async pair => await HandleFileDownload(pair), options);
         }
 
-        private void HandleFileDownload(PathFilePair pair)
+        private async Task HandleFileDownload(PathFilePair pair)
         {
             Log.Debug("Downloading {0} to {1}", pair.File.Name, pair.Path);
-            _downloader.Download(pair.Path, pair.File);
+            await _downloader.Download(pair.Path, pair.File);
+            Log.Debug("Download complete: {0}", pair.File.Name);
         }
 
     }

@@ -58,8 +58,8 @@ namespace TeamCityConsole
 
             try
             {
-                Task downloadTask = command.Execute(options);
-                downloadTask.Wait();
+                Task task = command.Execute(options);
+                task.Wait();
             }
             catch (AggregateException e)
             {
