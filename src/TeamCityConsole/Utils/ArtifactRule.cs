@@ -68,11 +68,11 @@ namespace TeamCityConsole.Utils
 
             if (IsFile(file))
             {
-                result.ContentHref = sourceStr;
+                result.ContentHref = sourceStr.Replace(" ", "%20");
             }
             else
             {
-                result.ChildrenHref = sourceStr;
+                result.ChildrenHref = sourceStr.Replace(" ", "%20");
             }
 
             return result;

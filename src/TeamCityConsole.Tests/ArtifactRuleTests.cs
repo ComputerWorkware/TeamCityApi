@@ -128,6 +128,21 @@ namespace TeamCityConsole.Tests
             }
 
             [Fact]
+            public void Should_encode_white_spaces()
+            {
+                string source = "Cwi.Core-2.10-dev.zip!/My Path/Cwi.Core.dll";
+                var expected = new File
+                {
+                    ContentHref = source,
+                    Name = "Cwi.Core.dll"
+                };
+
+                File file = ArtifactRule.ParseSource(source);
+
+                Assert.Equal("Cwi.Core-2.10-dev.zip!/My%20Path/Cwi.Core.dll", file.ContentHref);
+            }
+
+            [Fact]
             public void Root_file()
             {
                 string source = "Cwi.Core.dll";
