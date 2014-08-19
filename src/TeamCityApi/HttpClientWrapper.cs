@@ -18,6 +18,7 @@ namespace TeamCityApi
         Task<T> Get<T>(string url, params object[] args);
         Task<Stream> GetStream(string url, params object[] args);
         Task<string> GetString(string url, params object[] args);
+        Task PostXml(string url, string xml);
     }
 
     public class HttpClientWrapper : IHttpClientWrapper
@@ -59,6 +60,13 @@ namespace TeamCityApi
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task PostXml(string url, string xml)
+        {
+            var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
+            var httpResponseMessage = await _httpClient.PostAsync(url, stringContent);
+            httpResponseMessage.EnsureSuccessStatusCode();
         }
 
         private HttpClient Create(string username, string password, string hostname)

@@ -83,6 +83,40 @@ namespace TeamCityApi.Tests
             }
         }
 
+        public class Dependencies
+        {
+            [Fact]
+            public void Snapshot()
+            {
+                var client = CreateBuildConfigClient();
+                var summaries = client.GetAll().Result;
+                //var buildConfig = client.GetByConfigurationId("FooCore_Master").Result;
+                var buildConfig = summaries.First(x => x.Id == "FooCore_Master");
+                var dependencyDefinition = new DependencyDefinition
+                {
+                    Id = buildConfig.Id,
+                    Type = "snapshot_dependency",
+                    Properties = new List<Property>
+                    {
+                        new Property() { Name = "run-build-if-dependency-failed", Value = "false" },
+                        new Property() { Name = "take-successful-builds-only", Value = "true" },
+                        //new Property() { Name = "run-build-on-the-same-agent", Value = "true" },
+                        //new Property() { Name = "take-started-build-with-same-revisions", Value = "true" },
+                    },
+                    SourceBuildConfig = buildConfig
+                };
+                client.CreateDependency("foo_service_Master", dependencyDefinition).Wait();
+            }
+
+            [Fact]
+            public void Snapshot_()
+            {
+                var client = CreateBuildConfigClient();
+                var dependency = new CreateSnapshotDependency("foo_service_Master","FooCore_Master");
+                client.CreateSnapshotDependency(dependency).Wait();
+            }
+        }
+
         private static ChangeClient CreateChnageClient()
         {
             var http = CreateHttpClientWrapper();
