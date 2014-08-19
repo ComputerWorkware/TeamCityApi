@@ -87,11 +87,6 @@ namespace TeamCityConsole.Commands
             var tasks = buildConfig.ArtifactDependencies.Select(ResolveDependency);
 
             await Task.WhenAll(tasks);
-
-            foreach (var dependency in buildConfig.ArtifactDependencies)
-            {
-                await ResolveDependenciesInternal(dependency.SourceBuildConfig.Id);
-            }
         }
 
         private async Task ResolveDependency(DependencyDefinition dependency)

@@ -199,7 +199,7 @@ namespace TeamCityConsole.Tests.Commands
 
             [Theory]
             [AutoNSubstituteData]
-            internal void Should_resolve_dependencies_recursively(
+            internal void Should_not_resolve_dependencies_recursively(
                 TestResolveDependencyCommand command,
                 string buildConfigId,
                 IFixture fixture)
@@ -238,7 +238,7 @@ namespace TeamCityConsole.Tests.Commands
 
                 //ensures 2 files were downloaded
                 command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileB.dll"));
-                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileC.dll"));
+                command.Downloader.DidNotReceive().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileC.dll"));
             }
         }
 
