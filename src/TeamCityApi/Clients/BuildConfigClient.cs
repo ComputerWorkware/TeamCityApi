@@ -74,7 +74,7 @@ namespace TeamCityApi.Clients
             var dependencyDefinition = new DependencyDefinition
             {
                 Id = "0",
-                Type = "snapshot_dependency",
+                Type = "artifact_dependency",
                 Properties = new List<Property>
                     {
                         new Property() { Name = "cleanDestinationDirectory", Value = dependency.CleanDestinationDirectory.ToString() },
