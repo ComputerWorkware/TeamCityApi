@@ -72,7 +72,7 @@ namespace TeamCityConsole.Commands
             var dependencyConfig = new DependencyConfig
             {
                 BuildConfigId = id,
-                BuildInfos = _builds.Values.ToList(),
+                BuildInfos = _builds.Values.OrderBy(x => x.BuildConfigId).ToList(),
             };
 
             return dependencyConfig;
