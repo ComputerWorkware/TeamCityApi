@@ -21,6 +21,14 @@ namespace TeamCityConsole.Utils
 
         public async Task Download(string destPath, File file)
         {
+            bool unzip = false;
+
+            if (file.Name.EndsWith("!**"))
+            {
+                file.Name = file.Name.Replace("!**", string.Empty);
+                unzip = true;
+            }
+
             var destFileName = BuildFullName(destPath, file);
 
             //Log.Debug("Downloading: {0}", destFileName);
@@ -34,6 +42,13 @@ namespace TeamCityConsole.Utils
                     await stream.CopyToAsync(fileStream);
                 }
             }
+
+            if (unzip)
+            {
+                System.IO.Compression.ZipFile.ExtractToDirectory(destFileName,destPath);
+                System.IO.File.Delete(destFileName);
+            }
+
         }
 
         private static string BuildFullName(string destPath, File file)

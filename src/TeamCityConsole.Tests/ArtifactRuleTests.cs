@@ -128,6 +128,23 @@ namespace TeamCityConsole.Tests
             }
 
             [Fact]
+            public void Extract_full_zip()
+            {
+                string source = "MyFile.zip!**";
+                
+                var expected = new File
+                {
+                    ContentHref = "MyFile.zip",
+                    Name = "MyFile.zip!**"
+                };
+
+                File file = ArtifactRule.ParseSource(source);
+
+                Assert.Equal(expected.ContentHref, file.ContentHref);
+                Assert.Equal(expected.Name, file.Name);
+            }
+
+            [Fact]
             public void Should_encode_white_spaces()
             {
                 string source = "Cwi.Core-2.10-dev.zip!/My Path/Cwi.Core.dll";

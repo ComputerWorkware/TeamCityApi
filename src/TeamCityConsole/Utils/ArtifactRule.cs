@@ -56,7 +56,15 @@ namespace TeamCityConsole.Utils
             {
                 string[] strings = sourceStr.Split('!');
                 string left = strings[0];
-                file = strings[1];
+                string right = strings[1];
+                if (right == "**")
+                {
+                    sourceStr = left;
+                }
+                else
+                {
+                    file = right;
+                }
             }
 
             file = GetLastPart(file);
