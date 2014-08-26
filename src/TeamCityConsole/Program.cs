@@ -100,7 +100,7 @@ namespace TeamCityConsole
 
             container.Register<ITeamCityClient>(x => new TeamCityClient(x.Resolve<IHttpClientWrapper>()));
 
-            container.Register<IFileDownloader>(x => new FileDownloader(x.Resolve<IHttpClientWrapper>()));
+            container.Register<IFileDownloader>(x => new FileDownloader(x.Resolve<IHttpClientWrapper>(), x.Resolve<IFileSystem>()));
 
             container.Register<IDownloadDataFlow>(x => new DownloadDataFlow(x.Resolve<IFileDownloader>()));
 

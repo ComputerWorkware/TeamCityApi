@@ -10,13 +10,16 @@ namespace TeamCityConsole.Utils
         Task Download(string destPath, File file);
     }
 
-    class FileDownloader : IFileDownloader
+    public class FileDownloader : IFileDownloader
     {
         private readonly IHttpClientWrapper _http;
 
-        public FileDownloader(IHttpClientWrapper http)
+        private readonly IFileSystem _fileSystem;
+
+        public FileDownloader(IHttpClientWrapper http, IFileSystem fileSystem)
         {
             _http = http;
+            _fileSystem = fileSystem;
         }
 
         public async Task Download(string destPath, File file)
@@ -37,16 +40,19 @@ namespace TeamCityConsole.Utils
 
             using (Stream stream = await _http.GetStream(file.ContentHref))
             {
-                using (var fileStream = new FileStream(destFileName, FileMode.Create))
-                {
-                    await stream.CopyToAsync(fileStream);
-                }
+                await _fileSystem.CreateFileFromStreamAsync(destFileName, stream);
             }
 
             if (unzip)
             {
-                System.IO.Compression.ZipFile.ExtractToDirectory(destFileName,destPath);
-                System.IO.File.Delete(destFileName);
+                var tempFileName = _fileSystem.CreateTempFile();
+                _fileSystem.CopyFile(destFileName, tempFileName, true);
+                if (_fileSystem.DirectoryExists(destPath))
+                {
+                    _fileSystem.DeleteDirectory(destPath, true);
+                }
+                _fileSystem.ExtractToDirectory(tempFileName,destPath);
+                _fileSystem.DeleteFile(tempFileName);
             }
 
         }
@@ -62,7 +68,7 @@ namespace TeamCityConsole.Utils
             return Path.Combine(destPath, properPath);
         }
 
-        private static void EnsureDirectoryExists(string filePath)
+        private void EnsureDirectoryExists(string filePath)
         {
             string directoryName = Path.GetDirectoryName(filePath);
 
@@ -71,12 +77,12 @@ namespace TeamCityConsole.Utils
                 return;
             }
 
-            if (Directory.Exists(directoryName))
+            if (_fileSystem.DirectoryExists(directoryName))
             {
                 return;
             }
 
-            Directory.CreateDirectory(directoryName);
+            _fileSystem.CreateDirectory(directoryName);
         }
     }
 }

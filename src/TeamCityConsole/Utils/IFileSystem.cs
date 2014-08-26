@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace TeamCityConsole.Utils
 {
@@ -9,6 +10,7 @@ namespace TeamCityConsole.Utils
         string CombinePath(params string[] paths);
         bool DirectoryExists(string path);
         void CreateDirectory(string path);
+        void DeleteDirectory(string path, bool recursive = false);
         bool FileExists(string path);
         string GetDirectoryName(string path);
         void EnsureDirectoryExists(string filePath);
@@ -16,11 +18,15 @@ namespace TeamCityConsole.Utils
         void WriteAllTextToFile(string path, string contents);
         Stream OpenFile(string path, FileMode fileMode);
         Stream CreateFile(string path);
+        string CreateTempFile();
+        Task CreateFileFromStreamAsync(string path, Stream stream);
         void MoveFile(string sourceFileName, string destFileName);
+        void CopyFile(string sourceFileName, string destFileName, bool overwrite = false);
         void DeleteFile(string fileName);
         string GetFullPath(string path);
         string GetApplicationBaseDirectory();
         string GetWorkingDirectory();
+        void ExtractToDirectory(string sourceArchiveFileName, string destDirectoryName);
     }
 
     class FileSystem : IFileSystem
@@ -43,6 +49,11 @@ namespace TeamCityConsole.Utils
         public void CreateDirectory(string path)
         {
             Directory.CreateDirectory(path);
+        }
+
+        public void DeleteDirectory(string path, bool recursive = false)
+        {
+            Directory.Delete(path, recursive);
         }
 
         public bool FileExists(string path)
@@ -92,9 +103,27 @@ namespace TeamCityConsole.Utils
             return File.Create(path);
         }
 
+        public string CreateTempFile()
+        {
+            return Path.GetTempFileName();
+        }
+
+        public async Task CreateFileFromStreamAsync(string path, Stream stream)
+        {
+            using (var fileStream = new FileStream(path, FileMode.Create))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+        }
+
         public void MoveFile(string sourceFileName, string destFileName)
         {
             File.Move(sourceFileName, destFileName);
+        }
+
+        public void CopyFile(string sourceFileName, string destFileName, bool overwrite = false)
+        {
+            File.Copy(sourceFileName, destFileName, true);
         }
 
         public void DeleteFile(string fileName)
@@ -115,6 +144,11 @@ namespace TeamCityConsole.Utils
         public string GetWorkingDirectory()
         {
             return Path.GetFullPath(".");
+        }
+
+        public void ExtractToDirectory(string sourceArchiveFileName, string destDirectoryName)
+        {
+            System.IO.Compression.ZipFile.ExtractToDirectory(sourceArchiveFileName, destDirectoryName);
         }
     }
 }
