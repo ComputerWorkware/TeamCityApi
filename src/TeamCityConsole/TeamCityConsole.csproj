@@ -38,6 +38,9 @@
     <TeamCityApiPath Condition="$(TeamCityApi) == '' Or $(TeamCityApi) == '*Undefined*'">..\TeamCityApi\$(OutputPath)</TeamCityApiPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncStackTraceEx">
+      <HintPath>..\packages\AsyncStackTraceEx.1.0.0.1\lib\portable-net45+win+wpa81+wp80\AsyncStackTraceEx.dll</HintPath>
+    </Reference>
     <Reference Include="CommandLine">
       <HintPath>..\CommandLine.dll</HintPath>
     </Reference>
@@ -131,6 +134,11 @@
   <ItemGroup>
     <EmbeddedResource Include="..\packages\Microsoft.Tpl.Dataflow.4.5.20\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll">
       <Link>assemblies\System.Threading.Tasks.Dataflow.dll</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\packages\AsyncStackTraceEx.1.0.0.1\lib\portable-net45+win+wpa81+wp80\AsyncStackTraceEx.dll">
+      <Link>assemblies\AsyncStackTraceEx.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

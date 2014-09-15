@@ -35,7 +35,8 @@ namespace TeamCityApi
             string requestUri = string.Format(url, args);
 
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
-            response.EnsureSuccessStatusCode();
+
+            VerifyResponse(response, requestUri);
 
             string json = await response.Content.ReadAsStringAsync();
 
@@ -47,7 +48,8 @@ namespace TeamCityApi
             string requestUri = string.Format(url, args);
 
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
-            response.EnsureSuccessStatusCode();
+
+            VerifyResponse(response, requestUri);
 
             return await response.Content.ReadAsStreamAsync();
         }
@@ -57,7 +59,8 @@ namespace TeamCityApi
             string requestUri = string.Format(url, args);
 
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
-            response.EnsureSuccessStatusCode();
+
+            VerifyResponse(response, requestUri);
 
             return await response.Content.ReadAsStringAsync();
         }
@@ -66,7 +69,8 @@ namespace TeamCityApi
         {
             var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
             var httpResponseMessage = await _httpClient.PostAsync(url, stringContent);
-            httpResponseMessage.EnsureSuccessStatusCode();
+
+            VerifyResponse(httpResponseMessage, url);
         }
 
         private HttpClient Create(string username, string password, string hostname)
@@ -85,5 +89,16 @@ namespace TeamCityApi
 
             return httpClient;
         }
+
+        private static void VerifyResponse(HttpResponseMessage response, string requestUri)
+        {
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new Exception("Resource not found: " + requestUri);
+            }
+
+            response.EnsureSuccessStatusCode();
+        }
+
     }
 }

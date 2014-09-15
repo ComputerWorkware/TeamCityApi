@@ -13,6 +13,7 @@ using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
 
+
 namespace TeamCityConsole
 {
     class Program
@@ -56,10 +57,14 @@ namespace TeamCityConsole
             }
 #endif
 
+            ExecuteAsync(command, options).GetAwaiter().GetResult();
+        }
+
+        private static async Task ExecuteAsync(ICommand command, dynamic options)
+        {
             try
             {
-                Task task = command.Execute(options);
-                task.Wait();
+                await AsyncStackTraceExtensions.Log(command.Execute(options));
             }
             catch (AggregateException e)
             {
@@ -67,6 +72,11 @@ namespace TeamCityConsole
                 {
                     Log.Fatal(innerException);
                 }
+            }
+            catch (Exception e)
+            {
+                string message = e.Message + Environment.NewLine + e.StackTraceEx();
+                Log.Fatal(message);
             }
         }
 
