@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using NLog;
 using TeamCityApi;
 using File = TeamCityApi.Domain.File;
 
@@ -12,6 +13,8 @@ namespace TeamCityConsole.Utils
 
     public class FileDownloader : IFileDownloader
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private readonly IHttpClientWrapper _http;
 
         private readonly IFileSystem _fileSystem;
@@ -45,6 +48,8 @@ namespace TeamCityConsole.Utils
 
             if (unzip)
             {
+                Log.Debug("Unzipping "+destFileName);
+
                 var tempFileName = _fileSystem.CreateTempFile();
                 _fileSystem.CopyFile(destFileName, tempFileName, true);
                 if (_fileSystem.DirectoryExists(destPath))

@@ -75,6 +75,11 @@ namespace TeamCityConsole.Commands
                 BuildInfos = _builds.Values.OrderBy(x => x.BuildConfigId).ToList(),
             };
 
+            foreach (var buildInfo in dependencyConfig.BuildInfos)
+            {
+                Log.Info("Done: {0} - {1}", buildInfo.BuildConfigId, buildInfo.Number);
+            }
+
             return dependencyConfig;
         }
 
