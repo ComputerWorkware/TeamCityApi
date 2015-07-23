@@ -53,6 +53,7 @@ namespace TeamCityConsole.Tests.Commands
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
                     .Without(x => x.ConfigFilePath)
+                    .Without(x => x.Tag)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -83,6 +84,7 @@ namespace TeamCityConsole.Tests.Commands
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
                     .Without(x => x.ConfigFilePath)
+                    .Without(x => x.Tag)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -114,6 +116,7 @@ namespace TeamCityConsole.Tests.Commands
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
                     .Without(x => x.ConfigFilePath)
+                    .Without(x => x.Tag)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -157,6 +160,7 @@ namespace TeamCityConsole.Tests.Commands
                 var options = fixture.Build<GetDependenciesOptions>()
                     .Without(x => x.ConfigFilePath)
                     .Without(x => x.BuildConfigId)
+                    .Without(x => x.Tag)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -190,6 +194,7 @@ namespace TeamCityConsole.Tests.Commands
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
                     .Without(x => x.ConfigFilePath)
+                    .Without(x => x.Tag)
                     .Create();
 
                 command.Execute(options).Wait();
@@ -232,6 +237,7 @@ namespace TeamCityConsole.Tests.Commands
                 var options = fixture.Build<GetDependenciesOptions>()
                     .With(x => x.BuildConfigId, buildConfigId)
                     .Without(x => x.ConfigFilePath)
+                    .Without(x => x.Tag)
                     .Create();
 
                 command.Execute(options).Wait();
