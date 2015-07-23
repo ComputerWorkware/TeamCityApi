@@ -48,6 +48,11 @@ task release {
 
 task compile -depends clean { 
     exec { msbuild /t:Clean /t:Build /p:Configuration=$config /p:OutDir=$build_dir /p:TeamCityApiPath="$build_dir\" $source_dir\$project.sln }
+    if ( -not (Test-Path "$source_dir\TeamCityApi\bin\Debug\"))
+    {
+        New-Item -ItemType directory -Path "$source_dir\TeamCityApi\bin\Debug\"
+    }
+    cp "$build_dir\TeamCityApi.dll" "$source_dir\TeamCityApi\bin\Debug\TeamCityApi.dll"
 }
 
 task commonAssemblyInfo {
