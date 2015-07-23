@@ -12,7 +12,7 @@ namespace TeamCityApi.Clients
         Task<Build> ById(string id);
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
         Task<List<File>> GetFiles(long buildId);
-        Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId);
+        Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag = null);
     }
 
     public class BuildClient : IBuildClient
@@ -69,13 +69,20 @@ namespace TeamCityApi.Clients
             return files;
         }
 
-        public async Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId)
+        public async Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag)
         {
             List<BuildSummary> buildSummaries = await ByBuildLocator(locator =>
+            {
                 locator.WithBuildStatus(BuildStatus.Success)
                     .WithMaxResults(1)
                     .WithBuildConfiguration(typeLocator =>
-                        typeLocator.WithId(buildConfigId)));
+                        typeLocator.WithId(buildConfigId));
+
+                if (!String.IsNullOrEmpty(tag))
+                {
+                    locator.WithTags(tag);
+                }
+            });
 
             BuildSummary buildSummary = buildSummaries.First();
 

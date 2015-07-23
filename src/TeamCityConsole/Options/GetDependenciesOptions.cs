@@ -12,6 +12,9 @@ namespace TeamCityConsole.Options
         [Option('p', "ConfigFilePath", Required = false, HelpText = "Path to the configuration file")]
         public string ConfigFilePath { get; set; }
 
+        [Option('t', "tag", Required = false, HelpText = "Optional tag for pulling dependencies.")]
+        public string Tag { get; set; }
+
         public bool Force
         {
             get { return string.IsNullOrWhiteSpace(BuildConfigId) == false; }

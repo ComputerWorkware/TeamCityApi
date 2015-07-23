@@ -50,7 +50,7 @@ namespace TeamCityConsole.Commands
 
             _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
 
-            DependencyConfig dependencyConfig = await ResolveDependencies(_dependencyConfig.BuildConfigId);
+            DependencyConfig dependencyConfig = await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
 
             //only writes the file if changes were made to the config.
             if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
@@ -61,9 +61,9 @@ namespace TeamCityConsole.Commands
             }
         }
 
-        public async Task<DependencyConfig> ResolveDependencies(string id)
+        public async Task<DependencyConfig> ResolveDependencies(string id, string tag)
         {
-            await ResolveDependenciesInternal(id);
+            await ResolveDependenciesInternal(id, tag);
 
             _downloadDataFlow.Complete();
 
@@ -83,18 +83,18 @@ namespace TeamCityConsole.Commands
             return dependencyConfig;
         }
 
-        private async Task ResolveDependenciesInternal(string buildConfigId)
+        private async Task ResolveDependenciesInternal(string buildConfigId, string tag)
         {
             Log.Info("Resolving dependencies for: {0}", buildConfigId);
 
             BuildConfig buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
 
-            var tasks = buildConfig.ArtifactDependencies.Select(ResolveDependency);
+            var tasks = buildConfig.ArtifactDependencies.Select(ad => ResolveDependency(ad, tag));
 
             await Task.WhenAll(tasks);
         }
 
-        private async Task ResolveDependency(DependencyDefinition dependency)
+        private async Task ResolveDependency(DependencyDefinition dependency, string tag)
         {
             Log.Debug("Trying to fetch depedency: {0}", dependency.SourceBuildConfig.Id);
 
@@ -104,7 +104,7 @@ namespace TeamCityConsole.Commands
                 return;
             }
 
-            Build build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id);
+            Build build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id, tag);
 
             lock (_builds)
             {
