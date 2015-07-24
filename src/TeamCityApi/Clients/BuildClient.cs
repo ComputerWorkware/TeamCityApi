@@ -45,17 +45,17 @@ namespace TeamCityApi.Clients
 
             var buildWrapper = await _http.Get<BuildWrapper>(requestUri);
 
-            if (buildWrapper.Build.Count > 0)
+            if (buildWrapper == null || buildWrapper.Build == null || buildWrapper.Build.Count == 0)
             {
-                foreach (var buildSummary in buildWrapper.Build)
-                {
-                    buildSummary.SetBuildClient(this);
-                }
-
-                return buildWrapper.Build;
+                throw new Exception(string.Format("Could not get build from TeamCity by locator: \"{0}\"", buildLocator));
             }
 
-            return new List<BuildSummary>();
+            foreach (var buildSummary in buildWrapper.Build)
+            {
+                buildSummary.SetBuildClient(this);
+            }
+
+            return buildWrapper.Build;
         }
 
         public async Task<List<File>> GetFiles(long buildId)
