@@ -59,6 +59,8 @@ namespace TeamCityConsole.Commands
 
                 _fileSystem.WriteAllTextToFile(_configFullPath, json);
             }
+
+            Log.Info("================ Get Dependencies: done ================");
         }
 
         public async Task<DependencyConfig> ResolveDependencies(string id, string tag)
