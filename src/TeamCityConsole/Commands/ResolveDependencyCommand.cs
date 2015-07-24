@@ -87,7 +87,7 @@ namespace TeamCityConsole.Commands
 
         private async Task ResolveDependenciesInternal(string buildConfigId, string tag)
         {
-            Log.Info("Resolving dependencies for: {0}, {1}", buildConfigId, String.IsNullOrEmpty(tag) ? "not tag specific" : "\"" + tag + "\" tag");
+            Log.Info("Resolving dependencies for: {0}, {1}", buildConfigId, String.IsNullOrEmpty(tag) ? "not by tag" : "by \"" + tag + "\" tag");
 
             BuildConfig buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
 
