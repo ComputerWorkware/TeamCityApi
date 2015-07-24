@@ -96,7 +96,7 @@ namespace TeamCityConsole.Commands
 
         private async Task ResolveDependency(DependencyDefinition dependency, string tag)
         {
-            Log.Debug("Trying to fetch depedency: {0}", dependency.SourceBuildConfig.Id);
+            Log.Debug("Trying to fetch dependency: {0}", dependency.SourceBuildConfig.Id);
 
             if (_builds.ContainsKey(dependency.SourceBuildConfig.Id))
             {
@@ -131,7 +131,7 @@ namespace TeamCityConsole.Commands
 
             DownloadFiles(files);
 
-            Log.Debug("Done fetching depedencies for: {0}", dependency.SourceBuildConfig.Id);
+            Log.Debug("Done fetching dependency for: {0}", dependency.SourceBuildConfig.Id);
         }
 
         private static List<ArtifactRule> GetArtifactRules(DependencyDefinition dependency)
