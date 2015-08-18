@@ -41,6 +41,8 @@ namespace TeamCityConsole.Commands
             List<File> files = await build.ArtifactsReference.GetFiles();
 
             await DownloadFiles(artifactOptions.OutputDirectory, files);
+
+            Log.Info("================ Get Artifacts: done ================");
         }
 
         private async Task DownloadFiles(string destPath, IEnumerable<File> files)
