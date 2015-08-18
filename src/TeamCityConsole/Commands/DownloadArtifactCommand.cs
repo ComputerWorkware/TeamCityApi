@@ -31,12 +31,16 @@ namespace TeamCityConsole.Commands
         {
             var artifactOptions = options as GetArtifactOptions;
 
+            Log.Info("Getting artifacts for: {0}, {1}", artifactOptions.BuildConfigId, string.IsNullOrEmpty(artifactOptions.Tag) ? "not by tag" : "by \"" + artifactOptions.Tag + "\" tag");
+
             Settings settings = new Settings();
             settings.Load();
 
             var client = new TeamCityClient(settings.TeamCityUri, settings.Username, settings.Password);
 
-            Build build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.BuildConfigId);
+            Build build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.BuildConfigId, artifactOptions.Tag);
+
+            Log.Info("Build Number: {0}", build.Number);
 
             List<File> files = await build.ArtifactsReference.GetFiles();
 

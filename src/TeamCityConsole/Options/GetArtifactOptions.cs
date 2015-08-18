@@ -10,5 +10,8 @@ namespace TeamCityConsole.Options
 
         [Option('o', "OutputDir", DefaultValue = "", HelpText = "Output directory for downloaded files")]
         public string OutputDirectory { get; set; }
+
+        [Option('t', "tag", Required = false, HelpText = "Optional tag for pulling artifacts.")]
+        public string Tag { get; set; }
     }
 }
