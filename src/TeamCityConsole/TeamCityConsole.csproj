@@ -73,6 +73,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Commands\CloneBuildConfigCommand.cs" />
     <Compile Include="Commands\SetConfigCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="DownloadDataFlow.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\ResolveDependencyCommand.cs" />
     <Compile Include="ModuleInitializer.cs" />
+    <Compile Include="Options\CloneBuildConfigOptions.cs" />
     <Compile Include="Options\GetArtifactOptions.cs" />
     <Compile Include="Options\GetDependenciesOptions.cs" />
     <Compile Include="Options\SelfUpdateOptions.cs" />
