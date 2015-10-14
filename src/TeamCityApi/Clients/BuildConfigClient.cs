@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using TeamCityApi.Domain;
 using TeamCityApi.Locators;
+using TeamCityApi.Util;
 
 namespace TeamCityApi.Clients
 {
@@ -11,6 +12,7 @@ namespace TeamCityApi.Clients
     {
         Task<List<BuildConfigSummary>> GetAll();
         Task<BuildConfig> GetByConfigurationId(string buildConfigId);
+        Task SetParameterValue(BuildTypeLocator locator, string name, string value);
         Task CreateSnapshotDependency(CreateSnapshotDependency dependency);
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
         Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
@@ -47,6 +49,13 @@ namespace TeamCityApi.Clients
             BuildConfig buildConfig = await _http.Get<BuildConfig>(requestUri);
 
             return buildConfig;
+        }
+
+        public async Task SetParameterValue(BuildTypeLocator locator, string name, string value)
+        {
+            string requestUri = string.Format("/app/rest/buildTypes/{0}/parameters/{1}", locator, name);
+
+            await _http.PutJson(requestUri, Json.Serialize(new Property(){Name = name, Value = value}));
         }
 
         public async Task CreateSnapshotDependency(CreateSnapshotDependency dependency)

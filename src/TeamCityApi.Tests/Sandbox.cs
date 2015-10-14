@@ -56,6 +56,16 @@ namespace TeamCityApi.Tests
             }
 
             [Fact]
+            public void SetParameterValue()
+            {
+                var client = CreateBuildConfigClient();
+                client.SetParameterValue(
+                    new BuildTypeLocator().WithId("Installers_Sunlife_VitalObjectsSuite_TrunkOct13Release"),
+                    "MinorVersion",
+                    "77").Wait();
+            }
+
+            [Fact]
             public void CopyBuildConfigurationFromBuildId()
             {
                 var client = CreateBuildConfigClient();

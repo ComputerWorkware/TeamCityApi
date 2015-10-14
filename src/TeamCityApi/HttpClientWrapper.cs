@@ -20,6 +20,7 @@ namespace TeamCityApi
         Task<string> GetString(string url, params object[] args);
         Task PostXml(string url, string xml);
         Task<T> PostXml<T>(string url, string xml);
+        Task PutJson(string url, string data);
         Task Delete(string url);
     }
 
@@ -85,6 +86,14 @@ namespace TeamCityApi
             string json = await response.Content.ReadAsStringAsync();
 
             return Json.Deserialize<T>(json);
+        }
+
+        public async Task PutJson(string url, string data)
+        {
+            var stringContent = new StringContent(data, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync(url, stringContent).ConfigureAwait(false);
+
+            VerifyResponse(response, url);
         }
 
         public async Task Delete(string url)
