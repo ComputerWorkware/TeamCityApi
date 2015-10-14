@@ -175,7 +175,13 @@ namespace TeamCityApi.Clients
 
             //todo: freeze artifact dependencies OR REBUILD ARTIFACT DEPENDENCIES, WHICH COULD CHANGE??
 
-            //todo: overwrite parameters, based on source build
+            //overwrite parameters, based on source build
+            await Task.WhenAll(
+                newBuildConfig.Parameters.Select(
+                    newP => SetParameterValue(
+                        new BuildTypeLocator().WithId(newBuildConfig.Id),
+                        newP.Name,
+                        build.Properties.Single(oldP => oldP.Name == newP.Name).Value)));
 
             return newBuildConfig;
         }
