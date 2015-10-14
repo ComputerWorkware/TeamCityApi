@@ -17,6 +17,7 @@ namespace TeamCityApi.Clients
         Task CreateSnapshotDependency(CreateSnapshotDependency dependency);
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
         Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
+        Task DeleteAllSnapshotDependencies(BuildConfig buildConfig);
         Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
 
         Task<BuildConfig> CopyBuildConfiguration(ProjectLocator destinationProjectLocator, string newConfigurationName,
@@ -45,7 +46,7 @@ namespace TeamCityApi.Clients
 
         public async Task<List<BuildDependency>> GetAllSnapshotDependencies(string buildId)
         {
-            string requestUri = string.Format("/app/rest/builds?locator=snapshotDependency:(to:(id:{0}),includeInitial:true),defaultFilter:false", buildId);
+            string requestUri = string.Format("/app/rest/builds?locator=snapshotDependency:(to:(id:{0}),includeInitial:true),defaultFilter:false");
 
             List<BuildDependency> dependencies = await _http.Get<List<BuildDependency>>(requestUri);
 
@@ -96,6 +97,14 @@ namespace TeamCityApi.Clients
         {
             var url = string.Format("/app/rest/buildTypes/{0}/snapshot-dependencies/{1}", buildConfigId, dependencyBuildConfigId);
             await _http.Delete(url);
+        }
+
+        public async Task DeleteAllSnapshotDependencies(BuildConfig buildConfig)
+        {
+            foreach (DependencyDefinition dependencyDefinition in buildConfig.SnapshotDependencies)
+            {
+                await DeleteSnapshotDependency(buildConfig.Id, dependencyDefinition.SourceBuildConfig.Id);
+            }
         }
 
         public async Task CreateArtifactDependency(CreateArtifactDependency dependency)
@@ -181,7 +190,7 @@ namespace TeamCityApi.Clients
                 new BuildTypeLocator().WithId(build.BuildConfig.Id)
             );
 
-            //todo: remove snapshot dependencies
+            await DeleteAllSnapshotDependencies(newBuildConfig);
 
             //todo: freeze artifact dependencies OR REBUILD ARTIFACT DEPENDENCIES, WHICH COULD CHANGE??
 

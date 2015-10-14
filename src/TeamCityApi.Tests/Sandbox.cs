@@ -69,7 +69,7 @@ namespace TeamCityApi.Tests
             public void CopyBuildConfigurationFromBuildId()
             {
                 var client = CreateBuildConfigClient();
-                var createdBuildConfig = client.CopyBuildConfigurationFromBuildId("186", "Oct 13 Release").Result;
+                var createdBuildConfig = client.CopyBuildConfigurationFromBuildId("186", "Oct 15 Release").Result;
             }
         }
 
@@ -131,6 +131,15 @@ namespace TeamCityApi.Tests
                 var client = CreateBuildConfigClient();
                 client.DeleteSnapshotDependency("Installers_Sunlife_ReinsuredPremiumCollections_Trunk", "Sunlife_ReinsuredCollections_Trunk").Wait();
             }
+
+            [Fact]
+            public void DeleteAllSnapshotDependencies()
+            {
+                var client = CreateBuildConfigClient();
+                var buildConfiguration = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkOct13Release").Result;
+                client.DeleteAllSnapshotDependencies(buildConfiguration).Wait();
+            }
+
             [Fact]
             public void GetAllSnapshotDependencies()
             {
