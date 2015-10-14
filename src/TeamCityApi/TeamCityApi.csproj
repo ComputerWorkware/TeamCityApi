@@ -73,6 +73,7 @@
     <Compile Include="Locators\BuildTypeLocator.cs" />
     <Compile Include="HttpClientWrapper.cs" />
     <Compile Include="Locators\CriteriaBuilder.cs" />
+    <Compile Include="Locators\ProjectLocator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Locators\UserLocator.cs" />
     <Compile Include="TeamCityClient.cs" />

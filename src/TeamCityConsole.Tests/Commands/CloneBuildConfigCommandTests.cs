@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TeamCityApi;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
 using TeamCityConsole.Tests.Helpers;
@@ -20,6 +21,7 @@ namespace TeamCityConsole.Tests.Commands
             public void Should_clone_root_build_config(TestCloneBuildConfigCommand cloneBuildConfigCommand, CloneBuildConfigOptions cloneBuildConfigOptions)
             {
                 cloneBuildConfigOptions.Mode = CloneBuildConfigOptions.CloneMode.Root;
+                cloneBuildConfigOptions.BuildId = "186";
                 cloneBuildConfigOptions.NewNameSuffix = "Release Oct 13";
 
                 cloneBuildConfigCommand.Execute(cloneBuildConfigOptions).Wait();
@@ -55,7 +57,12 @@ namespace TeamCityConsole.Tests.Commands
 
         public class TestCloneBuildConfigCommand : CloneBuildConfigCommand
         {
+            public ITeamCityClient Client { get; private set; }
 
+            public TestCloneBuildConfigCommand(ITeamCityClient client) : base(client)
+            {
+                Client = new TeamCityClient("teamcitytest:8080", "teamcity", "teamcity");
+            }
         }
     }
 }

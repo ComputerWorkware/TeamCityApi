@@ -128,7 +128,7 @@ namespace TeamCityConsole
                 x => new SetConfigCommand(settings));
 
             container.Register<ICommand>(Verbs.CloneBuildConfig,
-                x => new CloneBuildConfigCommand());
+                x => new CloneBuildConfigCommand(x.Resolve<ITeamCityClient>()));
 
             return container;
         }

@@ -23,7 +23,7 @@ namespace TeamCityApi.Tests
         {
             var buildClient = CreateBuildClient();
 
-            Build build = buildClient.ById("45").Result;
+            Build build = buildClient.ById("186").Result;
         }
 
         [Fact]
@@ -53,6 +53,13 @@ namespace TeamCityApi.Tests
             {
                 var client = CreateBuildConfigClient();
                 var buildConfig = client.GetByConfigurationId("Installers_29_Xu_297dev").Result;
+            }
+
+            [Fact]
+            public void CopyBuildConfigurationFromBuildId()
+            {
+                var client = CreateBuildConfigClient();
+                var createdBuildConfig = client.CopyBuildConfigurationFromBuildId("186", "Oct 13 Release").Result;
             }
         }
 
@@ -140,13 +147,13 @@ namespace TeamCityApi.Tests
 
         private static HttpClientWrapper CreateHttpClientWrapper()
         {
-            var http = new HttpClientWrapper("localhost:8090", "administrator", "admin");
+            var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
             return http;
         }
 
         private static BuildClient CreateBuildClient()
         {
-            var http = new HttpClientWrapper("localhost:8090", "administrator", "admin");
+            var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
             var buildClient = new BuildClient(http);
             return buildClient;
         }

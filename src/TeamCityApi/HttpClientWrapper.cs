@@ -19,6 +19,7 @@ namespace TeamCityApi
         Task<Stream> GetStream(string url, params object[] args);
         Task<string> GetString(string url, params object[] args);
         Task PostXml(string url, string xml);
+        Task<T> PostXml<T>(string url, string xml);
     }
 
     public class HttpClientWrapper : IHttpClientWrapper
@@ -34,7 +35,7 @@ namespace TeamCityApi
         {
             string requestUri = string.Format(url, args);
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
 
             VerifyResponse(response, requestUri);
 
@@ -47,7 +48,7 @@ namespace TeamCityApi
         {
             string requestUri = string.Format(url, args);
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
 
             VerifyResponse(response, requestUri);
 
@@ -58,7 +59,7 @@ namespace TeamCityApi
         {
             string requestUri = string.Format(url, args);
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
 
             VerifyResponse(response, requestUri);
 
@@ -68,9 +69,21 @@ namespace TeamCityApi
         public async Task PostXml(string url, string xml)
         {
             var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
-            var httpResponseMessage = await _httpClient.PostAsync(url, stringContent);
+            var response = await _httpClient.PostAsync(url, stringContent).ConfigureAwait(false);
 
-            VerifyResponse(httpResponseMessage, url);
+            VerifyResponse(response, url);
+        }
+
+        public async Task<T> PostXml<T>(string url, string xml)
+        {
+            var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
+            var response = await _httpClient.PostAsync(url, stringContent).ConfigureAwait(false);
+
+            VerifyResponse(response, url);
+
+            string json = await response.Content.ReadAsStringAsync();
+
+            return Json.Deserialize<T>(json);
         }
 
         private HttpClient Create(string username, string password, string hostname)

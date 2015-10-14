@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TeamCityApi.Domain;
+using TeamCityApi.Locators;
 
 namespace TeamCityApi.Clients
 {
@@ -13,6 +14,11 @@ namespace TeamCityApi.Clients
         Task CreateSnapshotDependency(CreateSnapshotDependency dependency);
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
         Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
+
+        Task<BuildConfig> CopyBuildConfiguration(ProjectLocator destinationProjectLocator, string newConfigurationName,
+            BuildTypeLocator sourceBuildTypeLocator, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true);
+
+        Task<BuildConfig> CopyBuildConfigurationFromBuildId(string buildId, string newNameSuffix);
     }
 
     public class BuildConfigClient : IBuildConfigClient
@@ -112,6 +118,49 @@ namespace TeamCityApi.Clients
                 );
 
             return element.ToString();
+        }
+
+        public async Task<BuildConfig> CopyBuildConfiguration(ProjectLocator destinationProjectLocator, string newConfigurationName, BuildTypeLocator sourceBuildTypeLocator, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true)
+        {
+            var xml = CopyBuildConfigurationXml(newConfigurationName, sourceBuildTypeLocator, copyAllAssociatedSettings, shareVCSRoots);
+
+            var url = string.Format("/app/rest/projects/{0}/buildTypes", destinationProjectLocator);
+
+            return await _http.PostXml<BuildConfig>(url, xml);
+        }
+
+        private static string CopyBuildConfigurationXml(string newConfigurationName, BuildTypeLocator sourceBuildTypeLocator, bool copyAllAssociatedSettings, bool shareVCSRoots)
+        {
+            var element = new XElement("newBuildTypeDescription",
+                new XAttribute("name", newConfigurationName),
+                new XAttribute("sourceBuildTypeLocator", sourceBuildTypeLocator),
+                new XAttribute("copyAllAssociatedSettings", copyAllAssociatedSettings),
+                new XAttribute("shareVCSRoots", shareVCSRoots)
+            );
+
+            return element.ToString();
+        }
+
+
+        public async Task<BuildConfig> CopyBuildConfigurationFromBuildId(string buildId, string newNameSuffix)
+        {
+            var buildClient = new BuildClient(_http);
+
+            var build = await buildClient.ById(buildId);
+
+            var newBuildConfig = await CopyBuildConfiguration(
+                new ProjectLocator().WithId(build.BuildConfig.ProjectId),
+                build.BuildConfig.Name + " | " + newNameSuffix,
+                new BuildTypeLocator().WithId(build.BuildConfig.Id)
+            );
+
+            //todo: remove snapshot dependencies
+
+            //todo: freeze artifact dependencies OR REBUILD ARTIFACT DEPENDENCIES, WHICH COULD CHANGE??
+
+            //todo: overwrite parameters, based on source build
+
+            return newBuildConfig;
         }
     }
 }
