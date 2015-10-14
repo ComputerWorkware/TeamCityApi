@@ -13,7 +13,7 @@ namespace TeamCityApi.Clients
         Task<List<BuildConfigSummary>> GetAll();
         Task<List<BuildDependency>> GetAllSnapshotDependencies(string buildId);
         Task<BuildConfig> GetByConfigurationId(string buildConfigId);
-        Task SetParameterValue(BuildTypeLocator locator, string name, string value);
+        Task SetParameterValue(BuildTypeLocator locator, string name, string value, bool own = true);
         Task CreateSnapshotDependency(CreateSnapshotDependency dependency);
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
         Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
@@ -62,11 +62,11 @@ namespace TeamCityApi.Clients
             return buildConfig;
         }
 
-        public async Task SetParameterValue(BuildTypeLocator locator, string name, string value)
+        public async Task SetParameterValue(BuildTypeLocator locator, string name, string value, bool own = true)
         {
             string requestUri = string.Format("/app/rest/buildTypes/{0}/parameters/{1}", locator, name);
 
-            await _http.PutJson(requestUri, Json.Serialize(new Property(){Name = name, Value = value}));
+            await _http.PutJson(requestUri, Json.Serialize(new Property(){Name = name, Value = value, Own = own}));
         }
 
         public async Task CreateSnapshotDependency(CreateSnapshotDependency dependency)
@@ -194,15 +194,28 @@ namespace TeamCityApi.Clients
 
             //todo: freeze artifact dependencies OR REBUILD ARTIFACT DEPENDENCIES, WHICH COULD CHANGE??
 
-            //overwrite parameters, based on source build
-            await Task.WhenAll(
-                newBuildConfig.Parameters.Select(
-                    newP => SetParameterValue(
-                        new BuildTypeLocator().WithId(newBuildConfig.Id),
-                        newP.Name,
-                        build.Properties.Single(oldP => oldP.Name == newP.Name).Value)));
+            await FreezeParameters(newBuildConfig.Id, newBuildConfig.Parameters, build.Properties);
 
             return newBuildConfig;
+        }
+
+        private async Task FreezeParameters(string targetBuildConfigId, List<Property> targetParameters, List<Property> sourceParameters)
+        {
+            //1st pass: set different, then in a project, value. Just to make parameter "own", see more: https://youtrack.jetbrains.com/issue/TW-42811
+            await Task.WhenAll(
+                targetParameters.Select(
+                    targetP => SetParameterValue(
+                        new BuildTypeLocator().WithId(targetBuildConfigId),
+                        targetP.Name,
+                        "Temporary value, different from the parent project value!")));
+
+            //2ns pass: set real value.
+            await Task.WhenAll(
+                targetParameters.Select(
+                    targetP => SetParameterValue(
+                        new BuildTypeLocator().WithId(targetBuildConfigId),
+                        targetP.Name,
+                        sourceParameters.Single(sourceP => sourceP.Name == targetP.Name).Value)));
         }
     }
 }
