@@ -109,6 +109,13 @@ namespace TeamCityApi.Tests
             }
 
             [Fact]
+            public void DeleteSnapshotDependency()
+            {
+                var client = CreateBuildConfigClient();
+                client.DeleteSnapshotDependency("Installers_Sunlife_ReinsuredPremiumCollections_Trunk", "Sunlife_ReinsuredCollections_Trunk").Wait();
+            }
+
+            [Fact]
             public void Snapshot_()
             {
                 var client = CreateBuildConfigClient();
@@ -140,7 +147,7 @@ namespace TeamCityApi.Tests
 
         private static HttpClientWrapper CreateHttpClientWrapper()
         {
-            var http = new HttpClientWrapper("localhost:8090", "administrator", "admin");
+            var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
             return http;
         }
 

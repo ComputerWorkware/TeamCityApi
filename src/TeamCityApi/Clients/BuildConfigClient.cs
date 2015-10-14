@@ -12,6 +12,7 @@ namespace TeamCityApi.Clients
         Task<BuildConfig> GetByConfigurationId(string buildConfigId);
         Task CreateSnapshotDependency(CreateSnapshotDependency dependency);
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
+        Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
         Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
     }
 
@@ -63,6 +64,13 @@ namespace TeamCityApi.Clients
             };
 
             await CreateDependency(dependency.TargetBuildConfigId, dependencyDefinition);
+        }
+
+
+        public async Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId)
+        {
+            var url = $"/app/rest/buildTypes/{buildConfigId}/snapshot-dependencies/{dependencyBuildConfigId}";
+            await _http.Delete(url);
         }
 
         public async Task CreateArtifactDependency(CreateArtifactDependency dependency)

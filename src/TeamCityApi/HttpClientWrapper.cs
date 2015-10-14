@@ -19,6 +19,7 @@ namespace TeamCityApi
         Task<Stream> GetStream(string url, params object[] args);
         Task<string> GetString(string url, params object[] args);
         Task PostXml(string url, string xml);
+        Task Delete(string url);
     }
 
     public class HttpClientWrapper : IHttpClientWrapper
@@ -69,6 +70,13 @@ namespace TeamCityApi
         {
             var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
             var httpResponseMessage = await _httpClient.PostAsync(url, stringContent);
+
+            VerifyResponse(httpResponseMessage, url);
+        }
+
+        public async Task Delete(string url)
+        {
+            var httpResponseMessage = await _httpClient.DeleteAsync(url);
 
             VerifyResponse(httpResponseMessage, url);
         }
