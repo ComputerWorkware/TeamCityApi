@@ -194,6 +194,8 @@ namespace TeamCityApi.Clients
 
             //todo: freeze artifact dependencies OR REBUILD ARTIFACT DEPENDENCIES, WHICH COULD CHANGE??
 
+            await SetParameterValue(new BuildTypeLocator().WithId(newBuildConfig.Id), "CloneNameSuffix", newNameSuffix);
+
             await FreezeParameters(newBuildConfig.Id, newBuildConfig.Parameters, build.Properties);
 
             return newBuildConfig;
