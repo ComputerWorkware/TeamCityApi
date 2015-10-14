@@ -69,7 +69,7 @@ namespace TeamCityApi.Clients
 
         public async Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId)
         {
-            var url = $"/app/rest/buildTypes/{buildConfigId}/snapshot-dependencies/{dependencyBuildConfigId}";
+            var url = string.Format("/app/rest/buildTypes/{0}/snapshot-dependencies/{1}", buildConfigId, dependencyBuildConfigId);
             await _http.Delete(url);
         }
 
