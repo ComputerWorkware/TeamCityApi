@@ -116,6 +116,13 @@ namespace TeamCityApi.Tests
             }
 
             [Fact]
+            public void DeleteSnapshotDependency()
+            {
+                var client = CreateBuildConfigClient();
+                client.DeleteSnapshotDependency("Installers_Sunlife_ReinsuredPremiumCollections_Trunk", "Sunlife_ReinsuredCollections_Trunk").Wait();
+            }
+
+            [Fact]
             public void Snapshot_()
             {
                 var client = CreateBuildConfigClient();
