@@ -11,6 +11,7 @@ namespace TeamCityApi.Clients
     public interface IBuildConfigClient
     {
         Task<List<BuildConfigSummary>> GetAll();
+        Task<List<BuildDependency>> GetAllSnapshotDependencies(string buildId);
         Task<BuildConfig> GetByConfigurationId(string buildConfigId);
         Task SetParameterValue(BuildTypeLocator locator, string name, string value);
         Task CreateSnapshotDependency(CreateSnapshotDependency dependency);
@@ -40,6 +41,15 @@ namespace TeamCityApi.Clients
             List<BuildConfigSummary> buildConfigs = await _http.Get<List<BuildConfigSummary>>(requestUri);
 
             return buildConfigs;
+        }
+
+        public async Task<List<BuildDependency>> GetAllSnapshotDependencies(string buildId)
+        {
+            string requestUri = string.Format("/app/rest/builds?locator=snapshotDependency:(to:(id:{0}),includeInitial:true),defaultFilter:false", buildId);
+
+            List<BuildDependency> dependencies = await _http.Get<List<BuildDependency>>(requestUri);
+
+            return dependencies;
         }
 
         public async Task<BuildConfig> GetByConfigurationId(string buildConfigId)
