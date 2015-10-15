@@ -29,7 +29,7 @@ namespace TeamCityConsole.Tests.Helpers
         public static IPostprocessComposer<DependencyDefinition> WithPathRules(
            this IPostprocessComposer<DependencyDefinition> composer, string pathRules)
         {
-            return composer.With(x => x.Properties.Property, new List<DependencyProperty> { new DependencyProperty { Name = "pathRules", Value = pathRules } });
+            return composer.With(x => x.Properties.Property, new List<Property> { new Property { Name = "pathRules", Value = pathRules } });
         }
 
         public static IPostprocessComposer<GetDependenciesOptions> WithForce(

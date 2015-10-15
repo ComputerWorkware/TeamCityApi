@@ -113,12 +113,12 @@ namespace TeamCityApi.Tests
                 {
                     Id = buildConfig.Id,
                     Type = "snapshot_dependency",
-                    Properties = new DependencyProperties
+                    Properties = new Properties
                     {
-                        Property = new List<DependencyProperty>
+                        Property = new List<Property>
                         {
-                            new DependencyProperty() { Name = "run-build-if-dependency-failed", Value = "false" },
-                            new DependencyProperty() { Name = "take-successful-builds-only", Value = "true" },
+                            new Property() { Name = "run-build-if-dependency-failed", Value = "false" },
+                            new Property() { Name = "take-successful-builds-only", Value = "true" },
                             //new Property() { Name = "run-build-on-the-same-agent", Value = "true" },
                             //new Property() { Name = "take-started-build-with-same-revisions", Value = "true" },
                         }

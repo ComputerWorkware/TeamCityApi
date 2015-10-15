@@ -138,7 +138,7 @@ namespace TeamCityConsole.Commands
 
         private static List<ArtifactRule> GetArtifactRules(DependencyDefinition dependency)
         {
-            DependencyProperty artifactRulesProperty =
+            Property artifactRulesProperty =
                 dependency.Properties.Property.FirstOrDefault(
                     x => x.Name.Equals("pathRules", StringComparison.InvariantCultureIgnoreCase));
 

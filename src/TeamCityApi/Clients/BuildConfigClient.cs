@@ -81,14 +81,14 @@ namespace TeamCityApi.Clients
             {
                 Id = buildConfig.Id,
                 Type = "snapshot_dependency",
-                Properties = new DependencyProperties
+                Properties = new Properties
                 {
-                    Property = new List<DependencyProperty>
+                    Property = new List<Property>
                     {
-                        new DependencyProperty() { Name = "run-build-if-dependency-failed", Value = dependency.RunBuildIfDependencyFailed.ToString() },
-                        new DependencyProperty() { Name = "take-successful-builds-only", Value = dependency.TakeSuccessFulBuildsOnly.ToString() },
-                        new DependencyProperty() { Name = "run-build-on-the-same-agent", Value = dependency.RunBuildOnTheSameAgent.ToString() },
-                        new DependencyProperty() { Name = "take-started-build-with-same-revisions", Value = dependency.TakeStartedBuildWithSameRevisions.ToString() },
+                        new Property() { Name = "run-build-if-dependency-failed", Value = dependency.RunBuildIfDependencyFailed.ToString() },
+                        new Property() { Name = "take-successful-builds-only", Value = dependency.TakeSuccessFulBuildsOnly.ToString() },
+                        new Property() { Name = "run-build-on-the-same-agent", Value = dependency.RunBuildOnTheSameAgent.ToString() },
+                        new Property() { Name = "take-started-build-with-same-revisions", Value = dependency.TakeStartedBuildWithSameRevisions.ToString() },
                     }
                 },
                 SourceBuildConfig = buildConfig
@@ -139,14 +139,14 @@ namespace TeamCityApi.Clients
             {
                 Id = "0",
                 Type = "artifact_dependency",
-                Properties = new DependencyProperties
+                Properties = new Properties
                 {
-                    Property = new List<DependencyProperty>
+                    Property = new List<Property>
                     {
-                        new DependencyProperty() { Name = "cleanDestinationDirectory", Value = dependency.CleanDestinationDirectory.ToString() },
-                        new DependencyProperty() { Name = "pathRules", Value = dependency.PathRules },
-                        new DependencyProperty() { Name = "revisionName", Value = dependency.RevisionName },
-                        new DependencyProperty() { Name = "revisionValue", Value = dependency.RevisionValue },
+                        new Property() { Name = "cleanDestinationDirectory", Value = dependency.CleanDestinationDirectory.ToString() },
+                        new Property() { Name = "pathRules", Value = dependency.PathRules },
+                        new Property() { Name = "revisionName", Value = dependency.RevisionName },
+                        new Property() { Name = "revisionValue", Value = dependency.RevisionValue },
                     }
                 }, 
                 SourceBuildConfig = buildConfig
