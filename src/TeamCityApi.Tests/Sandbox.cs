@@ -69,7 +69,7 @@ namespace TeamCityApi.Tests
             public void CopyBuildConfigurationFromBuildId()
             {
                 var client = CreateBuildConfigClient();
-                var createdBuildConfig = client.CopyBuildConfigurationFromBuildId("186", "Oct 15 Release").Result;
+                var createdBuildConfig = client.CopyBuildConfigurationFromBuildId("250", "Do not touch!").Result;
             }
         }
 
@@ -113,13 +113,16 @@ namespace TeamCityApi.Tests
                 {
                     Id = buildConfig.Id,
                     Type = "snapshot_dependency",
-                    Properties = new List<Property>
+                    Properties = new DependencyProperties
                     {
-                        new Property() { Name = "run-build-if-dependency-failed", Value = "false" },
-                        new Property() { Name = "take-successful-builds-only", Value = "true" },
-                        //new Property() { Name = "run-build-on-the-same-agent", Value = "true" },
-                        //new Property() { Name = "take-started-build-with-same-revisions", Value = "true" },
-                    },
+                        Property = new List<DependencyProperty>
+                        {
+                            new DependencyProperty() { Name = "run-build-if-dependency-failed", Value = "false" },
+                            new DependencyProperty() { Name = "take-successful-builds-only", Value = "true" },
+                            //new Property() { Name = "run-build-on-the-same-agent", Value = "true" },
+                            //new Property() { Name = "take-started-build-with-same-revisions", Value = "true" },
+                        }
+                    }, 
                     SourceBuildConfig = buildConfig
                 };
                 client.CreateDependency("foo_service_Master", dependencyDefinition).Wait();
@@ -138,6 +141,18 @@ namespace TeamCityApi.Tests
                 var client = CreateBuildConfigClient();
                 var buildConfiguration = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkOct13Release").Result;
                 client.DeleteAllSnapshotDependencies(buildConfiguration).Wait();
+            }
+
+            [Fact]
+            public void FreezeAllArtifactDependencies()
+            {
+                var buildClient = CreateBuildClient();
+                var build = buildClient.ById("250").Result;
+
+                var buildConfigurationClient = CreateBuildConfigClient();
+                var buildConfiguration = buildConfigurationClient.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkDoNotTouch").Result;
+
+                buildConfigurationClient.FreezeAllArtifactDependencies(buildConfiguration, build).Wait();
             }
 
             [Fact]

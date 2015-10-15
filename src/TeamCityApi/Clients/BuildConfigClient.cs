@@ -19,6 +19,7 @@ namespace TeamCityApi.Clients
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
         Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
         Task DeleteAllSnapshotDependencies(BuildConfig buildConfig);
+        Task FreezeAllArtifactDependencies(BuildConfig buildConfig, Build build);
         Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
 
         Task<BuildConfig> CopyBuildConfiguration(ProjectLocator destinationProjectLocator, string newConfigurationName,
@@ -80,13 +81,16 @@ namespace TeamCityApi.Clients
             {
                 Id = buildConfig.Id,
                 Type = "snapshot_dependency",
-                Properties = new List<Property>
+                Properties = new DependencyProperties
+                {
+                    Property = new List<DependencyProperty>
                     {
-                        new Property() { Name = "run-build-if-dependency-failed", Value = dependency.RunBuildIfDependencyFailed.ToString() },
-                        new Property() { Name = "take-successful-builds-only", Value = dependency.TakeSuccessFulBuildsOnly.ToString() },
-                        new Property() { Name = "run-build-on-the-same-agent", Value = dependency.RunBuildOnTheSameAgent.ToString() },
-                        new Property() { Name = "take-started-build-with-same-revisions", Value = dependency.TakeStartedBuildWithSameRevisions.ToString() },
-                    },
+                        new DependencyProperty() { Name = "run-build-if-dependency-failed", Value = dependency.RunBuildIfDependencyFailed.ToString() },
+                        new DependencyProperty() { Name = "take-successful-builds-only", Value = dependency.TakeSuccessFulBuildsOnly.ToString() },
+                        new DependencyProperty() { Name = "run-build-on-the-same-agent", Value = dependency.RunBuildOnTheSameAgent.ToString() },
+                        new DependencyProperty() { Name = "take-started-build-with-same-revisions", Value = dependency.TakeStartedBuildWithSameRevisions.ToString() },
+                    }
+                },
                 SourceBuildConfig = buildConfig
             };
 
@@ -108,6 +112,23 @@ namespace TeamCityApi.Clients
             }
         }
 
+        public async Task FreezeAllArtifactDependencies(BuildConfig buildConfig, Build build)
+        {
+            foreach (var artifactDependency in buildConfig.ArtifactDependencies)
+            {
+                var buildNumber = build.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == artifactDependency.SourceBuildConfig.Id).Number;
+                artifactDependency.Properties.Property.FirstOrDefault(p => p.Name == "revisionName").Value = "buildNumber";
+                artifactDependency.Properties.Property.FirstOrDefault(p => p.Name == "revisionValue").Value = buildNumber;
+                await UpdateArtifactDependency(buildConfig.Id, artifactDependency);
+            }
+        }
+
+        public async Task UpdateArtifactDependency(string buildConfigId, DependencyDefinition artifactDependency)
+        {
+            var url = string.Format("/app/rest/buildTypes/id:{0}/artifact-dependencies/{1}", buildConfigId, artifactDependency.Id);
+            await _http.PutJson(url, Json.Serialize(artifactDependency));
+        }
+
         public async Task CreateArtifactDependency(CreateArtifactDependency dependency)
         {
             string requestUri = string.Format("/app/rest/buildTypes/id:{0}", dependency.DependencyBuildConfigId);
@@ -118,13 +139,16 @@ namespace TeamCityApi.Clients
             {
                 Id = "0",
                 Type = "artifact_dependency",
-                Properties = new List<Property>
+                Properties = new DependencyProperties
+                {
+                    Property = new List<DependencyProperty>
                     {
-                        new Property() { Name = "cleanDestinationDirectory", Value = dependency.CleanDestinationDirectory.ToString() },
-                        new Property() { Name = "pathRules", Value = dependency.PathRules },
-                        new Property() { Name = "revisionName", Value = dependency.RevisionName },
-                        new Property() { Name = "revisionValue", Value = dependency.RevisionValue },
-                    },
+                        new DependencyProperty() { Name = "cleanDestinationDirectory", Value = dependency.CleanDestinationDirectory.ToString() },
+                        new DependencyProperty() { Name = "pathRules", Value = dependency.PathRules },
+                        new DependencyProperty() { Name = "revisionName", Value = dependency.RevisionName },
+                        new DependencyProperty() { Name = "revisionValue", Value = dependency.RevisionValue },
+                    }
+                }, 
                 SourceBuildConfig = buildConfig
             };
 
@@ -145,7 +169,7 @@ namespace TeamCityApi.Clients
             var element = new XElement(definition.Type.Replace('_','-'),
                 new XAttribute("id", definition.Id),
                 new XAttribute("type", definition.Type),
-                new XElement("properties", definition.Properties.Select(x => new XElement("property", new XAttribute("name", x.Name), new XAttribute("value", x.Value))).ToArray()),
+                new XElement("properties", definition.Properties.Property.Select(x => new XElement("property", new XAttribute("name", x.Name), new XAttribute("value", x.Value))).ToArray()),
                     new XElement("source-buildType", new XAttribute("id", definition.SourceBuildConfig.Id),
                         new XAttribute("name", definition.SourceBuildConfig.Name),
                         new XAttribute("href", definition.SourceBuildConfig.Href),
@@ -193,7 +217,7 @@ namespace TeamCityApi.Clients
 
             await DeleteAllSnapshotDependencies(newBuildConfig);
 
-            //todo: freeze artifact dependencies OR REBUILD ARTIFACT DEPENDENCIES, WHICH COULD CHANGE??
+            await FreezeAllArtifactDependencies(newBuildConfig, build);
 
             await SetParameterValue(new BuildTypeLocator().WithId(newBuildConfig.Id), "CloneNameSuffix", newNameSuffix);
 

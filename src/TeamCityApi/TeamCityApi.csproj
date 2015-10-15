@@ -58,10 +58,12 @@
     <Compile Include="Domain\CreateSnapshotDependency.cs" />
     <Compile Include="Domain\Dependency.cs" />
     <Compile Include="Domain\DependencyDefinition.cs" />
+    <Compile Include="Domain\DependencyProperties.cs" />
     <Compile Include="Domain\File.cs" />
     <Compile Include="Domain\FileRevision.cs" />
     <Compile Include="Domain\Project.cs" />
     <Compile Include="Domain\ProjectSummary.cs" />
+    <Compile Include="Domain\DependencyProperty.cs" />
     <Compile Include="Domain\Property.cs" />
     <Compile Include="Domain\Revision.cs" />
     <Compile Include="Domain\TemplateSummary.cs" />

@@ -8,7 +8,7 @@ namespace TeamCityApi.Domain
         public string Id { get; set; }
         public string Type { get; set; }
 
-        public List<Property> Properties { get; set; }
+        public DependencyProperties Properties { get; set; }
 
         [JsonProperty("source-buildType")]
         public BuildConfigSummary SourceBuildConfig { get; set; }
