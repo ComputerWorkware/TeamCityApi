@@ -171,6 +171,33 @@ namespace TeamCityApi.Tests
             }
         }
 
+        public class BuildChain
+        {
+            [Fact]
+            public void Create()
+            {
+                var client = CreateBuildClient();
+                var build = client.ById("186").Result;
+
+                var buildChain = new Helpers.BuildChain(client, build);
+
+                Assert.Equal(9, buildChain.Count);
+            }
+
+            [Fact]
+            public void GetParents()
+            {
+                var client = CreateBuildClient();
+                var build = client.ById("186").Result;
+                var childBuild = client.ById("116").Result;
+
+                var buildChain = new Helpers.BuildChain(client, build);
+                var parentBuilds = buildChain.GetParents(childBuild).ToList();
+
+                Assert.Equal(new List<string> { "181", "132", "124" }, parentBuilds.Select(b => b.Id));
+            }
+        }
+
         private static ChangeClient CreateChnageClient()
         {
             var http = CreateHttpClientWrapper();

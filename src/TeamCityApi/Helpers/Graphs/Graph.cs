@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TeamCityApi.Helpers.Graphs
 {
@@ -85,6 +87,13 @@ namespace TeamCityApi.Helpers.Graphs
         public int Count
         {
             get { return nodeSet.Count; }
+        }
+
+        public IEnumerable<T> GetParents(T childNode)
+        {
+            return from GraphNode<T> node in Nodes
+                   where node.Neighbors.Any(n => n.Value.Equals(childNode))
+                   select node.Value;
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
