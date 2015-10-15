@@ -78,8 +78,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Locators\UserLocator.cs" />
     <Compile Include="TeamCityClient.cs" />
+    <Compile Include="Helpers\BuildChain.cs" />
+    <Compile Include="Helpers\Graphs\Graph.cs" />
+    <Compile Include="Helpers\Graphs\GraphNode.cs" />
     <Compile Include="Util\Json.cs" />
     <Compile Include="Util\CollectionWrapperConverter.cs" />
+    <Compile Include="Helpers\Graphs\Node.cs" />
+    <Compile Include="Helpers\Graphs\NodeList.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">

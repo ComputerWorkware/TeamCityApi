@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers;
 using TeamCityApi.Locators;
 using TeamCityApi.Util;
 
@@ -199,6 +200,16 @@ namespace TeamCityApi.Clients
             await FreezeParameters(newBuildConfig.Id, newBuildConfig.Parameters, build.Properties);
 
             return newBuildConfig;
+        }
+
+        public async Task CopyChildBuildConfigurationFromBuildId(string sourceBuildId, BuildTypeLocator targetRootBuildConfig)
+        {
+            var buildClient = new BuildClient(_http);
+
+            var build = await buildClient.ById(sourceBuildId);
+
+            var buildChain = new BuildChain(buildClient, build);
+
         }
 
         private async Task FreezeParameters(string targetBuildConfigId, List<Property> targetParameters, List<Property> sourceParameters)

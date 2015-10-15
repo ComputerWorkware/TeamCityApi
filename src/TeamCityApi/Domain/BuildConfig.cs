@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Newtonsoft.Json;
 
 namespace TeamCityApi.Domain
 {
+    [DebuggerDisplay("Build Config: {Id}")]
     public class BuildConfig
     {
         public string Id { get; set; }
