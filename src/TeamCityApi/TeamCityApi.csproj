@@ -70,6 +70,7 @@
     <Compile Include="Domain\Trigger.cs" />
     <Compile Include="Domain\VcsRootInstance.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Helpers\BuildConfigChain.cs" />
     <Compile Include="Locators\BranchLocator.cs" />
     <Compile Include="Locators\BuildLocator.cs" />
     <Compile Include="BuildStatus.cs" />

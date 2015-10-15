@@ -41,5 +41,41 @@ namespace TeamCityApi.Domain
         {
             return string.Format("Id: {0}, Name: {1}, ProjectId: {2}, ProjectName: {3}, Href: {4}, WebUrl: {5}", Id, Name, ProjectId, ProjectName, Href, WebUrl);
         }
+
+        public override bool Equals(object obj)
+        {
+            // If parameter is null return false.
+            if (obj == null)
+            {
+                return false;
+            }
+
+            // If parameter cannot be cast to Build return false.
+            BuildConfig bc = obj as BuildConfig;
+            if (bc == null)
+            {
+                return false;
+            }
+
+            // Return true if the fields match:
+            return (Id == bc.Id);
+        }
+
+        public bool Equals(BuildConfig bc)
+        {
+            // If parameter is null return false:
+            if (bc == null)
+            {
+                return false;
+            }
+
+            // Return true if the fields match:
+            return Id == bc.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return int.Parse(Id);
+        }
     }
 }

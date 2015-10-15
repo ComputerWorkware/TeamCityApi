@@ -198,6 +198,20 @@ namespace TeamCityApi.Tests
             }
         }
 
+        public class BuildConfigChain
+        {
+            [Fact]
+            public void Create()
+            {
+                var client = CreateBuildConfigClient();
+                var buildConfig = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_Trunk").Result;
+
+                var buildConfigChain = new Helpers.BuildConfigChain(client, buildConfig);
+
+                Assert.Equal(9, buildConfigChain.Count);
+            }
+        }
+
         private static ChangeClient CreateChnageClient()
         {
             var http = CreateHttpClientWrapper();
