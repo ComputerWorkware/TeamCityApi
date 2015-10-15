@@ -1,4 +1,5 @@
-﻿using TeamCityApi.Clients;
+﻿using System.Collections.Generic;
+using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Graphs;
 
@@ -20,23 +21,23 @@ namespace TeamCityApi.Helpers
             AddBuildWithDependencies(new GraphNode<Build>(rootBuild));
         }
 
-        private void AddBuildWithDependencies(GraphNode<Build> node)
+        private void AddBuildWithDependencies(GraphNode<Build> parentNode)
         {
-            AddNode(node);
+            AddNode(parentNode);
 
-            if (node.Value.ArtifactDependencies != null)
+            if (parentNode.Value.ArtifactDependencies != null)
             {
-                foreach (var artifactDependency in node.Value.ArtifactDependencies)
+                foreach (var artifactDependency in parentNode.Value.ArtifactDependencies)
                 {
                     var dependencyBuild = _buildClient.ById(artifactDependency.Id.ToString()).Result;
-                    var dependencyBuildNode = new GraphNode<Build>(dependencyBuild);
+                    var childNode = new GraphNode<Build>(dependencyBuild);
 
                     if (!this.Contains(dependencyBuild))
                     {
-                        AddBuildWithDependencies(dependencyBuildNode);
+                        AddBuildWithDependencies(childNode);
                     }
 
-                    AddDirectedEdge(node, dependencyBuildNode, 0);
+                    AddDirectedEdge(parentNode, childNode, 0);
                 }
             }
         }
