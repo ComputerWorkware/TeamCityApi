@@ -9,6 +9,7 @@ using CommandLine;
 using Funq;
 using NLog;
 using TeamCityApi;
+using TeamCityApi.UseCases;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
@@ -127,8 +128,13 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.SetConfig,
                 x => new SetConfigCommand(settings));
 
-            container.Register<ICommand>(Verbs.CloneBuildConfig,
-                x => new CloneBuildConfigCommand(x.Resolve<ITeamCityClient>()));
+            container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
+
+            container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
+
+            container.Register<ICommand>(Verbs.CloneRootBuildConfig, x => new CloneRootBuildConfigCommand(x.Resolve<CloneRootBuildConfigUseCase>()));
+
+            container.Register<ICommand>(Verbs.CloneChildBuildConfig, x => new CloneChildBuildConfigCommand(x.Resolve<CloneChildBuildConfigUseCase>()));
 
             return container;
         }

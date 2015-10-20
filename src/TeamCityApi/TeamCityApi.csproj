@@ -39,6 +39,8 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="Consts.cs" />
     <Compile Include="Clients\BuildClient.cs" />
     <Compile Include="Clients\BuildConfigClient.cs" />
     <Compile Include="Clients\ChangeClient.cs" />
@@ -46,6 +48,7 @@
     <Compile Include="Domain\AgentSummary.cs" />
     <Compile Include="Domain\ArtifactsReference.cs" />
     <Compile Include="Domain\Build.cs" />
+    <Compile Include="Domain\BuildContinuationMode.cs" />
     <Compile Include="Domain\BuildDependency.cs" />
     <Compile Include="Domain\BuildStep.cs" />
     <Compile Include="Domain\BuildSummary.cs" />
@@ -64,6 +67,7 @@
     <Compile Include="Domain\Project.cs" />
     <Compile Include="Domain\ProjectSummary.cs" />
     <Compile Include="Domain\Property.cs" />
+    <Compile Include="Domain\PropertyList.cs" />
     <Compile Include="Domain\Revision.cs" />
     <Compile Include="Domain\TemplateSummary.cs" />
     <Compile Include="Domain\Trigger.cs" />
@@ -77,12 +81,15 @@
     <Compile Include="HttpClientWrapper.cs" />
     <Compile Include="Locators\CriteriaBuilder.cs" />
     <Compile Include="Locators\ProjectLocator.cs" />
+    <Compile Include="ParameterNames.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Locators\UserLocator.cs" />
     <Compile Include="TeamCityClient.cs" />
     <Compile Include="Helpers\BuildChain.cs" />
     <Compile Include="Helpers\Graphs\Graph.cs" />
     <Compile Include="Helpers\Graphs\GraphNode.cs" />
+    <Compile Include="UseCases\CloneChildBuildConfigUseCase.cs" />
+    <Compile Include="UseCases\CloneRootBuildConfigUseCase.cs" />
     <Compile Include="Util\Json.cs" />
     <Compile Include="Util\CollectionWrapperConverter.cs" />
     <Compile Include="Helpers\Graphs\Node.cs" />

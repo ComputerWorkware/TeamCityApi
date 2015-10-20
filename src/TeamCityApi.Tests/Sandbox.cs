@@ -52,7 +52,7 @@ namespace TeamCityApi.Tests
             public void ById()
             {
                 var client = CreateBuildConfigClient();
-                var buildConfig = client.GetByConfigurationId("Installers_29_Xu_297dev").Result;
+                var buildConfig = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_Trunk").Result;
             }
 
             [Fact]
@@ -60,7 +60,7 @@ namespace TeamCityApi.Tests
             {
                 var client = CreateBuildConfigClient();
                 client.SetParameterValue(
-                    new BuildTypeLocator().WithId("Installers_Sunlife_VitalObjectsSuite_TrunkOct13Release"),
+                    l => l.WithId("Installers_Sunlife_VitalObjectsSuite_TrunkOct13Release"),
                     "MinorVersion",
                     "77").Wait();
             }
@@ -69,7 +69,7 @@ namespace TeamCityApi.Tests
             public void CopyBuildConfigurationFromBuildId()
             {
                 var client = CreateBuildConfigClient();
-                var createdBuildConfig = client.CopyBuildConfigurationFromBuildId("250", "Do not touch!").Result;
+                //var createdBuildConfig = client.CloneRootBuildConfig("250", "Do not touch!").Result;
             }
         }
 
@@ -115,9 +115,9 @@ namespace TeamCityApi.Tests
                     Type = "snapshot_dependency",
                     Properties = new Properties
                     {
-                        Property = new List<Property>
+                        Property = new PropertyList
                         {
-                            new Property() { Name = "run-build-if-dependency-failed", Value = "false" },
+                            new Property() { Name = "run-build-if-dependency-failed", Value = BuildContinuationMode.MakeFailedToStart.ToString() },
                             new Property() { Name = "take-successful-builds-only", Value = "true" },
                             //new Property() { Name = "run-build-on-the-same-agent", Value = "true" },
                             //new Property() { Name = "take-started-build-with-same-revisions", Value = "true" },

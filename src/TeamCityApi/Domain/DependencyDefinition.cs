@@ -15,7 +15,7 @@ namespace TeamCityApi.Domain
 
         public override string ToString()
         {
-            return string.Format("Id: {0}, Type: {1}", Id, Type);
+            return string.Format("Id: {0}, Type: {1}, Properties: {2}", Id, Type, Properties);
         }
     }
 }

@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Newtonsoft.Json;
+using TeamCityApi.Locators;
 
 namespace TeamCityApi.Domain
 {
@@ -29,13 +32,33 @@ namespace TeamCityApi.Domain
         [JsonProperty("snapshot-dependencies")]
         public List<DependencyDefinition> SnapshotDependencies { get; set; }
 
-        public List<Property> Settings { get; set; }
-        public List<Property> Parameters { get; set; }
+        [JsonProperty("settings")]
+        public Properties Settings { get; set; }
+
+        [JsonProperty("parameters")]
+        public Properties Parameters { get; set; }
 
         //TODO: vcs-root-entries
         //TODO: features
         //TODO: agent-requirements
         //TODO: builds
+
+
+        public bool HasFixedArtifactDependency()
+        {
+            if (ArtifactDependencies != null)
+            {
+                return
+                    ArtifactDependencies.Any(
+                        ad => ad.Properties.Property.Any(p => p.Name == "revisionName" && p.Value == "buildNumber"));
+            }
+            return false;
+        }
+
+        public static implicit operator Action<BuildTypeLocator>(BuildConfig bc)
+        {
+            return locator => locator.WithId(bc.Id);
+        }
 
         public override string ToString()
         {
@@ -75,7 +98,16 @@ namespace TeamCityApi.Domain
 
         public override int GetHashCode()
         {
-            return int.Parse(Id);
+            return Id.GetHashCode();
+        }
+
+        public static string NewName(string oldName, string suffix)
+        {
+            var index = oldName.LastIndexOf(Consts.SuffixSeparator, StringComparison.Ordinal);
+            if (index > 0)
+                oldName = oldName.Substring(0, index);
+
+            return oldName + Consts.SuffixSeparator + suffix;
         }
     }
 }

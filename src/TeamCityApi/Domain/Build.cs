@@ -28,7 +28,7 @@ namespace TeamCityApi.Domain
 
         public List<ChangeSummary> LastChanges { get; set; }
 
-        public List<Property> Properties { get; set; }
+        public Properties Properties { get; set; }
 
         [JsonProperty("snapshot-dependencies")]
         public List<Dependency> SnapshotDependecies { get; set; }
