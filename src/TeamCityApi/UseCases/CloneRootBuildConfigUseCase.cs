@@ -20,7 +20,7 @@ namespace TeamCityApi.UseCases
 
         public async Task<BuildConfig> Execute(string sourceBuildId, string newNameSuffix)
         {
-            Log.InfoFormat("CloneRootBuildConfigUseCase.Execute(sourceBuildId: {0}, newNameSuffix: {1})", sourceBuildId, newNameSuffix);
+            Log.InfoFormat("Clone Root Build Config. sourceBuildId: {0}, newNameSuffix: {1}", sourceBuildId, newNameSuffix);
 
             var build = await _client.Builds.ById(sourceBuildId);
 

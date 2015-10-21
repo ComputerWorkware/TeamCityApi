@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamCityApi.Domain;
 using TeamCityApi.Locators;
-using TeamCityApi.Logging;
 
 namespace TeamCityApi.Clients
 {
@@ -18,7 +17,6 @@ namespace TeamCityApi.Clients
 
     public class BuildClient : IBuildClient
     {
-        private static readonly ILog Log = LogProvider.GetLogger(typeof(BuildClient));
         private readonly IHttpClientWrapper _http;
 
         public BuildClient(IHttpClientWrapper http)
@@ -28,8 +26,6 @@ namespace TeamCityApi.Clients
 
         public async Task<Build> ById(string id)
         {
-            Log.TraceFormat("API Build.ById(id: {0})", id);
-
             string requestUri = string.Format("/app/rest/builds/id:{0}", id);
 
             var build = await _http.Get<Build>(requestUri);
@@ -44,8 +40,6 @@ namespace TeamCityApi.Clients
             var buildLocator = new BuildLocator();
 
             locatorConfig(buildLocator);
-
-            Log.TraceFormat("API Build.ByBuildLocator(locator: {0})", buildLocator);
 
             string requestUri = string.Format("/app/rest/builds?locator={0}", buildLocator);
 
@@ -66,8 +60,6 @@ namespace TeamCityApi.Clients
 
         public async Task<List<File>> GetFiles(long buildId)
         {
-            Log.TraceFormat("API Build.GetFiles(buildId: {0})", buildId);
-
             string requestUri = string.Format("/app/rest/builds/id:{0}/artifacts/children", buildId);
 
             List<File> files = await _http.Get<List<File>>(requestUri);
@@ -79,8 +71,6 @@ namespace TeamCityApi.Clients
 
         public async Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag)
         {
-            Log.DebugFormat("API Build.LastSuccessfulBuildFromConfig(buildConfigId: {0}, tag: {0})", buildConfigId, tag);
-
             List<BuildSummary> buildSummaries = await ByBuildLocator(locator =>
             {
                 locator.WithBuildStatus(BuildStatus.Success)
