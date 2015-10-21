@@ -20,6 +20,7 @@ namespace TeamCityApi.UseCases
         private long _initialSourceBuildId;
         private string _newNameSuffix;
         private string _targetBuildChainId;
+        private BuildConfig _targetRootBuildConfig;
 
         public CloneChildBuildConfigUseCase(ITeamCityClient client)
         {
@@ -32,22 +33,22 @@ namespace TeamCityApi.UseCases
 
             var sourceBuild = await _client.Builds.ById(sourceBuildId.ToString());
             var sourceBuildConfig = await _client.BuildConfigs.GetByConfigurationId(sourceBuild.BuildTypeId);
-            var targetRootBuildConfig = await _client.BuildConfigs.GetByConfigurationId(targetRootBuildConfigId);
+            _targetRootBuildConfig = await _client.BuildConfigs.GetByConfigurationId(targetRootBuildConfigId);
 
-            if (targetRootBuildConfig.Parameters[ParameterName.ClonedFromBuildId] == null)
+            if (_targetRootBuildConfig.Parameters[ParameterName.ClonedFromBuildId] == null)
                 throw new Exception(string.Format("Target root Build Config doesn't appear to be cloned. It is missing the \"{0}\" parameter.", ParameterName.ClonedFromBuildId));
 
             _initialSourceBuildId = sourceBuildId;
-            _targetBuildChainId = targetRootBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
-            _newNameSuffix = targetRootBuildConfig.Parameters[ParameterName.CloneNameSuffix].Value;
-            _buildConfigChain = new BuildConfigChain(_client.BuildConfigs, targetRootBuildConfig);
+            _targetBuildChainId = _targetRootBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
+            _newNameSuffix = _targetRootBuildConfig.Parameters[ParameterName.CloneNameSuffix].Value;
+            _buildConfigChain = new BuildConfigChain(_client.BuildConfigs, _targetRootBuildConfig);
             _otherBuildsInSourceSnapshotChain = await _client.Builds.ByBuildLocator(locator => locator.WithSnapshotDependencyFrom(long.Parse(sourceBuild.Id)));
             
             if (!_buildConfigChain.Contains(sourceBuildConfig))
                 throw new Exception(string.Format("Cannot clone Build Config, because requested source Build (id:{0}, buildConfigId: {1}) is not found in the current Build Config chain for target Build Config ({2}). Make sure root Build Config depends on source Build's Build Config.", sourceBuildId, sourceBuildConfig.Id, targetRootBuildConfigId));
             
             if (sourceBuildConfig.Parameters[ParameterName.ClonedFromBuildId]?.Value == _targetBuildChainId)
-                throw new Exception(string.Format("It appears that Build Config \"{0}\" is already a cloned for target Build Config \"{1}\", because \"{2}\" parameter is the same \"{3}\" . Create a new clone of root Build Config first", sourceBuildConfig.Id, targetRootBuildConfig.Id, ParameterName.ClonedFromBuildId, sourceBuildConfig.Parameters[ParameterName.ClonedFromBuildId]));
+                throw new Exception(string.Format("It appears that Build Config \"{0}\" is already a cloned for target Build Config \"{1}\", because \"{2}\" parameter is the same \"{3}\" . Create a new clone of root Build Config first", sourceBuildConfig.Id, _targetRootBuildConfig.Id, ParameterName.ClonedFromBuildId, sourceBuildConfig.Parameters[ParameterName.ClonedFromBuildId]));
 
             await CloneRecursively(sourceBuild, sourceBuildConfig);
         }
@@ -66,11 +67,15 @@ namespace TeamCityApi.UseCases
                 var parentBuild = await LookupParentBuild(parentBuildConfig.Id);
 
                 await CloneRecursively(parentBuild, parentBuildConfig, clonedBuildConfig, sourceBuild.BuildTypeId);
+
+                _buildConfigChain = new BuildConfigChain(_client.BuildConfigs, _targetRootBuildConfig);
             }
 
             foreach (var parentBuildConfig in parentsNotToClone)
             {
                 await SwapDependenciesToPreviouslyClonedBuildConfig(parentBuildConfig, clonedBuildConfig, sourceBuild.BuildTypeId);
+
+                _buildConfigChain = new BuildConfigChain(_client.BuildConfigs, _targetRootBuildConfig);
             }
         }
 
