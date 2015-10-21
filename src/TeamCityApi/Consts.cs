@@ -2,6 +2,6 @@
 {
     public class Consts
     {
-        public const string SuffixSeparator = "` ";
+        public const string SuffixSeparator = " -- ";
     }
 }
