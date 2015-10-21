@@ -53,7 +53,7 @@ namespace TeamCityApi.Clients
 
         public async Task<List<BuildDependency>> GetAllSnapshotDependencies(string buildId)
         {
-            Log.TraceFormat("API BuildConfig.GetAllSnapshotDependencies(). buildId: {0}", buildId);
+            Log.TraceFormat("API BuildConfig.GetAllSnapshotDependencies(buildId: {0})", buildId);
 
             string requestUri = string.Format("/app/rest/builds?locator=snapshotDependency:(to:(id:{0}),includeInitial:true),defaultFilter:false");
 
@@ -64,7 +64,7 @@ namespace TeamCityApi.Clients
 
         public async Task<BuildConfig> GetByConfigurationId(string buildConfigId)
         {
-            Log.TraceFormat("API BuildConfig.GetByConfigurationId(). buildConfigId: {0}", buildConfigId);
+            Log.TraceFormat("API BuildConfig.GetByConfigurationId(buildConfigId: {0})", buildConfigId);
 
             string requestUri = string.Format("/app/rest/buildTypes/id:{0}", buildConfigId);
 
@@ -78,7 +78,7 @@ namespace TeamCityApi.Clients
             var locator = new BuildTypeLocator();
             buildTypeLocatorConfig(locator);
 
-            Log.TraceFormat("API BuildConfig.SetParameterValue(). buildTypeLocator: {0}, name: {1}, value: {2}, own: {3}", locator, name, value, own);
+            Log.TraceFormat("API BuildConfig.SetParameterValue(buildTypeLocator: {0}, name: {1}, value: {2}, own: {3})", locator, name, value, own);
 
             string requestUri = string.Format("/app/rest/buildTypes/{0}/parameters/{1}", locator, name);
 
@@ -87,7 +87,7 @@ namespace TeamCityApi.Clients
 
         public async Task CreateSnapshotDependency(CreateSnapshotDependency dependency)
         {
-            Log.DebugFormat("API BuildConfig.CreateSnapshotDependency(). dependency: {0}", dependency);
+            Log.DebugFormat("API BuildConfig.CreateSnapshotDependency(dependency: {0})", dependency);
 
             string requestUri = string.Format("/app/rest/buildTypes/id:{0}", dependency.DependencyBuildConfigId);
 
@@ -117,7 +117,7 @@ namespace TeamCityApi.Clients
 
         public async Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId)
         {
-            Log.TraceFormat("API BuildConfig.DeleteSnapshotDependency(). buildConfigId: {0}, buildConfigId: {1}", buildConfigId, dependencyBuildConfigId);
+            Log.TraceFormat("API BuildConfig.DeleteSnapshotDependency(buildConfigId: {0}, buildConfigId: {1})", buildConfigId, dependencyBuildConfigId);
 
             var url = string.Format("/app/rest/buildTypes/{0}/snapshot-dependencies/{1}", buildConfigId, dependencyBuildConfigId);
             await _http.Delete(url);
@@ -125,7 +125,7 @@ namespace TeamCityApi.Clients
 
         public async Task DeleteAllSnapshotDependencies(BuildConfig buildConfig, HashSet<string> buildConfigIdsToSkip = null)
         {
-            Log.DebugFormat("API BuildConfig.DeleteAllSnapshotDependencies(). buildConfig: {0}, buildConfigIdsToSkip: {1}", buildConfig, buildConfigIdsToSkip);
+            Log.DebugFormat("API BuildConfig.DeleteAllSnapshotDependencies(buildConfig: {0}, buildConfigIdsToSkip: {1})", buildConfig, buildConfigIdsToSkip);
 
             foreach (DependencyDefinition dependencyDefinition in buildConfig.SnapshotDependencies)
             {
@@ -138,7 +138,7 @@ namespace TeamCityApi.Clients
 
         public async Task FreezeAllArtifactDependencies(BuildConfig targetBuildConfig, Build asOfbuild, HashSet<string> buildConfigIdsToSkip = null)
         {
-            Log.DebugFormat("API BuildConfig.FreezeAllArtifactDependencies(). targetBuildConfig: {0}, asOfbuild: {1}, buildConfigIdsToSkip: {2} ", targetBuildConfig, asOfbuild, buildConfigIdsToSkip);
+            Log.DebugFormat("API BuildConfig.FreezeAllArtifactDependencies(targetBuildConfig: {0}, asOfbuild: {1}, buildConfigIdsToSkip: {2})", targetBuildConfig, asOfbuild, buildConfigIdsToSkip);
 
             foreach (var artifactDependency in targetBuildConfig.ArtifactDependencies)
             {
@@ -154,7 +154,7 @@ namespace TeamCityApi.Clients
 
         public async Task UpdateArtifactDependency(string buildConfigId, DependencyDefinition artifactDependency)
         {
-            Log.TraceFormat("API BuildConfig.UpdateArtifactDependency(). buildConfigId: {0}, artifactDependency: {1} ", buildConfigId, artifactDependency);
+            Log.TraceFormat("API BuildConfig.UpdateArtifactDependency(buildConfigId: {0}, artifactDependency: {1})", buildConfigId, artifactDependency);
 
             var url = string.Format("/app/rest/buildTypes/id:{0}/artifact-dependencies/{1}", buildConfigId, artifactDependency.Id);
             await _http.PutJson(url, Json.Serialize(artifactDependency));
@@ -162,7 +162,7 @@ namespace TeamCityApi.Clients
 
         public async Task CreateArtifactDependency(CreateArtifactDependency dependency)
         {
-            Log.DebugFormat("API BuildConfig.CreateArtifactDependency(). dependency: {0}", dependency);
+            Log.DebugFormat("API BuildConfig.CreateArtifactDependency(dependency: {0})", dependency);
 
             string requestUri = string.Format("/app/rest/buildTypes/id:{0}", dependency.DependencyBuildConfigId);
 
@@ -190,7 +190,7 @@ namespace TeamCityApi.Clients
 
         public async Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition)
         {
-            Log.TraceFormat("API BuildConfig.CreateDependency(). targetBuildConfigId: {0}, dependencyDefinition: {1}", targetBuildConfigId, dependencyDefinition);
+            Log.TraceFormat("API BuildConfig.CreateDependency(targetBuildConfigId: {0}, dependencyDefinition: {1})", targetBuildConfigId, dependencyDefinition);
 
             var xml = CreateDependencyXml(dependencyDefinition);
 
@@ -224,7 +224,7 @@ namespace TeamCityApi.Clients
             var sourceBuildTypeLocator = new BuildTypeLocator();
             sourceBuildTypeLocatorConfig(sourceBuildTypeLocator);
 
-            Log.TraceFormat("API BuildConfig.CopyBuildConfiguration(). destinationProjectLocator: {0}, newConfigurationName: {1}, sourceBuildTypeLocator: {2}, copyAllAssociatedSettings: {3}, shareVCSRoots: {4}", destinationProjectLocator, newConfigurationName, sourceBuildTypeLocator, copyAllAssociatedSettings, shareVCSRoots);
+            Log.TraceFormat("API BuildConfig.CopyBuildConfiguration(destinationProjectLocator: {0}, newConfigurationName: {1}, sourceBuildTypeLocator: {2}, copyAllAssociatedSettings: {3}, shareVCSRoots: {4})", destinationProjectLocator, newConfigurationName, sourceBuildTypeLocator, copyAllAssociatedSettings, shareVCSRoots);
 
             var xml = CopyBuildConfigurationXml(newConfigurationName, sourceBuildTypeLocator, copyAllAssociatedSettings, shareVCSRoots);
 
@@ -250,7 +250,7 @@ namespace TeamCityApi.Clients
             var buildTypeLocator = new BuildTypeLocator();
             buildTypeLocatorConfig(buildTypeLocator);
 
-            Log.TraceFormat("API BuildConfig.FreezeParameters(). buildTypeLocator: {0}, targetParameters: {1}, sourceParameters: {2}", buildTypeLocator, targetParameters, sourceParameters);
+            Log.TraceFormat("API BuildConfig.FreezeParameters(buildTypeLocator: {0}, targetParameters: {1}, sourceParameters: {2})", buildTypeLocator, targetParameters, sourceParameters);
 
             //1st pass: set different, then in a project, value. Just to make parameter "own", see more: https://youtrack.jetbrains.com/issue/TW-42811
             await Task.WhenAll(

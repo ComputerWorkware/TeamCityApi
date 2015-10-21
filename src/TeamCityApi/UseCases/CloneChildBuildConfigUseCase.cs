@@ -28,7 +28,7 @@ namespace TeamCityApi.UseCases
 
         public async Task Execute(long sourceBuildId, string targetRootBuildConfigId)
         {
-            Log.InfoFormat("Clone child Build Config. sourceBuildId: {0}, targetRootBuildConfigId: {1}", sourceBuildId, targetRootBuildConfigId);
+            Log.InfoFormat("CloneChildBuildConfigUseCase.Execute(sourceBuildId: {0}, targetRootBuildConfigId: {1})", sourceBuildId, targetRootBuildConfigId);
 
             var sourceBuild = await _client.Builds.ById(sourceBuildId.ToString());
             var sourceBuildConfig = await _client.BuildConfigs.GetByConfigurationId(sourceBuild.BuildTypeId);
@@ -54,7 +54,7 @@ namespace TeamCityApi.UseCases
 
         private async Task CloneRecursively(Build sourceBuild, BuildConfig sourceBuildConfig, BuildConfig prevClonedBuildConfig = null, string previouslyClonedFromBuildConfigId = "")
         {
-            Log.DebugFormat("CloneRecursively. sourceBuild: {0}, sourceBuildConfig: {1}, prevClonedBuildConfig: {2}, previouslyClonedFromBuildConfigId: {3}", sourceBuild, sourceBuildConfig, prevClonedBuildConfig, previouslyClonedFromBuildConfigId);
+            Log.DebugFormat("CloneRecursively(sourceBuild: {0}, sourceBuildConfig: {1}, prevClonedBuildConfig: {2}, previouslyClonedFromBuildConfigId: {3})", sourceBuild, sourceBuildConfig, prevClonedBuildConfig, previouslyClonedFromBuildConfigId);
 
             var clonedBuildConfig = await CopyBuildConfigurationFromBuild(sourceBuild, prevClonedBuildConfig, previouslyClonedFromBuildConfigId);
 
@@ -76,7 +76,7 @@ namespace TeamCityApi.UseCases
 
         private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, BuildConfig previouslyClonedBuildConfig, string previouslyClonedFromBuildConfigId)
         {
-            Log.DebugFormat("CopyBuildConfigurationFromBuild. sourceBuild: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedFromBuildConfigId: {1}", sourceBuild, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
+            Log.DebugFormat("CopyBuildConfigurationFromBuild(sourceBuild: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedFromBuildConfigId: {1})", sourceBuild, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
 
             var newBuildConfig = await _client.BuildConfigs.CopyBuildConfiguration(
                 l => l.WithId(sourceBuild.BuildConfig.ProjectId),
@@ -100,7 +100,7 @@ namespace TeamCityApi.UseCases
 
         private async Task SwapDependenciesToPreviouslyClonedBuildConfig(BuildConfig targetBuildConfig, BuildConfig previouslyClonedBuildConfig, string previouslyClonedFromBuildConfigId)
         {
-            Log.DebugFormat("SwapDependenciesToPreviouslyClonedBuildConfig. targetBuildConfig: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedBuildConfigFromBuild: {2}", targetBuildConfig, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
+            Log.DebugFormat("SwapDependenciesToPreviouslyClonedBuildConfig(targetBuildConfig: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedBuildConfigFromBuild: {2})", targetBuildConfig, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
 
             var artifactDependencyToSwap = targetBuildConfig.ArtifactDependencies.FirstOrDefault(a => a.SourceBuildConfig.Id == previouslyClonedFromBuildConfigId);
             if (artifactDependencyToSwap == null)
@@ -119,7 +119,7 @@ namespace TeamCityApi.UseCases
 
         private IEnumerable<BuildConfig> GetParentsToClone(BuildConfig sourceBuildConfig)
         {
-            Log.DebugFormat("GetParentsToClone. sourceBuildConfig: {0}", sourceBuildConfig);
+            Log.DebugFormat("GetParentsToClone(sourceBuildConfig: {0})", sourceBuildConfig);
 
             var parentBuildConfigs = _buildConfigChain.GetParents(sourceBuildConfig);
 
@@ -132,7 +132,7 @@ namespace TeamCityApi.UseCases
 
         private async Task<Build> LookupParentBuild(string parentBuildConfigId)
         {
-            Log.DebugFormat("LookupParentBuild. parentBuildConfigId: {0}", parentBuildConfigId);
+            Log.DebugFormat("LookupParentBuild(parentBuildConfigId: {0})", parentBuildConfigId);
 
             var parentBuildSummary = _otherBuildsInSourceSnapshotChain.FirstOrDefault(b => b.BuildTypeId == parentBuildConfigId);
             if (parentBuildSummary == null)

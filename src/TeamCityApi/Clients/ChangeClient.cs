@@ -26,7 +26,7 @@ namespace TeamCityApi.Clients
 
         public async Task<List<ChangeSummary>> GetAll()
         {
-            Log.TraceFormat("API Change.GetAll().");
+            Log.TraceFormat("API Change.GetAll()");
 
             var changes = await _http.Get<List<ChangeSummary>>(_baseUri);
 
@@ -35,7 +35,7 @@ namespace TeamCityApi.Clients
 
         public async Task<Change> GetById(string changeId)
         {
-            Log.TraceFormat("API Change.GetById(). changeId: {0}", changeId);
+            Log.TraceFormat("API Change.GetById(changeId: {0})", changeId);
 
             string requestUri = string.Format("{0}/id:{1}",_baseUri,  changeId);
 

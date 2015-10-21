@@ -27,7 +27,7 @@ namespace TeamCityApi.Clients
 
         public async Task<List<ProjectSummary>> GetAll()
         {
-            Log.TraceFormat("API Project.GetAll().");
+            Log.TraceFormat("API Project.GetAll()");
 
             var projects = await _http.Get<List<ProjectSummary>>(_baseUri);
 
@@ -36,7 +36,7 @@ namespace TeamCityApi.Clients
 
         public async Task<Project> GetById(string projectId)
         {
-            Log.TraceFormat("API Project.GetById(). projectId: {0}", projectId);
+            Log.TraceFormat("API Project.GetById(projectId: {0})", projectId);
 
             string requestUri = string.Format("{0}/id:{1}", _baseUri, projectId);
 
@@ -47,7 +47,7 @@ namespace TeamCityApi.Clients
 
         public async Task<Project> GetByName(string name)
         {
-            Log.TraceFormat("API Project.GetByName(). name: {0}", name);
+            Log.TraceFormat("API Project.GetByName(name: {0})", name);
 
             string requestUri = string.Format("{0}/name:{1}", _baseUri, name);
 

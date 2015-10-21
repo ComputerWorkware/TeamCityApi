@@ -28,7 +28,7 @@ namespace TeamCityApi.Clients
 
         public async Task<Build> ById(string id)
         {
-            Log.TraceFormat("API Build.ById(). id: {0}", id);
+            Log.TraceFormat("API Build.ById(id: {0})", id);
 
             string requestUri = string.Format("/app/rest/builds/id:{0}", id);
 
@@ -45,7 +45,7 @@ namespace TeamCityApi.Clients
 
             locatorConfig(buildLocator);
 
-            Log.TraceFormat("API Build.ByBuildLocator(). locator: {0}", buildLocator);
+            Log.TraceFormat("API Build.ByBuildLocator(locator: {0})", buildLocator);
 
             string requestUri = string.Format("/app/rest/builds?locator={0}", buildLocator);
 
@@ -66,7 +66,7 @@ namespace TeamCityApi.Clients
 
         public async Task<List<File>> GetFiles(long buildId)
         {
-            Log.TraceFormat("API Build.GetFiles(). buildId: {0}", buildId);
+            Log.TraceFormat("API Build.GetFiles(buildId: {0})", buildId);
 
             string requestUri = string.Format("/app/rest/builds/id:{0}/artifacts/children", buildId);
 
@@ -79,7 +79,7 @@ namespace TeamCityApi.Clients
 
         public async Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag)
         {
-            Log.DebugFormat("API Build.LastSuccessfulBuildFromConfig(). buildConfigId: {0}, tag: {0}", buildConfigId, tag);
+            Log.DebugFormat("API Build.LastSuccessfulBuildFromConfig(buildConfigId: {0}, tag: {0})", buildConfigId, tag);
 
             List<BuildSummary> buildSummaries = await ByBuildLocator(locator =>
             {
