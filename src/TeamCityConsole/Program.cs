@@ -1,6 +1,8 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -22,6 +24,8 @@ namespace TeamCityConsole
 
         static void Main(string[] args)
         {
+            ExtractResources();
+
             var container = SetupContainer();
 
             DisplayAssemblyInfo();
@@ -58,6 +62,38 @@ namespace TeamCityConsole
 #endif
 
             ExecuteAsync(command, options).GetAwaiter().GetResult();
+        }
+
+        private const string ExtractPrefix = ".extract.";
+        private static void ExtractResources()
+        {
+            string assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            var assem = Assembly.GetExecutingAssembly();
+
+            string resourceName = assem.GetManifestResourceNames().FirstOrDefault(rn => rn.Contains(ExtractPrefix));
+
+            int extractPosition = resourceName.IndexOf(ExtractPrefix, StringComparison.Ordinal);
+
+            var dllName = resourceName.Substring(extractPosition+ExtractPrefix.Length);
+            
+            string assemblyFullName = Path.Combine(assemblyLocation,dllName);
+
+            if (File.Exists(assemblyFullName))
+                return;
+
+            if (resourceName == null) return; 
+
+            using (var stream = assem.GetManifestResourceStream(resourceName))
+            {
+                Byte[] assemblyData = new Byte[stream.Length];
+
+                stream.Read(assemblyData, 0, assemblyData.Length);
+
+                File.WriteAllBytes(assemblyFullName,assemblyData);
+
+            }
+
         }
 
         private static async Task ExecuteAsync(ICommand command, dynamic options)
