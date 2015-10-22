@@ -74,6 +74,7 @@
     <Compile Include="Domain\VcsRootInstance.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Helpers\BuildConfigChain.cs" />
+    <Compile Include="Helpers\Graphs\GraphTraversal.cs" />
     <Compile Include="Locators\BranchLocator.cs" />
     <Compile Include="Locators\BuildLocator.cs" />
     <Compile Include="BuildStatus.cs" />
@@ -107,6 +108,9 @@
     </Reference>
     <Reference Include="System.Net.Http.Primitives">
       <HintPath>..\packages\Microsoft.Net.Http.2.2.22\lib\portable-net40+sl4+win8+wp71+wpa81\System.Net.Http.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Parallel">
+      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\System.Threading.Tasks.Parallel.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
