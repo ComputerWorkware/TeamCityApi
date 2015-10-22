@@ -26,8 +26,8 @@ namespace TeamCityApi.Clients
         Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
         Task UpdateArtifactDependency(string buildConfigId, DependencyDefinition artifactDependency);
 
-        Task<BuildConfig> CopyBuildConfiguration(Action<ProjectLocator> destinationProjectLocatorConfig, string newConfigurationName,
-            Action<BuildTypeLocator> sourceBuildTypeLocatorConfig, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true);
+        Task<BuildConfig> CopyBuildConfiguration(string destinationProjectId, string newConfigurationName,
+            string sourceBuildTypeId, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true);
 
         Task FreezeParameters(Action<BuildTypeLocator> buildTypeLocatorConfig, List<Property> targetParameters, List<Property> sourceParameters);
     }
@@ -212,28 +212,22 @@ namespace TeamCityApi.Clients
             return element.ToString();
         }
 
-        public async Task<BuildConfig> CopyBuildConfiguration(Action<ProjectLocator> destinationProjectLocatorConfig, string newConfigurationName, Action<BuildTypeLocator> sourceBuildTypeLocatorConfig, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true)
+        public async Task<BuildConfig> CopyBuildConfiguration(string destinationProjectId, string newConfigurationName, string sourceBuildTypeId, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true)
         {
-            var destinationProjectLocator = new ProjectLocator();
-            destinationProjectLocatorConfig(destinationProjectLocator);
+            Log.TraceFormat("API BuildConfig.CopyBuildConfiguration {0} as \"{1}\"", sourceBuildTypeId, newConfigurationName);
 
-            var sourceBuildTypeLocator = new BuildTypeLocator();
-            sourceBuildTypeLocatorConfig(sourceBuildTypeLocator);
+            var xml = CopyBuildConfigurationXml(newConfigurationName, sourceBuildTypeId, copyAllAssociatedSettings, shareVCSRoots);
 
-            Log.TraceFormat("API BuildConfig.CopyBuildConfiguration {0} from {2} as \"{1}\"", destinationProjectLocator, newConfigurationName, sourceBuildTypeLocator);
-
-            var xml = CopyBuildConfigurationXml(newConfigurationName, sourceBuildTypeLocator, copyAllAssociatedSettings, shareVCSRoots);
-
-            var url = string.Format("/app/rest/projects/{0}/buildTypes", destinationProjectLocator);
-
+            var url = string.Format("/app/rest/projects/{0}/buildTypes", new ProjectLocator().WithId(destinationProjectId));
+            
             return await _http.PostXml<BuildConfig>(url, xml);
         }
 
-        private static string CopyBuildConfigurationXml(string newConfigurationName, BuildTypeLocator sourceBuildTypeLocator, bool copyAllAssociatedSettings, bool shareVCSRoots)
+        private static string CopyBuildConfigurationXml(string newConfigurationName, string sourceBuildTypeId, bool copyAllAssociatedSettings, bool shareVCSRoots)
         {
             var element = new XElement("newBuildTypeDescription",
                 new XAttribute("name", newConfigurationName),
-                new XAttribute("sourceBuildTypeLocator", sourceBuildTypeLocator),
+                new XAttribute("sourceBuildTypeLocator", new BuildTypeLocator().WithId(sourceBuildTypeId)),
                 new XAttribute("copyAllAssociatedSettings", copyAllAssociatedSettings),
                 new XAttribute("shareVCSRoots", shareVCSRoots)
             );

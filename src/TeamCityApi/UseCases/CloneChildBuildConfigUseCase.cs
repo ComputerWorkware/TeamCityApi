@@ -85,9 +85,9 @@ namespace TeamCityApi.UseCases
             //Log.DebugFormat("CopyBuildConfigurationFromBuild(sourceBuild: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedFromBuildConfigId: {1})", sourceBuild, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
 
             var newBuildConfig = await _client.BuildConfigs.CopyBuildConfiguration(
-                l => l.WithId(sourceBuild.BuildConfig.ProjectId),
+                sourceBuild.BuildConfig.ProjectId,
                 BuildConfig.NewName(sourceBuild.BuildConfig.Name, _newNameSuffix),
-                l => l.WithId(sourceBuild.BuildConfig.Id)
+                sourceBuild.BuildConfig.Id
             );
 
             await _client.BuildConfigs.DeleteAllSnapshotDependencies(newBuildConfig);

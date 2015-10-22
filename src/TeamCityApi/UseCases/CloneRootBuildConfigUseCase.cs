@@ -30,9 +30,9 @@ namespace TeamCityApi.UseCases
         private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix)
         {
             var newBuildConfig = await _client.BuildConfigs.CopyBuildConfiguration(
-                l => l.WithId(sourceBuild.BuildConfig.ProjectId),
+                sourceBuild.BuildConfig.ProjectId,
                 BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix),
-                l => l.WithId(sourceBuild.BuildConfig.Id)
+                sourceBuild.BuildConfig.Id
             );
 
             await _client.BuildConfigs.DeleteAllSnapshotDependencies(newBuildConfig);
