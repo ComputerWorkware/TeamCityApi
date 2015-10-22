@@ -132,6 +132,14 @@ namespace TeamCityApi.Clients
             }
         }
 
+        public async Task DeleteBuildConfig(string buildConfigId)
+        {
+            Log.TraceFormat("API BuildConfig.DeleteBuildConfig for: {0}", buildConfigId);
+
+            var url = string.Format("/app/rest/buildTypes/id:{0}", buildConfigId);
+            await _http.Delete(url);
+        }
+
         public async Task FreezeAllArtifactDependencies(BuildConfig targetBuildConfig, Build asOfbuild, HashSet<string> buildConfigIdsToSkip = null)
         {
             Log.DebugFormat("API BuildConfig.FreezeAllArtifactDependencies for {0}, asOfbuild: {1}", targetBuildConfig.Id, asOfbuild.Id);

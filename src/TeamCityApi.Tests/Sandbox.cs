@@ -154,6 +154,13 @@ namespace TeamCityApi.Tests
 
                 buildConfigurationClient.FreezeAllArtifactDependencies(buildConfiguration, build).Wait();
             }
+            
+            [Fact]
+            public void DeleteBuildConfig()
+            {
+                var client = CreateBuildConfigClient();
+                client.DeleteBuildConfig("Installers_Sunlife_PaymentCollections_TrunkKrisTest").Wait();
+            }
 
             [Fact]
             public void GetAllSnapshotDependencies()
