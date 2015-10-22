@@ -34,6 +34,7 @@ namespace TeamCityConsole.Tests.Commands
         {
             public TestCloneRootBuildConfigCommand(CloneRootBuildConfigUseCase cloneRootBuildConfigUseCase) : base(cloneRootBuildConfigUseCase)
             {
+
             }
         }
     }

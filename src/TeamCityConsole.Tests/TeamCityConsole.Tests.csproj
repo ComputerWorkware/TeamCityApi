@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CloneRootBuildConfigCommandTests.cs" />
+    <Compile Include="Commands\DeleteBuildChainCommandTests.cs" />
     <Compile Include="Commands\ResolveDependencyCommandTests.cs" />
     <Compile Include="Commands\SetConfigCommandTests.cs" />
     <Compile Include="Commands\UpdateCommandTests.cs" />

@@ -76,6 +76,7 @@
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Commands\CloneChildBuildConfigCommand.cs" />
     <Compile Include="Commands\CloneRootBuildConfigCommand.cs" />
+    <Compile Include="Commands\DeleteBuildChainCommand.cs" />
     <Compile Include="Commands\SetConfigCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="DownloadDataFlow.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Options\CloneRootBuildConfigOptions.cs" />
     <Compile Include="Options\CloneChildBuildConfigOptions.cs" />
+    <Compile Include="Options\DeleteBuildChainOptions.cs" />
     <Compile Include="Options\GetArtifactOptions.cs" />
     <Compile Include="Options\GetDependenciesOptions.cs" />
     <Compile Include="Options\SelfUpdateOptions.cs" />

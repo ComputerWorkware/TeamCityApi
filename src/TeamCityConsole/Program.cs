@@ -125,16 +125,19 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.SelfUpdate,
                 x => new UpdateCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileSystem>(), x.Resolve<IFileDownloader>(), assemblyMetada, settings));
 
-            container.Register<ICommand>(Verbs.SetConfig,
-                x => new SetConfigCommand(settings));
+            container.Register<ICommand>(Verbs.SetConfig, x => new SetConfigCommand(settings));
 
             container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
 
             container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
 
+            container.Register(x => new DeleteBuildChainUseCase(x.Resolve<ITeamCityClient>()));
+
             container.Register<ICommand>(Verbs.CloneRootBuildConfig, x => new CloneRootBuildConfigCommand(x.Resolve<CloneRootBuildConfigUseCase>()));
 
             container.Register<ICommand>(Verbs.CloneChildBuildConfig, x => new CloneChildBuildConfigCommand(x.Resolve<CloneChildBuildConfigUseCase>()));
+
+            container.Register<ICommand>(Verbs.DeleteBuildChain, x => new DeleteBuildChainCommand(x.Resolve<DeleteBuildChainUseCase>()));
 
             return container;
         }

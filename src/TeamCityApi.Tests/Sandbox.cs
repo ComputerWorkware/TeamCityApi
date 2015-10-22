@@ -4,6 +4,7 @@ using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Locators;
+using TeamCityApi.UseCases;
 using Xunit;
 
 namespace TeamCityApi.Tests
@@ -139,7 +140,7 @@ namespace TeamCityApi.Tests
             public void DeleteAllSnapshotDependencies()
             {
                 var client = CreateBuildConfigClient();
-                var buildConfiguration = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkOct13Release").Result;
+                var buildConfiguration = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkKrisTest").Result;
                 client.DeleteAllSnapshotDependencies(buildConfiguration).Wait();
             }
 
@@ -159,14 +160,14 @@ namespace TeamCityApi.Tests
             public void DeleteBuildConfig()
             {
                 var client = CreateBuildConfigClient();
-                client.DeleteBuildConfig("Installers_Sunlife_PaymentCollections_TrunkKrisTest").Wait();
+                client.DeleteBuildConfig("Sunlife_PaymentCollections_TrunkKrisTest").Wait();
             }
 
             [Fact]
             public void GetAllSnapshotDependencies()
             {
                 var client = CreateBuildConfigClient();
-                client.GetAllSnapshotDependencies("232").Wait();
+                client.GetAllSnapshotDependencies("366").Wait();
             }
 
             [Fact]

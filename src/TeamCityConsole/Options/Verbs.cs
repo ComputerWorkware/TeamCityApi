@@ -8,5 +8,6 @@
         public const string SetConfig = "set-config";
         public const string CloneRootBuildConfig = "clone-root-build-config";
         public const string CloneChildBuildConfig = "clone-child-build-config";
+        public const string DeleteBuildChain = "delete-build-chain";
     }
 }

@@ -22,6 +22,7 @@ namespace TeamCityApi.Clients
         Task CreateArtifactDependency(CreateArtifactDependency dependency);
         Task DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
         Task DeleteAllSnapshotDependencies(BuildConfig buildConfig, HashSet<string> buildConfigIdsToSkip = null);
+        Task DeleteBuildConfig(string buildConfigId);
         Task FreezeAllArtifactDependencies(BuildConfig targetBuildConfig, Build asOfbuild, HashSet<string> buildConfigIdsToSkip = null);
         Task CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
         Task UpdateArtifactDependency(string buildConfigId, DependencyDefinition artifactDependency);
@@ -139,7 +140,7 @@ namespace TeamCityApi.Clients
             var url = string.Format("/app/rest/buildTypes/id:{0}", buildConfigId);
             await _http.Delete(url);
         }
-
+        
         public async Task FreezeAllArtifactDependencies(BuildConfig targetBuildConfig, Build asOfbuild, HashSet<string> buildConfigIdsToSkip = null)
         {
             Log.DebugFormat("API BuildConfig.FreezeAllArtifactDependencies for {0}, asOfbuild: {1}", targetBuildConfig.Id, asOfbuild.Id);
