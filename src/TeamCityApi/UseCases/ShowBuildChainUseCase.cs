@@ -21,7 +21,7 @@ namespace TeamCityApi.UseCases
             Log.Info("================Show Build Chain: start ================");
 
             var buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
-            var buildChainId = buildConfig.Parameters[ParameterName.BuildConfigChainId]?.Value;
+            var buildChainId = buildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
             var buildConfigChain = new BuildConfigChain(_client.BuildConfigs, buildConfig);
             ShowBuildChain(buildConfigChain, buildChainId);
         }
@@ -30,7 +30,7 @@ namespace TeamCityApi.UseCases
         {
             foreach (var node in buildConfigChain.Nodes)
             {
-                if (node.Value.Parameters[ParameterName.BuildConfigChainId]?.Value == buildChainId)
+                if (node.Value.Parameters[ParameterName.BuildConfigChainId].Value == buildChainId)
                 {
                     Log.InfoFormat("BuildConfigId: (CLONED) {0}", node.Value.Id);
                 }

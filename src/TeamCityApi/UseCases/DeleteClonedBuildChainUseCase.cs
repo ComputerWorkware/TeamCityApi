@@ -21,14 +21,14 @@ namespace TeamCityApi.UseCases
             Log.InfoFormat("Delete Cloned Build Chain.");
 
             var buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
-            var buildChainId = buildConfig.Parameters[ParameterName.BuildConfigChainId]?.Value;
+            var buildChainId = buildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
             var buildConfigChain = new BuildConfigChain(_client.BuildConfigs, buildConfig);
             await DeleteClonedBuildChain(buildConfigChain, buildChainId, simulate);
         }
 
         private async Task DeleteClonedBuildChain(BuildConfigChain buildConfigChain, string buildChainId, bool simulate)
         {
-            foreach (var node in buildConfigChain.Nodes.Where(node => node.Value.Parameters[ParameterName.BuildConfigChainId]?.Value == buildChainId))
+            foreach (var node in buildConfigChain.Nodes.Where(node => node.Value.Parameters[ParameterName.BuildConfigChainId].Value == buildChainId))
             {
                 Log.InfoFormat("Deleting buildConfigId: {0}", node.Value.Id);
                 if (!simulate)

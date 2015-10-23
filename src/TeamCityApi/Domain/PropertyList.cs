@@ -15,7 +15,13 @@ namespace TeamCityApi.Domain
         {
             get
             {
-                return this.FirstOrDefault(p => p.Name == name);
+                var property = this.FirstOrDefault(p => p.Name == name) ?? new Property()
+                {
+                    Name = string.Empty,
+                    Value = string.Empty
+                };
+
+                return property;
             }
         }
     }

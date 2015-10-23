@@ -86,7 +86,7 @@ namespace TeamCityApi.UseCases
                         "Cannot clone Build Config, because requested source Build (id:{0}, buildConfigId: {1}) is not found in the current Build Config chain for target Build Config ({2}). Make sure root Build Config depends on source Build's Build Config.",
                         sourceBuildId, _sourceBuildConfig.Id, targetRootBuildConfigId));
 
-            if (_sourceBuildConfig.Parameters[ParameterName.ClonedFromBuildId]?.Value == _targetBuildChainId)
+            if (_sourceBuildConfig.Parameters[ParameterName.ClonedFromBuildId].Value == _targetBuildChainId)
                 throw new Exception(
                     string.Format(
                         "It appears that Build Config \"{0}\" is already a cloned for target Build Config \"{1}\", because \"{2}\" parameter is the same \"{3}\" . Create a new clone of root Build Config first",
