@@ -89,14 +89,14 @@ namespace TeamCityApi.Locators
             return With("branch", string.Format("({0})", locator));
         }
 
-        public BuildLocator WithSnapshotDependencyTo(long id, bool recursive = true)
+        public BuildLocator WithSnapshotDependencyTo(long id, bool includeInitial = true, bool recursive = true)
         {
-            return With("snapshotDependency", string.Format("(to:(id:{0}),recursive:{1})", id, recursive.ToString().ToLower()));
+            return With("snapshotDependency", string.Format("(to:(id:{0}),includeInitial:{1},recursive:{2})", id, includeInitial.ToString().ToLower(), recursive.ToString().ToLower()));
         }
 
-        public BuildLocator WithSnapshotDependencyFrom(long id, bool recursive = true)
+        public BuildLocator WithSnapshotDependencyFrom(long id, bool includeInitial = true, bool recursive = true)
         {
-            return With("snapshotDependency", string.Format("(from:(id:{0}),recursive:{1})", id, recursive.ToString().ToLower()));
+            return With("snapshotDependency", string.Format("(from:(id:{0}),includeInitial:{1},recursive:{2})", id, includeInitial.ToString().ToLower(), recursive.ToString().ToLower()));
         }
 
         public override string ToString()

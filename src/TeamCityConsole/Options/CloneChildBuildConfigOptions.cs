@@ -13,5 +13,8 @@ namespace TeamCityConsole.Options
         [Option('c', "cloneForRootBuildConfigId", Required = true, HelpText = "Root Build Config Id for which dependency is cloned.")]
         public string CloneForRootBuildConfigId { get; set; }
 
+        [Option('s', "Simulate", Required = false, HelpText = "When set to true it doesn't make any changes to TeamCity. Only provides intended execution path.")]
+        public bool Simulate { get; set; }
+
     }
 }

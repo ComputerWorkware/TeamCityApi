@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.Locators;
 using TeamCityApi.UseCases;
 using Xunit;
@@ -217,6 +218,19 @@ namespace TeamCityApi.Tests
                 var buildConfigChain = new Helpers.BuildConfigChain(client, buildConfig);
 
                 Assert.Equal(9, buildConfigChain.Count);
+            }
+
+            [Fact]
+            public void FindAllParents()
+            {
+                var client = CreateBuildConfigClient();
+                var buildConfig = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_Trunk").Result;
+                var buildConfigChain = new Helpers.BuildConfigChain(client, buildConfig);
+                var child = client.GetByConfigurationId("Sunlife_CwiVoAccountingAddins_Trunk").Result;
+
+                var allParents = buildConfigChain.FindAllParents(child);
+
+                Assert.Equal(6, allParents.Count);
             }
         }
 
