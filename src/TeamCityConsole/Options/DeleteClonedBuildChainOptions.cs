@@ -2,8 +2,8 @@
 
 namespace TeamCityConsole.Options
 {
-    [Verb(Verbs.DeleteBuildChain, HelpText = "Deletes build chain.")]
-    public class DeleteBuildChainOptions
+    [Verb(Verbs.DeleteClonedBuildChain, HelpText = "Deletes cloned build chain.")]
+    public class DeleteClonedBuildChainOptions
     {
         [Option('c', "BuildConfigId", Required = true, HelpText = "Configuration Id.")]
         public string BuildConfigId { get; set; }
