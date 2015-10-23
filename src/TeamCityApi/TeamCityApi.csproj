@@ -69,6 +69,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Helpers\BuildConfigChain.cs" />
     <Compile Include="Helpers\Graphs\GraphTraversal.cs" />
+    <Compile Include="Helpers\SshKeyHelper.cs" />
     <Compile Include="Locators\BranchLocator.cs" />
     <Compile Include="Locators\BuildLocator.cs" />
     <Compile Include="BuildStatus.cs" />
@@ -117,6 +118,9 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="ssh\id_rsa" />
+    <EmbeddedResource Include="ssh\id_rsa.pub" />
+    <EmbeddedResource Include="ssh\known_hosts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

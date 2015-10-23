@@ -111,9 +111,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <EmbeddedResource Include="ssh\id_rsa" />
-    <EmbeddedResource Include="ssh\id_rsa.pub" />
-    <EmbeddedResource Include="ssh\known_hosts" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TeamCityApi\TeamCityApi.csproj">
