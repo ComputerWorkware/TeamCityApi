@@ -17,26 +17,26 @@ namespace TeamCityApi.UseCases
         private readonly ITeamCityClient _client;
 
         private BuildConfigChain _buildConfigChain;
-        private List<BuildSummary> _otherBuildsInSourceSnapshotChain;
+        private List<BuildSummary> _buildsInSourceSnapshotChain;
         private long _initialSourceBuildId;
         private string _newNameSuffix;
         private string _targetBuildChainId;
         private BuildConfig _sourceBuildConfig;
         private BuildConfig _targetRootBuildConfig;
-        private Dictionary<string, BuildConfig> _clones = new Dictionary<string, BuildConfig>();
+        private readonly Dictionary<string, BuildConfig> _clones = new Dictionary<string, BuildConfig>();
     
-        private bool _simulate = false;
+        private bool _simulate;
 
         public CloneChildBuildConfigUseCase(ITeamCityClient client)
         {
             _client = client;
         }
 
-        public async Task Execute(long sourceBuildId, string targetRootBuildConfigId)
+        public async Task Execute(long sourceBuildId, string targetRootBuildConfigId, bool simulate)
         {
             Log.InfoFormat("Clone Child Build Config. sourceBuildId: {0}, targetRootBuildConfigId: {1}", sourceBuildId, targetRootBuildConfigId);
 
-            await Init(sourceBuildId, targetRootBuildConfigId);
+            await Init(sourceBuildId, targetRootBuildConfigId, simulate);
 
             var buildConfigsToClone = GetBuildConfigsToClone();
 
@@ -61,8 +61,9 @@ namespace TeamCityApi.UseCases
             }));
         }
 
-        private async Task Init(long sourceBuildId, string targetRootBuildConfigId)
+        private async Task Init(long sourceBuildId, string targetRootBuildConfigId, bool simulate)
         {
+            _simulate = simulate;
             var sourceBuild = await _client.Builds.ById(sourceBuildId.ToString());
             _sourceBuildConfig = await _client.BuildConfigs.GetByConfigurationId(sourceBuild.BuildTypeId);
             _targetRootBuildConfig = await _client.BuildConfigs.GetByConfigurationId(targetRootBuildConfigId);
@@ -76,7 +77,7 @@ namespace TeamCityApi.UseCases
             _targetBuildChainId = _targetRootBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
             _newNameSuffix = _targetRootBuildConfig.Parameters[ParameterName.CloneNameSuffix].Value;
             _buildConfigChain = new BuildConfigChain(_client.BuildConfigs, _targetRootBuildConfig);
-            _otherBuildsInSourceSnapshotChain =
+            _buildsInSourceSnapshotChain =
                 await _client.Builds.ByBuildLocator(locator => locator.WithSnapshotDependencyFrom(long.Parse(sourceBuild.Id)));
 
             if (!_buildConfigChain.Contains(_sourceBuildConfig))
@@ -95,9 +96,10 @@ namespace TeamCityApi.UseCases
 
         private HashSet<BuildConfig> GetBuildConfigsToClone()
         {
-            var allParents = _buildConfigChain.FindAllParents(_sourceBuildConfig);
-            allParents.ExceptWith(new List<BuildConfig>() { _targetRootBuildConfig });
-            return allParents;
+            var buildConfigsToClone = _buildConfigChain.FindAllParents(_sourceBuildConfig);
+            buildConfigsToClone.ExceptWith(new List<BuildConfig>() { _targetRootBuildConfig });
+            buildConfigsToClone.Add(_sourceBuildConfig);
+            return buildConfigsToClone;
         }
 
         private async Task<List<CloneBuildConfigCommand>> GetCloneBuildConfigsCommands(HashSet<BuildConfig> buildConfigsToClone)
@@ -145,7 +147,7 @@ namespace TeamCityApi.UseCases
 
         private async Task<Build> GetBuildFromChain(string buildConfigId)
         {
-            var parentBuildSummary = _otherBuildsInSourceSnapshotChain.FirstOrDefault(b => b.BuildTypeId == buildConfigId);
+            var parentBuildSummary = _buildsInSourceSnapshotChain.FirstOrDefault(b => b.BuildTypeId == buildConfigId);
             if (parentBuildSummary == null)
                 throw new Exception(string.Format("Cannot find a build for Build Config \"{0}\" in build chain with source Build \"{1}\"", buildConfigId, _initialSourceBuildId));
 
@@ -236,7 +238,7 @@ namespace TeamCityApi.UseCases
 
             public override string ToString()
             {
-                return string.Format("Swap dependencies on {0} from {1} to {2}", _targetBuildConfig.Id, _buildConfigIdToSwapFrom, _buildConfigToSwapTo.Id);
+                return string.Format("Swap dependencies on {0}: {1} => {2}", _targetBuildConfig.Id, _buildConfigIdToSwapFrom, _buildConfigToSwapTo.Id);
             }
 
         }
