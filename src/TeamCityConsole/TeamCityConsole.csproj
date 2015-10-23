@@ -111,6 +111,9 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="ssh\id_rsa" />
+    <EmbeddedResource Include="ssh\id_rsa.pub" />
+    <EmbeddedResource Include="ssh\known_hosts" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TeamCityApi\TeamCityApi.csproj">
@@ -161,6 +164,7 @@
       <Link>extract\git2-e0902fb.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.4\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
