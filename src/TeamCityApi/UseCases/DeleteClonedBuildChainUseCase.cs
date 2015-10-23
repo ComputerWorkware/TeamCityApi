@@ -7,7 +7,7 @@ namespace TeamCityApi.UseCases
 {
     public class DeleteClonedBuildChainUseCase
     {
-        private static readonly ILog Log = LogProvider.GetLogger(typeof(CloneRootBuildConfigUseCase));
+        private static readonly ILog Log = LogProvider.GetLogger(typeof(DeleteClonedBuildChainUseCase));
 
         private readonly ITeamCityClient _client;
 

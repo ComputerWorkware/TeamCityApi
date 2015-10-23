@@ -73,6 +73,7 @@
     <Compile Include="Domain\VcsRootInstance.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Helpers\BuildConfigChain.cs" />
+    <Compile Include="Helpers\DiffMatchPatch.cs" />
     <Compile Include="Helpers\Graphs\GraphTraversal.cs" />
     <Compile Include="Helpers\SshKeyHelper.cs" />
     <Compile Include="Helpers\VcsRootHelper.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="Helpers\Graphs\GraphNode.cs" />
     <Compile Include="UseCases\CloneChildBuildConfigUseCase.cs" />
     <Compile Include="UseCases\CloneRootBuildConfigUseCase.cs" />
+    <Compile Include="UseCases\CompareBuildsUseCase.cs" />
     <Compile Include="UseCases\DeleteClonedBuildChainUseCase.cs" />
     <Compile Include="UseCases\GitRepository.cs" />
     <Compile Include="UseCases\GitRepositoryFactory.cs" />
@@ -120,6 +122,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />

@@ -13,7 +13,7 @@ namespace TeamCityConsole.Tests.Commands
         {
             [Theory]
             [AutoNSubstituteData]
-            public void Should_delete_build_chain(ShowBuildChainOptions showBuildChainOptions)
+            public void Should_show_build_chain(ShowBuildChainOptions showBuildChainOptions)
             {
                 var showBuildChainUseCase = new ShowBuildChainUseCase(new TeamCityClient("teamcitytest:8080", "teamcity", "teamcity"));
                 showBuildChainOptions.BuildConfigId = "Installers_Sunlife_VitalObjectsSuite_TrunkKris";

@@ -7,7 +7,7 @@ namespace TeamCityApi.UseCases
 {
     public class ShowBuildChainUseCase
     {
-        private static readonly ILog Log = LogProvider.GetLogger(typeof(CloneRootBuildConfigUseCase));
+        private static readonly ILog Log = LogProvider.GetLogger(typeof(ShowBuildChainUseCase));
 
         private readonly ITeamCityClient _client;
 
