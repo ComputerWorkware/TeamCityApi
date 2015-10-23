@@ -149,7 +149,14 @@ namespace TeamCityApi.UseCases
         {
             var parentBuildSummary = _buildsInSourceSnapshotChain.FirstOrDefault(b => b.BuildTypeId == buildConfigId);
             if (parentBuildSummary == null)
-                throw new Exception(string.Format("Cannot find a build for Build Config \"{0}\" in build chain with source Build \"{1}\"", buildConfigId, _initialSourceBuildId));
+            {
+                var buildsInChainDebugDisplay = string.Join(Environment.NewLine,
+                    _buildsInSourceSnapshotChain.Select(b => b.Id + " (" + b.BuildTypeId + ")"));
+
+                throw new Exception(string.Format("Cannot find a build by Build Config Id \"{0}\" in build chain with source Build Id \"{1}\". " + Environment.NewLine +
+                                                  "Found Build Ids (Build Config Ids) are: " + Environment.NewLine + buildsInChainDebugDisplay,
+                                                   buildConfigId, _initialSourceBuildId));
+            }
 
             return await _client.Builds.ById(parentBuildSummary.Id);
         }
