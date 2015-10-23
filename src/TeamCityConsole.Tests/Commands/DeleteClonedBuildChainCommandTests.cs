@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TeamCityApi;
+﻿using TeamCityApi;
 using TeamCityApi.UseCases;
-using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
 using TeamCityConsole.Tests.Helpers;
-using Xunit;
 using Xunit.Extensions;
 
 

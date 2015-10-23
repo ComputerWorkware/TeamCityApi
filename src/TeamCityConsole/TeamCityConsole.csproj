@@ -84,6 +84,7 @@
     <Compile Include="Commands\CloneRootBuildConfigCommand.cs" />
     <Compile Include="Commands\DeleteClonedBuildChainCommand.cs" />
     <Compile Include="Commands\SetConfigCommand.cs" />
+    <Compile Include="Commands\ShowBuildChainCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="DownloadDataFlow.cs" />
     <Compile Include="Model\BuildInfo.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="Options\GetDependenciesOptions.cs" />
     <Compile Include="Options\SelfUpdateOptions.cs" />
     <Compile Include="Options\SetConfigOptions.cs" />
+    <Compile Include="Options\ShowBuildChainOptions.cs" />
     <Compile Include="Options\Verbs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

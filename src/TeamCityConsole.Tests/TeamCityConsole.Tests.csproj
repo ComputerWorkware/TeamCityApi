@@ -67,6 +67,7 @@
     <Compile Include="Commands\DeleteClonedBuildChainCommandTests.cs" />
     <Compile Include="Commands\ResolveDependencyCommandTests.cs" />
     <Compile Include="Commands\SetConfigCommandTests.cs" />
+    <Compile Include="Commands\ShowBuildChainCommandTest.cs" />
     <Compile Include="Commands\UpdateCommandTests.cs" />
     <Compile Include="DependencyConfigTests.cs" />
     <Compile Include="ArtifactRuleTests.cs" />

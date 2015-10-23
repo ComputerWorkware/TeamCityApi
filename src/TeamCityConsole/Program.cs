@@ -169,11 +169,15 @@ namespace TeamCityConsole
 
             container.Register(x => new DeleteClonedBuildChainUseCase(x.Resolve<ITeamCityClient>()));
 
+            container.Register(x => new ShowBuildChainUseCase(x.Resolve<ITeamCityClient>()));
+
             container.Register<ICommand>(Verbs.CloneRootBuildConfig, x => new CloneRootBuildConfigCommand(x.Resolve<CloneRootBuildConfigUseCase>()));
 
             container.Register<ICommand>(Verbs.CloneChildBuildConfig, x => new CloneChildBuildConfigCommand(x.Resolve<CloneChildBuildConfigUseCase>()));
 
             container.Register<ICommand>(Verbs.DeleteClonedBuildChain, x => new DeleteClonedBuildChainCommand(x.Resolve<DeleteClonedBuildChainUseCase>()));
+
+            container.Register<ICommand>(Verbs.ShowBuildChain, x => new ShowBuildChainCommand(x.Resolve<ShowBuildChainUseCase>()));
 
             return container;
         }

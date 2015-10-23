@@ -20,7 +20,7 @@ namespace TeamCityConsole.Commands
         public async Task Execute(object options)
         {
             var deleteClonedBuildChainOptions = options as DeleteClonedBuildChainOptions;
-            if (deleteClonedBuildChainOptions == null) throw new ArgumentNullException("cloneBuildConfigOptions");
+            if (deleteClonedBuildChainOptions == null) throw new ArgumentNullException("deleteClonedBuildChainOptions");
 
             Log.Info("BuildConfigId: " + deleteClonedBuildChainOptions.BuildConfigId);
             Log.Info("Simulate: " + deleteClonedBuildChainOptions.Simulate);

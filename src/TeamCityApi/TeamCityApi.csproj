@@ -92,6 +92,7 @@
     <Compile Include="UseCases\CloneChildBuildConfigUseCase.cs" />
     <Compile Include="UseCases\CloneRootBuildConfigUseCase.cs" />
     <Compile Include="UseCases\DeleteClonedBuildChainUseCase.cs" />
+    <Compile Include="UseCases\ShowBuildChainUseCase.cs" />
     <Compile Include="Util\Json.cs" />
     <Compile Include="Util\CollectionWrapperConverter.cs" />
     <Compile Include="Helpers\Graphs\Node.cs" />
