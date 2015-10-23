@@ -97,8 +97,14 @@ namespace TeamCityApi.UseCases
         private HashSet<BuildConfig> GetBuildConfigsToClone()
         {
             var buildConfigsToClone = _buildConfigChain.FindAllParents(_sourceBuildConfig);
-            buildConfigsToClone.ExceptWith(new List<BuildConfig>() { _targetRootBuildConfig });
+            buildConfigsToClone.Remove(_targetRootBuildConfig);
             buildConfigsToClone.Add(_sourceBuildConfig);
+            
+            //we don't want to clone already cloned Build Configs for the Target Build Config
+            buildConfigsToClone.RemoveWhere(
+                buildConfigToClone => buildConfigToClone.Parameters[ParameterName.BuildConfigChainId].Value ==
+                                      _targetRootBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value);
+
             return buildConfigsToClone;
         }
 
