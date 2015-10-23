@@ -81,10 +81,15 @@ namespace TeamCityApi.UseCases
                 await _client.Builds.ByBuildLocator(locator => locator.WithSnapshotDependencyFrom(long.Parse(sourceBuild.Id)));
 
             if (!_buildConfigChain.Contains(_sourceBuildConfig))
+            {
                 throw new Exception(
                     string.Format(
-                        "Cannot clone Build Config, because requested source Build (id:{0}, buildConfigId: {1}) is not found in the current Build Config chain for target Build Config ({2}). Make sure root Build Config depends on source Build's Build Config.",
-                        sourceBuildId, _sourceBuildConfig.Id, targetRootBuildConfigId));
+                        "Cannot clone Build Config, because requested source Build (id:{0}, buildConfigId: {1}) " +
+                        "is not found in the current Build Config chain for target Build Config ({2}). " +
+                        "Make sure root Build Config depends on source Build's Build Config." + Environment.NewLine +
+                        "Currently discovered Build Config chain is: " + Environment.NewLine + "{3}",
+                        sourceBuildId, _sourceBuildConfig.Id, targetRootBuildConfigId, _buildConfigChain));
+            }
 
             if (_sourceBuildConfig.Parameters[ParameterName.ClonedFromBuildId].Value == _targetBuildChainId)
                 throw new Exception(
