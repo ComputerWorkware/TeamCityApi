@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
@@ -22,9 +23,11 @@ namespace TeamCityApi.UseCases
         {
             Log.InfoFormat("Clone Root Build Config. sourceBuildId: {0}, newNameSuffix: {1}", sourceBuildId, newNameSuffix);
 
-            var build = await _client.Builds.ById(sourceBuildId);
+            var sourceBuild = await _client.Builds.ById(sourceBuildId);
 
-            return await CopyBuildConfigurationFromBuild(build, newNameSuffix);
+            await EnsureUniqueSuffixProvided(sourceBuild, newNameSuffix);
+
+            return await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix);
         }
 
         private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix)
@@ -43,6 +46,21 @@ namespace TeamCityApi.UseCases
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
 
             return newBuildConfig;
+        }
+
+        private async Task EnsureUniqueSuffixProvided(Build sourceBuild, string newNameSuffix)
+        {
+            var targetProject = await _client.Projects.GetById(sourceBuild.BuildConfig.ProjectId);
+            if (await ProjectHasBuildConfigWithSuffix(targetProject, newNameSuffix))
+                throw new Exception(String.Format("There's already a Build Config with \"{1}\" suffix in Project \"{0}\". Provide unique suffix, because it will be used as a branch name in git.",
+                    targetProject.Name, newNameSuffix));
+        }
+
+        private async Task<bool> ProjectHasBuildConfigWithSuffix(Project project, string suffix)
+        {
+            var getBuildConfigTasks = project.BuildConfigs.Select(bc => _client.BuildConfigs.GetByConfigurationId(bc.Id));
+            var buildConfigs = await Task.WhenAll(getBuildConfigTasks);
+            return buildConfigs.Any(bc => bc.Parameters[ParameterName.CloneNameSuffix].Value == suffix);
         }
     }
 }
