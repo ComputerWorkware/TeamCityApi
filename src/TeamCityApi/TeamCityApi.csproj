@@ -75,6 +75,7 @@
     <Compile Include="Helpers\BuildConfigChain.cs" />
     <Compile Include="Helpers\Graphs\GraphTraversal.cs" />
     <Compile Include="Helpers\SshKeyHelper.cs" />
+    <Compile Include="Helpers\VcsRootHelper.cs" />
     <Compile Include="Locators\BranchLocator.cs" />
     <Compile Include="Locators\BuildLocator.cs" />
     <Compile Include="BuildStatus.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="UseCases\CloneChildBuildConfigUseCase.cs" />
     <Compile Include="UseCases\CloneRootBuildConfigUseCase.cs" />
     <Compile Include="UseCases\DeleteClonedBuildChainUseCase.cs" />
+    <Compile Include="UseCases\GitRepository.cs" />
     <Compile Include="UseCases\GitRepositoryFactory.cs" />
     <Compile Include="UseCases\ShowBuildChainUseCase.cs" />
     <Compile Include="Util\Json.cs" />

@@ -19,7 +19,7 @@ namespace TeamCityApi.Domain
 
         public override string ToString()
         {
-            return Name;
+            return string.Format("Id: {0}, VcsRootId: {1}, vcsName: {2}, Href: {3}, Name: {4}, Status: {5}, lastChecked: {6}, lastVersion: {7}", Id, VcsRootId, vcsName, Href, Name, Status, lastChecked, lastVersion);
         }
 
         public Properties Properties { get; set; }
