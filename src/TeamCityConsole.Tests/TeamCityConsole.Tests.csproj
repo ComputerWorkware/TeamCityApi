@@ -83,6 +83,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TeamCityApi.Tests\TeamCityApi.Tests.csproj">
+      <Project>{463b5cff-4ca8-4458-8229-2bc9ddc9a365}</Project>
+      <Name>TeamCityApi.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TeamCityApi\TeamCityApi.csproj">
       <Project>{9e8e2fd8-8231-41c5-bf0f-f2f20364be63}</Project>
       <Name>TeamCityApi</Name>

@@ -67,8 +67,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deserialization\JsonTests.cs" />
+    <Compile Include="Helpers\AutoNSubstituteDataAttribute.cs" />
+    <Compile Include="Helpers\DomainExtensions.cs" />
     <Compile Include="Locators\BuildLocatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scenarios\SingleBuildScenario.cs" />
+    <Compile Include="UseCases\CloneRootBuildConfigUseCaseTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TeamCityApi\TeamCityApi.csproj">
@@ -80,6 +84,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

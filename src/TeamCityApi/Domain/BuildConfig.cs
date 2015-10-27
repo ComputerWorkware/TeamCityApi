@@ -109,5 +109,18 @@ namespace TeamCityApi.Domain
 
             return oldName + Consts.SuffixSeparator + suffix;
         }
+
+        public static explicit operator BuildConfigSummary(BuildConfig buildConfig)
+        {
+            return new BuildConfigSummary()
+            {
+                Href = buildConfig.Href,
+                Id = buildConfig.Id,
+                ProjectId = buildConfig.ProjectId,
+                Name = buildConfig.Name,
+                ProjectName = buildConfig.ProjectName,
+                WebUrl = buildConfig.WebUrl
+            };
+        }
     }
 }
