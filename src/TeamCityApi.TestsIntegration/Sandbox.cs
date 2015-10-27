@@ -4,11 +4,9 @@ using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Graphs;
-using TeamCityApi.Locators;
-using TeamCityApi.UseCases;
 using Xunit;
 
-namespace TeamCityApi.Tests
+namespace TeamCityApi.TestsIntegration
 {
     public class Sandbox
     {
@@ -25,7 +23,7 @@ namespace TeamCityApi.Tests
         {
             var buildClient = CreateBuildClient();
 
-            Build build = buildClient.ById("186").Result;
+            Build build = buildClient.ById("456").Result;
         }
 
         [Fact]

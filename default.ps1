@@ -61,11 +61,11 @@ task commonAssemblyInfo {
 
 task test {
     create_directory "$build_dir\results"
-    
-    $testassemblies = @(get-childitem $build_dir -recurse -include *tests.dll);
-    if ($testassemblies.count -gt 0)
-    {
-        exec { & $tools_dir\xunit\xunit.console.clr4.exe $testassemblies /teamcity }
+
+    @(get-childitem $build_dir -recurse -include *tests.dll) | `
+    Foreach-Object{
+        Write-Host $tools_dir\xunit\xunit.console.clr4.exe $_.FullName /teamcity
+        exec { & $tools_dir\xunit\xunit.console.clr4.exe $_.FullName /teamcity }
     }
 }
 
