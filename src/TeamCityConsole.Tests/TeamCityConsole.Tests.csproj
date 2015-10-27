@@ -65,7 +65,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\CompareBuildsCommandTest.cs" />
     <Compile Include="Commands\ResolveDependencyCommandTests.cs" />
     <Compile Include="Commands\SetConfigCommandTests.cs" />
     <Compile Include="Commands\ShowBuildChainCommandTest.cs" />

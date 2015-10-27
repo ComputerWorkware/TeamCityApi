@@ -177,6 +177,13 @@ namespace TeamCityApi.TestsIntegration
                 var dependency = new CreateSnapshotDependency("foo_service_Master","FooCore_Master");
                 client.CreateSnapshotDependency(dependency).Wait();
             }
+
+            [Fact]
+            public void CompareBuilds()
+            {
+                var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("devciserver:8080", "ciserver", "ciserver"));
+                compareBuildsUseCase.Execute("178416", "180701").Wait();
+            }
         }
 
         public class BuildChain
