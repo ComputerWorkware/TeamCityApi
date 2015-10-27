@@ -4,6 +4,7 @@ using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Graphs;
+using TeamCityApi.UseCases;
 using Xunit;
 
 namespace TeamCityApi.TestsIntegration
@@ -232,6 +233,28 @@ namespace TeamCityApi.TestsIntegration
             }
         }
 
+        public class CloneRootBuildConfig
+        {
+            [Fact]
+            public void Should_clone_root_build_config()
+            {
+                var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient());
+
+                cloneRootBuildConfigUseCase.Execute("268", "Release Oct 13").Wait();
+            }
+        }
+
+        public class DeleteClonedBuildChain
+        {
+            [Fact]
+            public void Should_delete_build_chain()
+            {
+                var deleteClonedBuildChainUseCase = new DeleteClonedBuildChainUseCase(CreateTeamCityClient());
+
+                deleteClonedBuildChainUseCase.Execute("Installers_Sunlife_VitalObjectsSuite_TrunkKrisTest", simulate:true).Wait();
+            }
+        }
+
         private static ChangeClient CreateChnageClient()
         {
             var http = CreateHttpClientWrapper();
@@ -264,6 +287,13 @@ namespace TeamCityApi.TestsIntegration
             var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
             var buildClient = new BuildClient(http);
             return buildClient;
+        }
+
+        private static ITeamCityClient CreateTeamCityClient()
+        {
+            var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
+            var client = new TeamCityClient(http);
+            return client;
         }
     }
 }
