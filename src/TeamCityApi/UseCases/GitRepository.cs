@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using LibGit2Sharp;
 using TeamCityApi.Domain;
 using TeamCityApi.Logging;
@@ -58,10 +59,12 @@ namespace TeamCityApi.UseCases
             startInfo.Arguments = string.Format(@"archive --format=zip -o ""{0}"" HEAD", zipFileLocation);
 
             var process = new Process { StartInfo = startInfo };
+            process.ErrorDataReceived += (sender, e) => { Log.Debug(e.Data); };
+            process.OutputDataReceived += (sender, e) => { Log.Debug(e.Data); };
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
-
-            LogCommandLine(startInfo, process);
 
             if (process.ExitCode == 0)
             {
@@ -76,27 +79,6 @@ namespace TeamCityApi.UseCases
             
         }
 
-        private void LogCommandLine(ProcessStartInfo startInfo, Process process)
-        {
-            Log.Debug(string.Format("** Start - Command Line Action - {0} {1}",startInfo.FileName,startInfo.Arguments ));
-            Log.Debug("  ** Standard Error **");
-            string lineVal = process.StandardError.ReadLine();
-            while (lineVal != null)
-            {
-                Log.Info(lineVal);
-                lineVal = process.StandardError.ReadLine();
-            }
-            Log.Debug("  ** Standard Output **");
-            lineVal = process.StandardOutput.ReadLine();
-            while (lineVal != null)
-            {
-                Log.Info(lineVal);
-                lineVal = process.StandardOutput.ReadLine();
-            }
-            Log.Debug(string.Format("  ** Exit Code: {0}", process.ExitCode));
-            Log.Debug(string.Format("** End - Command Line Action - {0} {1}", startInfo.FileName, startInfo.Arguments));
-        }
-
         public bool ArchiveTreeIsh(string zipFileLocation,string treeIsh)
         {
             Log.Info(String.Format("Archive Git Tree: {0} into Zip: {1}",treeIsh,zipFileLocation));
@@ -105,10 +87,12 @@ namespace TeamCityApi.UseCases
             startInfo.Arguments = string.Format(@"archive --format=zip -o ""{0}"" {1}", zipFileLocation,treeIsh);
 
             var process = new Process { StartInfo = startInfo };
+            process.ErrorDataReceived += (sender, e) => { Log.Debug(e.Data); };
+            process.OutputDataReceived += (sender, e) => { Log.Debug(e.Data); };
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
-
-            LogCommandLine(startInfo, process);
 
             if (process.ExitCode == 0)
             {
@@ -167,10 +151,12 @@ namespace TeamCityApi.UseCases
             startInfo.Arguments = string.Format("push -u origin {0}", branchName);
 
             var process = new Process { StartInfo = startInfo };
+            process.ErrorDataReceived += (sender, e) => { Log.Debug(e.Data); };
+            process.OutputDataReceived += (sender, e) => { Log.Debug(e.Data); };
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
-
-            LogCommandLine(startInfo, process);
 
             if (process.ExitCode == 0)
             {
@@ -298,7 +284,6 @@ namespace TeamCityApi.UseCases
             startInfo.EnvironmentVariables["HOMEPATH"] = _sshKeyFolder;
             startInfo.UseShellExecute = false;
             startInfo.WorkingDirectory = Path.GetTempPath(); 
-            startInfo.RedirectStandardInput = true;
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
             return startInfo;
@@ -330,7 +315,7 @@ namespace TeamCityApi.UseCases
         {
             Log.Debug(string.Format("Lookup of Credentials: url: {0} usernameFromUrl: {1}, supported Type: {2}",url,usernameFromUrl,supportedCredentialTypes));
             string urlLowercased = url.ToLowerInvariant();
-            var credential = _credentials.FirstOrDefault(x=>urlLowercased.Contains(x.HostName.ToLowerInvariant()));
+            var credential = _credentials.First();
             if (credential != null)
             {
                 Log.Debug(String.Format("Credentials found: {0}, {1}:{2}",credential.HostName,credential.UserName,credential.Password));
@@ -351,14 +336,16 @@ namespace TeamCityApi.UseCases
         {
             Log.Debug(string.Format("Clone repository with SSH: {0} into {1}", _commitInfo.RespositoryLocation, Location));
             var startInfo = GetStartInfo();
-            startInfo.Arguments = string.Format("clone {0} {1} --verbose --progress", _commitInfo.RespositoryLocation,
+            startInfo.Arguments = string.Format("clone {0} {1}", _commitInfo.RespositoryLocation,
                 Location);
 
             var process = new Process { StartInfo = startInfo };
+            process.ErrorDataReceived += (sender, e) => { Log.Debug(e.Data); };
+            process.OutputDataReceived += (sender, e) => { Log.Debug(e.Data); };
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
-
-            LogCommandLine(startInfo, process);
 
             if (process.ExitCode == 0)
             {

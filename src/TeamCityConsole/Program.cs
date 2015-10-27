@@ -1,20 +1,21 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using Funq;
 using NLog;
 using TeamCityApi;
+using TeamCityApi.Clients;
+using TeamCityApi.Helpers;
 using TeamCityApi.UseCases;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
+using File = System.IO.File;
 
 
 namespace TeamCityConsole
@@ -28,7 +29,6 @@ namespace TeamCityConsole
             ExtractResources();
 
             var container = SetupContainer();
-
             DisplayAssemblyInfo();
 
             Type[] optionTypes = GetOptionsInThisAssembly();
@@ -178,6 +178,22 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.DeleteClonedBuildChain, x => new DeleteClonedBuildChainCommand(x.Resolve<DeleteClonedBuildChainUseCase>()));
 
             container.Register<ICommand>(Verbs.ShowBuildChain, x => new ShowBuildChainCommand(x.Resolve<ShowBuildChainUseCase>()));
+
+            container.Register<List<Credential>>(x=>new List<Credential>
+            {
+                new Credential
+                {
+                    HostName = "*",
+                    UserName = settings.Username,
+                    Password = settings.Password
+                }
+            });
+
+            container.Register<VcsRootClient>(x => new VcsRootClient(x.Resolve<IHttpClientWrapper>()));
+            container.Register<BuildClient>(x => new BuildClient(x.Resolve<IHttpClientWrapper>()));
+            container.Register<GitRepositoryFactory>(x => new GitRepositoryFactory(x.Resolve<List<Credential>>()));
+            container.Register<VcsRootHelper>(
+                x => new VcsRootHelper(x.Resolve<BuildClient>(), x.Resolve<VcsRootClient>(),x.Resolve<GitRepositoryFactory>()));
 
             return container;
         }

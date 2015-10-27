@@ -10,17 +10,19 @@ using TeamCityApi.UseCases;
 
 namespace TeamCityApi.Helpers
 {
-    class VcsRootHelper
+    public class VcsRootHelper
     {
         private static readonly ILog Log = LogProvider.GetLogger(typeof(VcsRootHelper));
 
         private readonly BuildClient _buildClient;
         private readonly VcsRootClient _vcsRootClient;
+        private readonly GitRepositoryFactory _gitRepositoryFactory;
 
-        public VcsRootHelper(BuildClient buildClient, VcsRootClient vcsRootClient)
+        public VcsRootHelper(BuildClient buildClient, VcsRootClient vcsRootClient, GitRepositoryFactory gitRepositoryFactory)
         {
             _buildClient = buildClient;
             _vcsRootClient = vcsRootClient;
+            _gitRepositoryFactory = gitRepositoryFactory;
         }
 
         public async Task<VcsCommit> GetCommitInformationByBuildId(string buildId)
@@ -46,5 +48,29 @@ namespace TeamCityApi.Helpers
 
         }
 
+        public async Task<GitRepository> CloneAndBranch(string buildId, string branchName)
+        {
+            VcsCommit commit = await GetCommitInformationByBuildId(buildId);
+
+            GitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
+
+            if (gitRepository != null)
+            {
+                gitRepository.AddBranch(branchName, commit.CommitSha);
+            }
+
+            return gitRepository;
+        }
+
+        public bool PushAndDeleteLocalFolder(GitRepository gitRepository,string branchName)
+        {
+            bool success = false;
+            if (gitRepository.Push(branchName))
+            {
+                gitRepository.DeleteFolder();
+                success = true;
+            }
+            return success;
+        }
     }
 }
