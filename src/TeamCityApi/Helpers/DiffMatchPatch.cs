@@ -1579,6 +1579,8 @@ namespace TeamCityApi.Helpers
 
         public string diff_prettyHtmlSidebySide(List<Diff> diffs)
         {
+            var changeCount = 0;
+            var equalCount = 0;
             StringBuilder html = new StringBuilder();
             html.AppendLine("<table><tr><td><table style=\"border: 1px solid black;font: 12px/1.4 Helvetica;\"><tr><td>");
             foreach (Diff aDiff in diffs)
@@ -1588,11 +1590,12 @@ namespace TeamCityApi.Helpers
                 switch (aDiff.operation)
                 {
                     case Operation.DELETE:
+                        changeCount++;
                         html.Append("<del style=\"background:#ffe6e6;\">").Append(text).Append("</del>");
                         break;
                     case Operation.EQUAL:
+                        equalCount++;
                         html.Append("<span>").Append(text).Append("</span>");
-                        
                         break;
                 }
             }
@@ -1612,7 +1615,8 @@ namespace TeamCityApi.Helpers
                 }
             }
             html.AppendLine("</td></tr></table></td></tr></table>");
-            return html.ToString();
+            var changeCountHtml = "<div style=\"font: 12px/1.4 Helvetica;font-weight: bold;\">Builds found: " + (equalCount + changeCount) + " - Builds changed: " + changeCount + "</div>";
+            return html.Insert(0, changeCountHtml).ToString();
         }
 
         /**
