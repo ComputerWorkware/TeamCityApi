@@ -42,11 +42,15 @@ task clean {
 	delete_directory "$build_dir"
 }
 
+task restore_packages {
+    exec { nuget restore $source_dir\$project.sln }
+}
+
 task release {
     $global:config = "release"
 }
 
-task compile -depends clean { 
+task compile -depends clean, restore_packages {
     exec { msbuild /t:Clean /t:Build /p:Configuration=$config /p:OutDir=$build_dir /p:TeamCityApiPath="$build_dir\" $source_dir\$project.sln }
     if ( -not (Test-Path "$source_dir\TeamCityApi\bin\Debug\"))
     {
