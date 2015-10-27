@@ -35,19 +35,24 @@ namespace TeamCityApi.UseCases
 
         private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2)
         {
-            var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " - " + node.Value.Number).ToList();
-            var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " - " + node.Value.Number).ToList();
+            var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " - " + node.Value.Number + " (" + node.Value.BuildConfig.ProjectName + ")").ToList();
+            var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " - " + node.Value.Number + " (" + node.Value.BuildConfig.ProjectName + ")").ToList();
 
-            var build1Text = build1List.Aggregate("", (current, build) => current + (build + "\r\n"));
-            var build2Text = build2List.Aggregate("", (current, build) => current + (build + "\r\n"));
+            var build1Text = build1List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
+            var build2Text = build2List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
 
-            var diffMatchPatch = new diff_match_patch();
-            var diffMain = diffMatchPatch.diff_main(build1Text, build2Text);
-            diffMatchPatch.diff_cleanupSemantic(diffMain);
-            var diffPrettyHtml = diffMatchPatch.diff_prettyHtml(diffMain);
+            var diff = new diff_match_patch();
+            var linesResult = diff.diff_linesToChars(build1Text, build2Text);
+            var lineText1 = linesResult[0];
+            var lineText2 = linesResult[1];
+            var lineArray = linesResult[2] as List<string>;
+            var diffs = diff.diff_main(lineText1.ToString(), lineText2.ToString(), true);
+            diff.diff_charsToLines(diffs, lineArray);
 
-            string mydocpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            using (StreamWriter outputFile = new StreamWriter(mydocpath + @"\CompareBuilds.html")) { outputFile.WriteLine(diffPrettyHtml); }
+            var diffPrettyHtml = diff.diff_prettyHtmlSidebySide(diffs);
+            
+            var mydocpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            using (var outputFile = new StreamWriter(mydocpath + @"\CompareBuilds.html")) { outputFile.WriteLine(diffPrettyHtml); }
             
             Process.Start("IExplore.exe", mydocpath + @"\CompareBuilds.html");
         }

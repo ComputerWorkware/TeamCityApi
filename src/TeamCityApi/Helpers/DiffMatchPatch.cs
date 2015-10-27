@@ -677,7 +677,7 @@ namespace TeamCityApi.Helpers
          *     encoded text2 and the List of unique strings.  The zeroth element
          *     of the List of unique strings is intentionally blank.
          */
-        protected Object[] diff_linesToChars(string text1, string text2)
+        public Object[] diff_linesToChars(string text1, string text2)
         {
             List<string> lineArray = new List<string>();
             Dictionary<string, int> lineHash = new Dictionary<string, int>();
@@ -741,7 +741,7 @@ namespace TeamCityApi.Helpers
          * @param diffs List of Diff objects.
          * @param lineArray List of unique strings.
          */
-        protected void diff_charsToLines(ICollection<Diff> diffs,
+        public void diff_charsToLines(ICollection<Diff> diffs,
                         List<string> lineArray)
         {
             StringBuilder text;
@@ -1574,6 +1574,44 @@ namespace TeamCityApi.Helpers
                 }
             }
             html.AppendLine("</div>");
+            return html.ToString();
+        }
+
+        public string diff_prettyHtmlSidebySide(List<Diff> diffs)
+        {
+            StringBuilder html = new StringBuilder();
+            html.AppendLine("<table><tr><td><table style=\"border: 1px solid black;font: 12px/1.4 Helvetica;\"><tr><td>");
+            foreach (Diff aDiff in diffs)
+            {
+                string text = aDiff.text.Replace("&", "&amp;").Replace("<", "&lt;")
+                  .Replace(">", "&gt;").Replace("\n", "</td></tr><tr><td>");
+                switch (aDiff.operation)
+                {
+                    case Operation.DELETE:
+                        html.Append("<del style=\"background:#ffe6e6;\">").Append(text).Append("</del>");
+                        break;
+                    case Operation.EQUAL:
+                        html.Append("<span>").Append(text).Append("</span>");
+                        
+                        break;
+                }
+            }
+            html.AppendLine("</td></tr></table></td><td><table style=\"border: 1px solid black;font: 12px/1.4 Helvetica;\"><tr><td>");
+            foreach (Diff aDiff in diffs)
+            {
+                string text = aDiff.text.Replace("&", "&amp;").Replace("<", "&lt;")
+                  .Replace(">", "&gt;").Replace("\n", "</td></tr><tr><td>");
+                switch (aDiff.operation)
+                {
+                    case Operation.INSERT:
+                        html.Append("<ins style=\"background:#e6ffe6;\">").Append(text).Append("</ins>");
+                        break;
+                    case Operation.EQUAL:
+                        html.Append("<span>").Append(text).Append("</span>");
+                        break;
+                }
+            }
+            html.AppendLine("</td></tr></table></td></tr></table>");
             return html.ToString();
         }
 

@@ -5,10 +5,10 @@ namespace TeamCityConsole.Options
     [Verb(Verbs.CompareBuilds, HelpText = "Compare Builds.")]
     public class CompareBuildsOptions
     {
-        [Option('l', "left", Required = true, HelpText = "Build Id to show on the left.")]
+        [Option('o', "oldBuildId", Required = true, HelpText = "Old Build Id to compare.")]
         public string BuildId1 { get; set; }
 
-        [Option('r', "right", Required = true, HelpText = "Build Id to show on the right.")]
+        [Option('n', "newBuildId", Required = true, HelpText = "New Build Id to compare.")]
         public string BuildId2 { get; set; }
     }
 }

@@ -15,7 +15,10 @@ namespace TeamCityConsole.Tests.Commands
             public void Should_compare_builds(CompareBuildsOptions compareBuildsOptions)
             {
                 var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("devciserver:8080", "ciserver", "ciserver"));
-                compareBuildsUseCase.Execute("298", "298").Wait();
+                compareBuildsUseCase.Execute("178416", "180701").Wait();
+
+                //var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("teamcitytest:8080", "teamcity", "teamcity"));
+                //compareBuildsUseCase.Execute("298", "456").Wait();
             }
         }
     }
