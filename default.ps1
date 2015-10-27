@@ -20,6 +20,7 @@ properties {
     $voVersion = "$major_ver.$minor_ver.0.0"
     $fileVersion = "$major_ver.$minor_ver.$buildVer.$revisionVer"
     $assemblyVersion = $voVersion
+    $visualStudioVersion = "14.0"
 
 
     #general dirs
@@ -51,7 +52,7 @@ task release {
 }
 
 task compile -depends clean, restore_packages {
-    exec { msbuild /t:Clean /t:Build /p:Configuration=$config /p:OutDir=$build_dir /p:TeamCityApiPath="$build_dir\" $source_dir\$project.sln }
+    exec { msbuild /t:Clean /t:Build /tv:$visualStudioVersion /p:VisualStudioVersion=$visualStudioVersion /p:Configuration=$config /p:OutDir=$build_dir /p:TeamCityApiPath="$build_dir\" $source_dir\$project.sln }
     if ( -not (Test-Path "$source_dir\TeamCityApi\bin\Debug\"))
     {
         New-Item -ItemType directory -Path "$source_dir\TeamCityApi\bin\Debug\"
