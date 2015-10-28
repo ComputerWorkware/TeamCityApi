@@ -19,26 +19,26 @@ namespace TeamCityApi.Helpers
 
         private void InitGraph(BuildConfig rootBuildConfig)
         {
-            AddBuildConfigWithDependencies(new GraphNode<BuildConfig>(rootBuildConfig));
+            AddBuildConfigWithDependents(new GraphNode<BuildConfig>(rootBuildConfig));
         }
 
-        private void AddBuildConfigWithDependencies(GraphNode<BuildConfig> parentNode)
+        private void AddBuildConfigWithDependents(GraphNode<BuildConfig> node)
         {
-            AddNode(parentNode);
+            AddNode(node);
 
-            if (parentNode.Value.ArtifactDependencies != null)
+            if (node.Value.ArtifactDependencies != null)
             {
-                foreach (var artifactDependency in parentNode.Value.ArtifactDependencies)
+                foreach (var artifactDependency in node.Value.ArtifactDependencies)
                 {
                     var dependencyBuildConfig = _buildConfigClient.GetByConfigurationId(artifactDependency.SourceBuildConfig.Id).Result;
                     var childNode = new GraphNode<BuildConfig>(dependencyBuildConfig);
 
                     if (!this.Contains(dependencyBuildConfig))
                     {
-                        AddBuildConfigWithDependencies(childNode);
+                        AddBuildConfigWithDependents(childNode);
                     }
 
-                    AddDirectedEdge(parentNode, childNode, 0);
+                    AddDirectedEdge(node, childNode, 0);
                 }
             }
         }
