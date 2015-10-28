@@ -165,7 +165,7 @@ namespace TeamCityConsole
 
             container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>(),x.Resolve<IVcsRootHelper>()));
 
-            container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
+            container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>(), x.Resolve<IVcsRootHelper>()));
 
             container.Register(x => new DeleteClonedBuildChainUseCase(x.Resolve<ITeamCityClient>()));
 

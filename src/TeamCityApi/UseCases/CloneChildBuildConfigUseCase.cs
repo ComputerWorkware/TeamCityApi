@@ -15,6 +15,7 @@ namespace TeamCityApi.UseCases
         private static readonly ILog Log = LogProvider.GetLogger(typeof(CloneChildBuildConfigUseCase));
 
         private readonly ITeamCityClient _client;
+        private readonly IVcsRootHelper _vcsRootHelper;
 
         private BuildConfigChain _buildConfigChain;
         private List<BuildSummary> _buildsInSourceSnapshotChain;
@@ -27,9 +28,10 @@ namespace TeamCityApi.UseCases
     
         private bool _simulate;
 
-        public CloneChildBuildConfigUseCase(ITeamCityClient client)
+        public CloneChildBuildConfigUseCase(ITeamCityClient client,IVcsRootHelper vcsRootHelper)
         {
             _client = client;
+            _vcsRootHelper = vcsRootHelper;
         }
 
         public async Task Execute(long sourceBuildId, string targetRootBuildConfigId, bool simulate)
@@ -39,6 +41,24 @@ namespace TeamCityApi.UseCases
             await Init(sourceBuildId, targetRootBuildConfigId, simulate);
 
             var buildConfigsToClone = GetBuildConfigsToClone();
+
+            var buildsToClone = await GetCloneBuildsToCloneFrom(buildConfigsToClone);
+
+            foreach (Build b in buildsToClone)
+            {
+                Log.InfoFormat("=== Clone Repo and branch for {0} : Build Id: {1}", b.BuildTypeId, b.Id);
+                if (!_simulate)
+                {
+                    var gitRepository = await _vcsRootHelper.CloneAndBranch(b.Id, _newNameSuffix);
+                    if (gitRepository == null)
+                        throw new Exception("Unable to Clone Git Repository and create branch");
+
+                    if (_vcsRootHelper.PushAndDeleteLocalFolder(gitRepository, _newNameSuffix) == false)
+                    {
+                        throw new Exception("Unable to Push and remove temporary repository folder.");
+                    }
+                }
+            }
 
             var cloneBuildConfigCommands = await GetCloneBuildConfigsCommands(buildConfigsToClone);
             await Task.WhenAll(cloneBuildConfigCommands.Select(c =>
@@ -125,6 +145,15 @@ namespace TeamCityApi.UseCases
 
             return cloneBuildConfigCommands;
         }
+
+        private async Task<List<Build>> GetCloneBuildsToCloneFrom(HashSet<BuildConfig> buildConfigsToClone)
+        {
+            var tasks = buildConfigsToClone.Select(bc => GetBuildFromChain(bc.Id));
+
+            var builds = await Task.WhenAll(tasks);
+            return builds.ToList();
+        }
+
 
         private List<SwapDependencyCommand> GetSwapDependenciesCommands(HashSet<BuildConfig> buildConfigsToClone)
         {
