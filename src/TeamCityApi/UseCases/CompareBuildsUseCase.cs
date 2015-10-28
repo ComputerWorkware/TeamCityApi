@@ -35,12 +35,17 @@ namespace TeamCityApi.UseCases
 
         private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2)
         {
-            var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " - " + node.Value.Number + " (" + node.Value.BuildConfig.ProjectName + ")").ToList();
-            var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " - " + node.Value.Number + " (" + node.Value.BuildConfig.ProjectName + ")").ToList();
+            var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
+            var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
 
             var build1Text = build1List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
             var build2Text = build2List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
 
+            ShowDifferencesInBrowser(build1Text, build2Text);
+        }
+
+        private void ShowDifferencesInBrowser(string build1Text, string build2Text)
+        {
             var diff = new diff_match_patch();
             var linesResult = diff.diff_linesToChars(build1Text, build2Text);
             var lineText1 = linesResult[0];
@@ -50,10 +55,10 @@ namespace TeamCityApi.UseCases
             diff.diff_charsToLines(diffs, lineArray);
 
             var diffPrettyHtml = diff.diff_prettyHtmlSidebySide(diffs);
-            
+
             var mydocpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             using (var outputFile = new StreamWriter(mydocpath + @"\CompareBuilds.html")) { outputFile.WriteLine(diffPrettyHtml); }
-            
+
             Process.Start("IExplore.exe", mydocpath + @"\CompareBuilds.html");
         }
     }
