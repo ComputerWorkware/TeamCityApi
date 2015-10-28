@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers;
 using TeamCityApi.Locators;
 using TeamCityApi.Logging;
 
@@ -13,10 +14,12 @@ namespace TeamCityApi.UseCases
         private static readonly ILog Log = LogProvider.GetLogger(typeof(CloneRootBuildConfigUseCase));
 
         private readonly ITeamCityClient _client;
+        private readonly IVcsRootHelper _vcsRootHelper;
 
-        public CloneRootBuildConfigUseCase(ITeamCityClient client)
+        public CloneRootBuildConfigUseCase(ITeamCityClient client, IVcsRootHelper vcsRootHelper)
         {
             _client = client;
+            _vcsRootHelper = vcsRootHelper;
         }
 
         public async Task<BuildConfig> Execute(string sourceBuildId, string newNameSuffix)
@@ -26,6 +29,15 @@ namespace TeamCityApi.UseCases
             var sourceBuild = await _client.Builds.ById(sourceBuildId);
 
             await EnsureUniqueSuffixProvided(sourceBuild, newNameSuffix);
+
+            var gitRepository = await _vcsRootHelper.CloneAndBranch(sourceBuildId, newNameSuffix);
+            if (gitRepository==null)
+                throw new Exception("Unable to Clone Git Repository and create branch");
+
+            if (_vcsRootHelper.PushAndDeleteLocalFolder(gitRepository, newNameSuffix) == false)
+            {
+                throw new Exception("Unable to Push and remove temporary repository folder.");
+            }
 
             return await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix);
         }

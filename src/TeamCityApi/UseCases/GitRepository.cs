@@ -10,7 +10,21 @@ using TeamCityApi.Logging;
 
 namespace TeamCityApi.UseCases
 {
-    public class GitRepository
+    public interface IGitRepository
+    {
+        string Location { get; set; }
+        VcsCommit CommitInfo { get; }
+        bool Push(string branchName);
+        bool ArchiveCurrentBranch(string zipFileLocation);
+        bool ArchiveTreeIsh(string zipFileLocation,string treeIsh);
+        bool CheckoutBranch(string branchName);
+        void DeleteFolder();
+        bool CheckBranchExist(string branchName);
+        bool AddBranch(string branchName,string commitSha);
+        bool Clone();
+    }
+
+    public class GitRepository : IGitRepository
     {
         private static readonly ILog Log = LogProvider.GetLogger(typeof(GitRepository));
         private readonly VcsCommit _commitInfo;
@@ -39,10 +53,8 @@ namespace TeamCityApi.UseCases
             {
                 case GitAuthenticationType.Ssh:
                     return PushSSH(branchName);
-                    break;
                 case GitAuthenticationType.Http:
                     return PushHttp(branchName);
-                    break;
                 default:
                 {
                     Log.Error(string.Format("Cannot push Branch:{0} , invalid Authentication Type",branchName));
@@ -267,10 +279,8 @@ namespace TeamCityApi.UseCases
             {
                 case GitAuthenticationType.Ssh:
                     return CloneSSH();
-                    break;
                 case GitAuthenticationType.Http:
                     return CloneHttp();
-                    break;
                 default:
                     return false;
             }

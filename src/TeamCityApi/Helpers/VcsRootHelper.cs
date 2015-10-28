@@ -10,7 +10,13 @@ using TeamCityApi.UseCases;
 
 namespace TeamCityApi.Helpers
 {
-    public class VcsRootHelper
+    public interface IVcsRootHelper
+    {
+        Task<IGitRepository> CloneAndBranch(string buildId, string branchName);
+        bool PushAndDeleteLocalFolder(IGitRepository gitRepository,string branchName);
+    }
+
+    public class VcsRootHelper : IVcsRootHelper
     {
         private static readonly ILog Log = LogProvider.GetLogger(typeof(VcsRootHelper));
 
@@ -48,11 +54,11 @@ namespace TeamCityApi.Helpers
 
         }
 
-        public async Task<GitRepository> CloneAndBranch(string buildId, string branchName)
+        public async Task<IGitRepository> CloneAndBranch(string buildId, string branchName)
         {
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 
-            GitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
+            IGitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
 
             if (gitRepository != null)
             {
@@ -62,7 +68,7 @@ namespace TeamCityApi.Helpers
             return gitRepository;
         }
 
-        public bool PushAndDeleteLocalFolder(GitRepository gitRepository,string branchName)
+        public bool PushAndDeleteLocalFolder(IGitRepository gitRepository,string branchName)
         {
             bool success = false;
             if (gitRepository.Push(branchName))

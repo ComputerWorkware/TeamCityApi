@@ -28,7 +28,7 @@ namespace TeamCityApi.UseCases
         }
 
 
-        public GitRepository Clone(VcsCommit commitInfo)
+        public IGitRepository Clone(VcsCommit commitInfo)
         {
             string tempFolderPath = Path.GetTempPath();
             string guidTempPath = Guid.NewGuid().ToString().Replace("-", "");

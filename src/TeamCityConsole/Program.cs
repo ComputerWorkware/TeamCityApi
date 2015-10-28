@@ -163,7 +163,7 @@ namespace TeamCityConsole
 
             container.Register<ICommand>(Verbs.SetConfig, x => new SetConfigCommand(settings));
 
-            container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
+            container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>(),x.Resolve<IVcsRootHelper>()));
 
             container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>()));
 
@@ -196,7 +196,7 @@ namespace TeamCityConsole
             container.Register<VcsRootClient>(x => new VcsRootClient(x.Resolve<IHttpClientWrapper>()));
             container.Register<BuildClient>(x => new BuildClient(x.Resolve<IHttpClientWrapper>()));
             container.Register<GitRepositoryFactory>(x => new GitRepositoryFactory(x.Resolve<List<Credential>>()));
-            container.Register<VcsRootHelper>(
+            container.Register<IVcsRootHelper>(
                 x => new VcsRootHelper(x.Resolve<BuildClient>(), x.Resolve<VcsRootClient>(),x.Resolve<GitRepositoryFactory>()));
 
             return container;

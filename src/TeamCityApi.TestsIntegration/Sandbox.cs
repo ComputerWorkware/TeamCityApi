@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers;
 using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.UseCases;
 using Xunit;
@@ -245,7 +246,8 @@ namespace TeamCityApi.TestsIntegration
             [Fact]
             public void Should_clone_root_build_config()
             {
-                var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient());
+                IVcsRootHelper rootHelper = null;  // NULL object and method will fail unless created or substituted
+                var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient(), rootHelper);
 
                 cloneRootBuildConfigUseCase.Execute("268", "Release Oct 13").Wait();
             }
