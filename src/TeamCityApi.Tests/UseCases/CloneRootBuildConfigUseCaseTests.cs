@@ -29,7 +29,7 @@ namespace TeamCityApi.Tests.UseCases
             sut.Execute(sourceBuildId, newNameSyntax).Wait();
 
             var newBuildConfigName = scenario.BuildConfig.Name + Consts.SuffixSeparator + newNameSyntax;
-            client.BuildConfigs.Received()
+            client.BuildConfigs.Received(1)
                 .CopyBuildConfiguration(scenario.Project.Id, newBuildConfigName, scenario.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
         }
     }
