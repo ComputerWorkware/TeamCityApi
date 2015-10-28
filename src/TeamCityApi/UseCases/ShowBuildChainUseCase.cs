@@ -28,16 +28,12 @@ namespace TeamCityApi.UseCases
 
         private static void ShowBuildChain(BuildConfigChain buildConfigChain, string buildChainId)
         {
-            foreach (var node in buildConfigChain.Nodes)
+            foreach (var node in buildConfigChain.Nodes.OrderBy(n=>n.Value.Id))
             {
-                if (node.Value.Parameters[ParameterName.BuildConfigChainId].Value == buildChainId)
-                {
-                    Log.InfoFormat("BuildConfigId: (CLONED) {0}", node.Value.Id);
-                }
-                else
-                {
-                    Log.InfoFormat("BuildConfigId: {0}", node.Value.Id);
-                }
+                Log.InfoFormat(
+                    !string.IsNullOrEmpty(node.Value.Parameters[ParameterName.ClonedFromBuildId]?.Value)
+                        ? "BuildConfigId: (CLONED) {0}"
+                        : "BuildConfigId: {0}", node.Value.Id);
             }
         }
     }
