@@ -182,7 +182,7 @@ namespace TeamCityApi.TestsIntegration
             public void CompareBuilds()
             {
                 var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("devciserver:8080", "ciserver", "ciserver"));
-                compareBuildsUseCase.Execute("178416", "180701").Wait();
+                compareBuildsUseCase.Execute("178416", "180701", false).Wait();
             }
         }
 

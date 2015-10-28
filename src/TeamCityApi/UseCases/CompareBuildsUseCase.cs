@@ -20,7 +20,7 @@ namespace TeamCityApi.UseCases
             _client = client;
         }
 
-        public async Task Execute(string buildId1, string buildId2)
+        public async Task Execute(string buildId1, string buildId2, bool bCompare)
         {
             Log.Info("================Compare Builds: start ================");
 
@@ -30,10 +30,10 @@ namespace TeamCityApi.UseCases
             var buildChain1 = new BuildChain(_client.Builds, build1);
             var buildChain2 = new BuildChain(_client.Builds, build2);
 
-            CompareBuilds(buildChain1, buildChain2);
+            CompareBuilds(buildChain1, buildChain2, bCompare);
         }
 
-        private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2)
+        private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2, bool bCompare)
         {
             var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
             var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
@@ -41,7 +41,23 @@ namespace TeamCityApi.UseCases
             var build1Text = build1List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
             var build2Text = build2List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
 
-            ShowDifferencesInBrowser(build1Text, build2Text);
+            if (bCompare)
+            {
+                ShowDifferencesInBCompare(build1Text, build2Text);
+            }
+            else
+            {
+                ShowDifferencesInBrowser(build1Text, build2Text);
+            }
+        }
+
+        private void ShowDifferencesInBCompare(string build1Text, string build2Text)
+        {
+            var mydocpath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            using (var outputFile = new StreamWriter(mydocpath + @"\buildList1.txt")) { outputFile.WriteLine(build1Text); }
+            using (var outputFile = new StreamWriter(mydocpath + @"\buildList2.txt")) { outputFile.WriteLine(build2Text); }
+
+            Process.Start(@"C:\Program Files (x86)\Beyond Compare 4\BCompare.exe", mydocpath + @"\buildList1.txt " + mydocpath + @"\buildList2.txt");
         }
 
         private void ShowDifferencesInBrowser(string build1Text, string build2Text)

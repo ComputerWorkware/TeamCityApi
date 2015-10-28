@@ -24,7 +24,7 @@ namespace TeamCityConsole.Commands
 
             Log.Info("BuildId #1: " + compareBuildsOptions.BuildId1 + " -- BuildId #2: " + compareBuildsOptions.BuildId2);
 
-            await _compareBuildsUseCase.Execute(compareBuildsOptions.BuildId1, compareBuildsOptions.BuildId2);
+            await _compareBuildsUseCase.Execute(compareBuildsOptions.BuildId1, compareBuildsOptions.BuildId2, compareBuildsOptions.BCompare);
 
             Log.Info("================Compare Builds: done ================");
         }

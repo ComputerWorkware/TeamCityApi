@@ -10,5 +10,8 @@ namespace TeamCityConsole.Options
 
         [Option('n', "newBuildId", Required = true, HelpText = "New Build Id to compare.")]
         public string BuildId2 { get; set; }
+
+        [Option('b', "BeyondCompare", Required = false, HelpText = "Display comparison in BayondCompare app.")]
+        public bool BCompare { get; set; }
     }
 }
