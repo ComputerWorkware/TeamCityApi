@@ -35,8 +35,8 @@ namespace TeamCityApi.UseCases
 
         private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2, bool bCompare)
         {
-            var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
-            var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property.FirstOrDefault(p => p.Name == "project.name")?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
+            var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property["project.name"]?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
+            var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property["project.name"]?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
 
             var build1Text = build1List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
             var build2Text = build2List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
