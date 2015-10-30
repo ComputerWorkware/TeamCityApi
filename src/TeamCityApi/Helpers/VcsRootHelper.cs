@@ -12,8 +12,7 @@ namespace TeamCityApi.Helpers
 {
     public interface IVcsRootHelper
     {
-        Task<IGitRepository> CloneAndBranch(long buildId, string branchName);
-        bool PushAndDeleteLocalFolder(IGitRepository gitRepository,string branchName);
+        Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName);
     }
 
     public class VcsRootHelper : IVcsRootHelper
@@ -53,30 +52,25 @@ namespace TeamCityApi.Helpers
             return commit;
 
         }
-
-        public async Task<IGitRepository> CloneAndBranch(long buildId, string branchName)
+        
+        public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName)
         {
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 
             IGitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
+            if (gitRepository == null)
+                throw new Exception("Unable to Clone Git Repository and create branch");
+            
+            gitRepository.AddBranch(branchName, commit.CommitSha);
 
-            if (gitRepository != null)
-            {
-                gitRepository.AddBranch(branchName, commit.CommitSha);
-            }
-
-            return gitRepository;
-        }
-
-        public bool PushAndDeleteLocalFolder(IGitRepository gitRepository,string branchName)
-        {
-            bool success = false;
             if (gitRepository.Push(branchName))
             {
                 gitRepository.DeleteFolder();
-                success = true;
             }
-            return success;
+            else
+            {
+                throw new Exception("Unable to Push and remove temporary repository folder.");
+            }
         }
     }
 }

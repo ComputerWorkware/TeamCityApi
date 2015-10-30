@@ -45,14 +45,7 @@ namespace TeamCityApi.UseCases
                 Log.InfoFormat("==== Clone Repo and branch for {0}, Build #: {1} ====", b.BuildConfig.Id, b.Build.Number);
                 if (!_simulate)
                 {
-                    var gitRepository = await _vcsRootHelper.CloneAndBranch(b.Build.Id, _newNameSuffix);
-                    if (gitRepository == null)
-                        throw new Exception("Unable to Clone Git Repository and create branch");
-
-                    if (_vcsRootHelper.PushAndDeleteLocalFolder(gitRepository, _newNameSuffix) == false)
-                    {
-                        throw new Exception("Unable to Push and remove temporary repository folder.");
-                    }
+                    await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newNameSuffix);
                 }
             }
 

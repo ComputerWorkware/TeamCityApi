@@ -22,16 +22,10 @@ namespace TeamCityApi.Tests.UseCases
             string newNameSuffix, 
             ITeamCityClient client, 
             IFixture fixture,
-            IVcsRootHelper vcsRootHelper,
-            IGitRepository gitRepository)
+            IVcsRootHelper vcsRootHelper)
         {
             var scenario = new SingleBuildScenario(fixture, client, sourceBuildId);
-
-            vcsRootHelper.CloneAndBranch(sourceBuildId, newNameSuffix)
-                .Returns(Task.FromResult(gitRepository));
-
-            vcsRootHelper.PushAndDeleteLocalFolder(gitRepository,newNameSuffix).Returns(true);
-
+            
             var sut = new CloneRootBuildConfigUseCase(client,vcsRootHelper);
 
             sut.Execute(sourceBuildId, newNameSuffix).Wait();

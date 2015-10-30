@@ -30,14 +30,7 @@ namespace TeamCityApi.UseCases
 
             await EnsureUniqueSuffixProvided(sourceBuild, newNameSuffix);
 
-            var gitRepository = await _vcsRootHelper.CloneAndBranch(sourceBuildId, newNameSuffix);
-            if (gitRepository==null)
-                throw new Exception("Unable to Clone Git Repository and create branch");
-
-            if (_vcsRootHelper.PushAndDeleteLocalFolder(gitRepository, newNameSuffix) == false)
-            {
-                throw new Exception("Unable to Push and remove temporary repository folder.");
-            }
+            await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newNameSuffix);
 
             return await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix);
         }

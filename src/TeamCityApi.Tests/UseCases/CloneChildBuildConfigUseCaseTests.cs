@@ -20,12 +20,8 @@ namespace TeamCityApi.Tests.UseCases
         public void Should_clone_child_build_config(
             ITeamCityClient client,
             IVcsRootHelper vcsRootHelper,
-            IGitRepository gitRepository, 
             IFixture fixture)
         {
-            vcsRootHelper.CloneAndBranch(Arg.Any<long>(), Arg.Any<string>()).Returns(Task.FromResult(gitRepository));
-            vcsRootHelper.PushAndDeleteLocalFolder(gitRepository, Arg.Any<string>()).Returns(true);
-
             var scenario = new ChainWithRootClonedScenario(fixture, client);
             var sut = new CloneChildBuildConfigUseCase(client, vcsRootHelper);
 
