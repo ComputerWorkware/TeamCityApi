@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
@@ -55,15 +56,17 @@ namespace TeamCityApi.Helpers
         
         public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName)
         {
+            var validGitBranchName = ToValidGitBranchName(branchName);
+
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 
             IGitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
             if (gitRepository == null)
                 throw new Exception("Unable to Clone Git Repository and create branch");
             
-            gitRepository.AddBranch(branchName, commit.CommitSha);
+            gitRepository.AddBranch(validGitBranchName, commit.CommitSha);
 
-            if (gitRepository.Push(branchName))
+            if (gitRepository.Push(validGitBranchName))
             {
                 gitRepository.DeleteFolder();
             }
@@ -72,5 +75,13 @@ namespace TeamCityApi.Helpers
                 throw new Exception("Unable to Push and remove temporary repository folder.");
             }
         }
+
+        public string ToValidGitBranchName(string input)
+        {
+            input = input.Replace(" ", "-");
+            input = new Regex("[^a-zA-Z0-9-]").Replace(input, "");
+            return input;
+        }
+
     }
 }
