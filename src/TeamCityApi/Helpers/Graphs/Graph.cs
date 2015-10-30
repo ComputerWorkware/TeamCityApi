@@ -98,12 +98,15 @@ namespace TeamCityApi.Helpers.Graphs
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            throw new NotImplementedException();
+            foreach (Node<T> node in nodeSet)
+            {
+                yield return node.Value;
+            }
         }
 
         public IEnumerator GetEnumerator()
         {
-            return nodeSet.GetEnumerator();
+            return GetEnumerator();
         }
     }
 }

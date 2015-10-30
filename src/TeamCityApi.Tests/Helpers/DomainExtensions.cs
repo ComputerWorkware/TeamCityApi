@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Ploeh.AutoFixture.Dsl;
 using TeamCityApi.Domain;
 
@@ -21,7 +23,15 @@ namespace TeamCityApi.Tests.Helpers
         public static IPostprocessComposer<Build> WithBuildConfigSummary(
            this IPostprocessComposer<Build> composer, BuildConfig buildConfig)
         {
-            return composer.With(x => x.BuildConfig, (BuildConfigSummary)buildConfig);
+            return composer
+                .With(x => x.BuildConfig, (BuildConfigSummary) buildConfig)
+                .With(x => x.BuildTypeId, buildConfig.Id);
+        }
+
+        public static IPostprocessComposer<Build> WithDependencies(
+           this IPostprocessComposer<Build> composer, params Dependency[] dependencies)
+        {
+            return composer.With(x => x.ArtifactDependencies, new List<Dependency>(dependencies));
         }
 
 
@@ -41,6 +51,29 @@ namespace TeamCityApi.Tests.Helpers
            this IPostprocessComposer<BuildConfig> composer, string id)
         {
             return composer.With(x => x.Id, id);
+        }
+
+        public static IPostprocessComposer<BuildConfig> WithName(
+           this IPostprocessComposer<BuildConfig> composer, string name)
+        {
+            return composer.With(x => x.Name, name);
+        }
+
+        public static IPostprocessComposer<BuildConfig> WithBuildConfigChainIdParameter(
+           this IPostprocessComposer<BuildConfig> composer, string buildConfigChainId)
+        {
+            return composer.With(x => x.Parameters, new Properties()
+            {
+                Property = new PropertyList()
+                {
+                    new Property()
+                    {
+                        Name = ParameterName.BuildConfigChainId,
+                        Own = true,
+                        Value = buildConfigChainId
+                    }
+                }
+            });
         }
 
 

@@ -241,6 +241,20 @@ namespace TeamCityApi.TestsIntegration
             }
         }
 
+        public class DependencyChain
+        {
+            [Fact]
+            public void DependencyChainCreate()
+            {
+                var client = CreateTeamCityClient();
+                var buildConfig = client.BuildConfigs.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkAlexTest").Result;
+
+                var dependencyChain = new Helpers.DependencyChain(client, buildConfig);
+
+                Assert.Equal(9, dependencyChain.Count);
+            }
+        }
+
         public class CloneRootBuildConfig
         {
             [Fact]
@@ -250,6 +264,17 @@ namespace TeamCityApi.TestsIntegration
                 var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient(), rootHelper);
 
                 cloneRootBuildConfigUseCase.Execute("268", "Release Oct 13").Wait();
+            }
+        }
+
+        public class CloneChildBuildConfig
+        {
+            [Fact]
+            public void Should_clone_child_build_config()
+            {
+                var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), null);
+
+                cloneChildBuildConfigUseCase.Execute("Sunlife_CwiVoAccountingAddins_Trunk", "Installers_Sunlife_VitalObjectsSuite_TrunkAlexTest", true).Wait();
             }
         }
 

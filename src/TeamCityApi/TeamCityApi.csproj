@@ -72,6 +72,7 @@
     <Compile Include="Domain\VcsRoot.cs" />
     <Compile Include="Domain\VcsRootInstance.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Helpers\DependencyChain.cs" />
     <Compile Include="Helpers\BuildConfigChain.cs" />
     <Compile Include="Helpers\DiffMatchPatch.cs" />
     <Compile Include="Helpers\Graphs\GraphTraversal.cs" />

@@ -7,7 +7,6 @@ namespace TeamCityApi.Locators
         private readonly CriteriaBuilder _criteriaBuilder = new CriteriaBuilder();
 
         public long? Id { get; private set; }
-        public string Number { get; private set; }
         public string Branch { get; private set; }
 
         public BuildLocator With(string dimension, string value)
@@ -89,6 +88,12 @@ namespace TeamCityApi.Locators
             return With("branch", string.Format("({0})", locator));
         }
 
+        public BuildLocator WithNumber(string number, string buildConfigId)
+        {
+            return With("number", string.Format("{0}", number))
+                .WithBuildConfiguration(bcLocator => bcLocator.WithId(buildConfigId));
+        }
+
         public BuildLocator WithSnapshotDependencyTo(long id, bool includeInitial = true, bool recursive = true)
         {
             return With("snapshotDependency", string.Format("(to:(id:{0}),includeInitial:{1},recursive:{2})", id, includeInitial.ToString().ToLower(), recursive.ToString().ToLower()));
@@ -104,11 +109,6 @@ namespace TeamCityApi.Locators
             if (Id != null)
             {
                 return "id:" + Id;
-            }
-
-            if (Number != null)
-            {
-                return "number:" + Number;
             }
 
             return _criteriaBuilder.ToString();

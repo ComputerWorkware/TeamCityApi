@@ -10,5 +10,15 @@
         {
             return string.Format("{0}: {1}", Name, Value);
         }
+
+        public Property()
+        {
+        }
+
+        public Property(string name, string value)
+        {
+            Name = name;
+            Value = value;
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace TeamCityApi.Clients
     public interface IBuildClient
     {
         Task<Build> ById(string id);
+        Task<Build> ByNumber(string number, string buildTypeId);
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
         Task<List<File>> GetFiles(long buildId);
         Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag = null);
@@ -33,6 +34,13 @@ namespace TeamCityApi.Clients
             build.ArtifactsReference.Initialize(_http);
 
             return build;
+        }
+
+        public async Task<Build> ByNumber(string number, string buildTypeId)
+        {
+            var buildSummaries = await ByBuildLocator(l => l.WithNumber(number, buildTypeId));
+
+            return await ById(buildSummaries.First().Id);
         }
 
         public async Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig)
