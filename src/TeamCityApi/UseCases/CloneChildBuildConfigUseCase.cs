@@ -19,6 +19,7 @@ namespace TeamCityApi.UseCases
 
         private DependencyChain _dependencyChain;
         private string _newNameSuffix;
+        private string _newBranchName;
         private string _targetBuildChainId;
         private BuildConfig _sourceBuildConfig;
         private BuildConfig _targetRootBuildConfig;
@@ -45,7 +46,7 @@ namespace TeamCityApi.UseCases
                 Log.InfoFormat("==== Clone Repo and branch for {0}, Build #: {1} ====", b.BuildConfig.Id, b.Build.Number);
                 if (!_simulate)
                 {
-                    await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newNameSuffix);
+                    await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newBranchName);
                 }
             }
 
@@ -83,6 +84,7 @@ namespace TeamCityApi.UseCases
 
             _targetBuildChainId = _targetRootBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
             _newNameSuffix = _targetRootBuildConfig.Parameters[ParameterName.CloneNameSuffix].Value;
+            _newBranchName = VcsRootHelper.ToValidGitBranchName(_newNameSuffix);
             _dependencyChain = new DependencyChain(_client, _targetRootBuildConfig);
 
             if (!_dependencyChain.Contains(_sourceBuildConfig))
@@ -167,6 +169,7 @@ namespace TeamCityApi.UseCases
             await _client.BuildConfigs.FreezeParameters(newBuildConfig, newBuildConfig.Parameters.Property, sourceBuild.Properties.Property);
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, _targetBuildChainId);
+            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BranchName, _newBranchName);
 
             return newBuildConfig;
         }

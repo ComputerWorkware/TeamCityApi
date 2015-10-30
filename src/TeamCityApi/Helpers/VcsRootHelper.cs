@@ -56,17 +56,15 @@ namespace TeamCityApi.Helpers
         
         public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName)
         {
-            var validGitBranchName = ToValidGitBranchName(branchName);
-
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 
             IGitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
             if (gitRepository == null)
                 throw new Exception("Unable to Clone Git Repository and create branch");
             
-            gitRepository.AddBranch(validGitBranchName, commit.CommitSha);
+            gitRepository.AddBranch(branchName, commit.CommitSha);
 
-            if (gitRepository.Push(validGitBranchName))
+            if (gitRepository.Push(branchName))
             {
                 gitRepository.DeleteFolder();
             }
@@ -76,7 +74,7 @@ namespace TeamCityApi.Helpers
             }
         }
 
-        public string ToValidGitBranchName(string input)
+        public static string ToValidGitBranchName(string input)
         {
             input = input.Replace(" ", "-");
             input = new Regex("[^a-zA-Z0-9-]").Replace(input, "");

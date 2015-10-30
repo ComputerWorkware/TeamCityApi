@@ -30,12 +30,14 @@ namespace TeamCityApi.UseCases
 
             await EnsureUniqueSuffixProvided(sourceBuild, newNameSuffix);
 
-            await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newNameSuffix);
+            var newBranchName = VcsRootHelper.ToValidGitBranchName(newNameSuffix);
 
-            return await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix);
+            await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName);
+
+            return await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
         }
 
-        private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix)
+        private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)
         {
             var newBuildConfig = await _client.BuildConfigs.CopyBuildConfiguration(
                 sourceBuild.BuildConfig.ProjectId,
@@ -49,6 +51,7 @@ namespace TeamCityApi.UseCases
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.CloneNameSuffix, newNameSuffix);
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
+            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BranchName, branchName);
 
             return newBuildConfig;
         }
