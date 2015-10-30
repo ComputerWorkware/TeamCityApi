@@ -172,7 +172,7 @@ namespace TeamCityApi.UseCases
             await _client.BuildConfigs.DeleteAllSnapshotDependencies(newBuildConfig);
             await _client.BuildConfigs.FreezeAllArtifactDependencies(newBuildConfig, sourceBuild);
             await _client.BuildConfigs.FreezeParameters(newBuildConfig, newBuildConfig.Parameters.Property, sourceBuild.Properties.Property);
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id);
+            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, _targetBuildChainId);
 
             return newBuildConfig;

@@ -8,7 +8,7 @@ namespace TeamCityApi.Domain
     [DebuggerDisplay("Build: {Id}, {Number}")]
     public class Build
     {
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string Number { get; set; }
         public string Status { get; set; }
         public string StatusText { get; set; }
@@ -72,7 +72,7 @@ namespace TeamCityApi.Domain
 
         public override int GetHashCode()
         {
-            return int.Parse(Id);
+            return Id.GetHashCode();
         }
     }
 }

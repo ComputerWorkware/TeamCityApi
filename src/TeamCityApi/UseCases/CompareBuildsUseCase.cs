@@ -20,7 +20,7 @@ namespace TeamCityApi.UseCases
             _client = client;
         }
 
-        public async Task Execute(string buildId1, string buildId2, bool bCompare)
+        public async Task Execute(long buildId1, long buildId2, bool bCompare)
         {
             Log.Info("================Compare Builds: start ================");
 

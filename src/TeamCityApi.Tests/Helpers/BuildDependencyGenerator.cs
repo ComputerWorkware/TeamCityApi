@@ -10,7 +10,7 @@ namespace TeamCityApi.Tests.Helpers
         {
             return new Dependency()
             {
-                Id = long.Parse(b.Id),
+                Id = b.Id,
                 BuildTypeId = b.BuildTypeId,
                 Number = b.Number,
                 Status = BuildStatus.Success,

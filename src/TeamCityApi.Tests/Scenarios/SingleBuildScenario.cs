@@ -20,7 +20,7 @@ namespace TeamCityApi.Tests.Scenarios
         public SingleBuildScenario(
             IFixture fixture,
             ITeamCityClient client,
-            string buildId,
+            long buildId,
             string buildConfigId = null,
             string buildConfigName = null,
             IEnumerable<DependencyDefinition> buildConfigDependencies = null,

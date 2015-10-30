@@ -23,7 +23,7 @@ namespace TeamCityApi.Tests.UseCases
             IGitRepository gitRepository, 
             IFixture fixture)
         {
-            vcsRootHelper.CloneAndBranch(Arg.Any<string>(), Arg.Any<string>()).Returns(Task.FromResult(gitRepository));
+            vcsRootHelper.CloneAndBranch(Arg.Any<long>(), Arg.Any<string>()).Returns(Task.FromResult(gitRepository));
             vcsRootHelper.PushAndDeleteLocalFolder(gitRepository, Arg.Any<string>()).Returns(true);
 
             var scenario = new ChainWithRootClonedScenario(fixture, client);

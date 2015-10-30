@@ -29,7 +29,7 @@ namespace TeamCityApi.Helpers
             {
                 foreach (var artifactDependency in parentNode.Value.ArtifactDependencies)
                 {
-                    var dependencyBuild = _buildClient.ById(artifactDependency.Id.ToString()).Result;
+                    var dependencyBuild = _buildClient.ById(artifactDependency.Id).Result;
                     var childNode = new GraphNode<Build>(dependencyBuild);
 
                     if (!this.Contains(dependencyBuild))

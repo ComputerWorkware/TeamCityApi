@@ -25,7 +25,7 @@ namespace TeamCityApi.TestsIntegration
         {
             var buildClient = CreateBuildClient();
 
-            Build build = buildClient.ById("456").Result;
+            Build build = buildClient.ById(456).Result;
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace TeamCityApi.TestsIntegration
         {
             var buildClient = CreateBuildClient();
 
-            Build build = buildClient.ById("45").Result;
+            Build build = buildClient.ById(45).Result;
 
             List<File> files = build.ArtifactsReference.GetFiles().Result;
         }
@@ -149,7 +149,7 @@ namespace TeamCityApi.TestsIntegration
             public void FreezeAllArtifactDependencies()
             {
                 var buildClient = CreateBuildClient();
-                var build = buildClient.ById("250").Result;
+                var build = buildClient.ById(250).Result;
 
                 var buildConfigurationClient = CreateBuildConfigClient();
                 var buildConfiguration = buildConfigurationClient.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_TrunkDoNotTouch").Result;
@@ -183,7 +183,7 @@ namespace TeamCityApi.TestsIntegration
             public void CompareBuilds()
             {
                 var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("devciserver:8080", "ciserver", "ciserver"));
-                compareBuildsUseCase.Execute("178416", "180701", false).Wait();
+                compareBuildsUseCase.Execute(178416, 180701, false).Wait();
             }
         }
 
@@ -193,7 +193,7 @@ namespace TeamCityApi.TestsIntegration
             public void Create()
             {
                 var client = CreateBuildClient();
-                var build = client.ById("186").Result;
+                var build = client.ById(186).Result;
 
                 var buildChain = new Helpers.BuildChain(client, build);
 
@@ -204,13 +204,13 @@ namespace TeamCityApi.TestsIntegration
             public void GetParents()
             {
                 var client = CreateBuildClient();
-                var build = client.ById("186").Result;
-                var childBuild = client.ById("116").Result;
+                var build = client.ById(186).Result;
+                var childBuild = client.ById(116).Result;
 
                 var buildChain = new Helpers.BuildChain(client, build);
                 var parentBuilds = buildChain.GetParents(childBuild).ToList();
 
-                Assert.Equal(new List<string> { "181", "132", "124" }, parentBuilds.Select(b => b.Id));
+                Assert.Equal(new List<long> { 181, 132, 124 }, parentBuilds.Select(b => b.Id));
             }
         }
 
@@ -263,7 +263,7 @@ namespace TeamCityApi.TestsIntegration
                 IVcsRootHelper rootHelper = null;  // NULL object and method will fail unless created or substituted
                 var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient(), rootHelper);
 
-                cloneRootBuildConfigUseCase.Execute("268", "Release Oct 13").Wait();
+                cloneRootBuildConfigUseCase.Execute(268, "Release Oct 13").Wait();
             }
         }
 

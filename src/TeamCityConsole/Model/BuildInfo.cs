@@ -5,7 +5,7 @@ namespace TeamCityConsole.Model
 {
     public class BuildInfo
     {
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string Number { get; set; }
         public string BuildConfigId { get; set; }
         public string CommitHash { get; set; }

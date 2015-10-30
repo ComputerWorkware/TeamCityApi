@@ -62,7 +62,7 @@ namespace TeamCityApi.Helpers
                         var buildDependencySummary = parentBuild.ArtifactDependencies.FirstOrDefault(d => d.BuildTypeId == dependencyBuildConfig.Id);
                         if (buildDependencySummary != null)
                         {
-                            dependencyBuild = _client.Builds.ById(buildDependencySummary.Id.ToString()).Result;
+                            dependencyBuild = _client.Builds.ById(buildDependencySummary.Id).Result;
                         }
                     }
                     break;

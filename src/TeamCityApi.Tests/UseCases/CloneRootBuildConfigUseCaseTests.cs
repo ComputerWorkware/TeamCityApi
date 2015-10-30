@@ -18,14 +18,13 @@ namespace TeamCityApi.Tests.UseCases
         [Theory]
         [AutoNSubstituteData]
         public void Should_clone_root_build_config(
-            int buildId, 
+            int sourceBuildId, 
             string newNameSuffix, 
             ITeamCityClient client, 
             IFixture fixture,
             IVcsRootHelper vcsRootHelper,
             IGitRepository gitRepository)
         {
-            var sourceBuildId = buildId.ToString();
             var scenario = new SingleBuildScenario(fixture, client, sourceBuildId);
 
             vcsRootHelper.CloneAndBranch(sourceBuildId, newNameSuffix)

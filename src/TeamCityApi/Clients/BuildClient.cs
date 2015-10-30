@@ -9,7 +9,7 @@ namespace TeamCityApi.Clients
 {
     public interface IBuildClient
     {
-        Task<Build> ById(string id);
+        Task<Build> ById(long id);
         Task<Build> ByNumber(string number, string buildTypeId);
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
         Task<List<File>> GetFiles(long buildId);
@@ -25,7 +25,7 @@ namespace TeamCityApi.Clients
             _http = http;
         }
 
-        public async Task<Build> ById(string id)
+        public async Task<Build> ById(long id)
         {
             string requestUri = string.Format("/app/rest/builds/id:{0}", id);
 

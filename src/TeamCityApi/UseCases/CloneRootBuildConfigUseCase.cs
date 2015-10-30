@@ -22,7 +22,7 @@ namespace TeamCityApi.UseCases
             _vcsRootHelper = vcsRootHelper;
         }
 
-        public async Task<BuildConfig> Execute(string sourceBuildId, string newNameSuffix)
+        public async Task<BuildConfig> Execute(long sourceBuildId, string newNameSuffix)
         {
             Log.InfoFormat("Clone Root Build Config. sourceBuildId: {0}, newNameSuffix: {1}", sourceBuildId, newNameSuffix);
 
@@ -54,7 +54,7 @@ namespace TeamCityApi.UseCases
             await _client.BuildConfigs.FreezeAllArtifactDependencies(newBuildConfig, sourceBuild);
             await _client.BuildConfigs.FreezeParameters(newBuildConfig, newBuildConfig.Parameters.Property, sourceBuild.Properties.Property);
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.CloneNameSuffix, newNameSuffix);
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id);
+            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
             await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
 
             return newBuildConfig;

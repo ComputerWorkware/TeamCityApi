@@ -12,7 +12,7 @@ namespace TeamCityApi.Helpers
 {
     public interface IVcsRootHelper
     {
-        Task<IGitRepository> CloneAndBranch(string buildId, string branchName);
+        Task<IGitRepository> CloneAndBranch(long buildId, string branchName);
         bool PushAndDeleteLocalFolder(IGitRepository gitRepository,string branchName);
     }
 
@@ -31,7 +31,7 @@ namespace TeamCityApi.Helpers
             _gitRepositoryFactory = gitRepositoryFactory;
         }
 
-        public async Task<VcsCommit> GetCommitInformationByBuildId(string buildId)
+        public async Task<VcsCommit> GetCommitInformationByBuildId(long buildId)
         {
             Log.Info(string.Format("Get Commit Information for Build: {0}",buildId));
             Build build = await _buildClient.ById(buildId);
@@ -54,7 +54,7 @@ namespace TeamCityApi.Helpers
 
         }
 
-        public async Task<IGitRepository> CloneAndBranch(string buildId, string branchName)
+        public async Task<IGitRepository> CloneAndBranch(long buildId, string branchName)
         {
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 

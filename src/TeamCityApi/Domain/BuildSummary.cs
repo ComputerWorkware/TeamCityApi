@@ -8,7 +8,7 @@ namespace TeamCityApi.Domain
     {
         private IBuildClient _buildClient;
 
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string BuildTypeId { get; set; }
         public string Href { get; set; }
         public string Number { get; set; }

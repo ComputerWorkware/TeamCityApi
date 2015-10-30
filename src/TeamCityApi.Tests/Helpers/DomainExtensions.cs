@@ -9,7 +9,7 @@ namespace TeamCityApi.Tests.Helpers
     public static class DomainExtensions
     {
         public static IPostprocessComposer<Build> WithId(
-           this IPostprocessComposer<Build> composer, string id)
+           this IPostprocessComposer<Build> composer, long id)
         {
             return composer.With(x => x.Id, id);
         }

@@ -6,10 +6,10 @@ namespace TeamCityConsole.Options
     public class CompareBuildsOptions
     {
         [Option('o', "oldBuildId", Required = true, HelpText = "Old Build Id to compare.")]
-        public string BuildId1 { get; set; }
+        public long BuildId1 { get; set; }
 
         [Option('n', "newBuildId", Required = true, HelpText = "New Build Id to compare.")]
-        public string BuildId2 { get; set; }
+        public long BuildId2 { get; set; }
 
         [Option('b', "BeyondCompare", Required = false, HelpText = "Display comparison in BayondCompare app.")]
         public bool BCompare { get; set; }
