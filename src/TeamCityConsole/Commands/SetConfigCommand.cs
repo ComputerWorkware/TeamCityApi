@@ -46,6 +46,7 @@ namespace TeamCityConsole.Commands
 
             _settings.Save();
 
+            await Task.FromResult(0); //just to hide build warning
         }
     }
 }
