@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
@@ -80,8 +81,11 @@ namespace TeamCityApi.Helpers
 
         public override string ToString()
         {
-            return SketchGraph();
+            var dependencies = Nodes.Select(n => n.Value.ToString()).ToList();
+            dependencies.Sort();
+            return string.Join(Environment.NewLine, dependencies);
         }
+        
 
         public string SketchGraph(GraphNode<CombinedDependency> node = null, int level = 0)
         {
@@ -90,15 +94,9 @@ namespace TeamCityApi.Helpers
 
             if (node == null)
                 node = (GraphNode<CombinedDependency>)Nodes.First();
-            
-            var buildConfigId = node.Value.BuildConfig.Id;
-            var buildNumber = (node.Value.Build != null) ? " | Build #" + node.Value.Build.Number : " | Same chain";
-            var cloned = level > 0 && node.Value.IsCloned ? " | Cloned" : " | Original";
 
             var sketch = new string((char)0x2014, level) +
-                buildConfigId +
-                cloned +
-                buildNumber +
+                node.Value +
                 Environment.NewLine;
 
             foreach (var child in node.Neighbors)
@@ -132,7 +130,11 @@ namespace TeamCityApi.Helpers
 
         public override string ToString()
         {
-            return string.Format("BuildConfigId: {0}, Build Number: {1}", BuildConfig.Id, Build?.Number);
+            var buildConfigId = BuildConfig.Id;
+            var buildNumber = (Build != null) ? " | Build #" + Build.Number : " | Same chain";
+            var cloned = IsCloned ? " | Cloned" : " | Original";
+
+            return buildConfigId + buildNumber + cloned;
         }
 
         public override bool Equals(object obj)
