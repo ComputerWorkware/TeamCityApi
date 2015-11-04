@@ -25,7 +25,7 @@ namespace TeamCityApi.UseCases
 
         public async Task Execute(string buildConfigId, BuildChainView view = BuildChainView.List)
         {
-            Log.Info("================Show Build Chain: start ================");
+            Log.Info("================ Show Build Chain: start ================");
 
             var buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildConfigId);
             var dependencyChain = new DependencyChain(_client, buildConfig);
@@ -39,6 +39,27 @@ namespace TeamCityApi.UseCases
                 case BuildChainView.List:
                     Log.Info(Environment.NewLine + dependencyChain.ToString());
                     break;
+            }
+
+            Log.Info("---------------------------------------------------------");
+
+            var nonUniques = dependencyChain.GetNonUniqueDependencies().ToList();
+            if (nonUniques.Any())
+            {
+                Log.Warn("There are some dependencies in the build chain with different versions:");
+
+                foreach (var nonUnique in nonUniques)
+                {
+                    Log.Warn(" - " + nonUnique.Key.Id);
+                    foreach (var build in nonUnique)
+                    {
+                        Log.Warn("   - " + (build != null ? build.Number : "Same chain"));
+                    }
+                }
+            }
+            else
+            {
+                Log.Info(" OK: Each dependency in the build chain has unique version.");
             }
         }
     }

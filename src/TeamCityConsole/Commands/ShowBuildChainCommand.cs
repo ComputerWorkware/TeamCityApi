@@ -26,7 +26,7 @@ namespace TeamCityConsole.Commands
 
             await _showBuildChainUseCase.Execute(showBuildChainOptions.BuildConfigId, showBuildChainOptions.View);
 
-            Log.Info("================Show Build Chain: done ================");
+            Log.Info("================ Show Build Chain: done =================");
         }
     }
 }

@@ -79,6 +79,19 @@ namespace TeamCityApi.Helpers
             };
         }
 
+        /// <summary>
+        /// Returns Build Configs, which are included to Build Chain with multiple versions.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<IGrouping<BuildConfig, Build>> GetNonUniqueDependencies()
+        {
+            var results = from d in Nodes
+                          group d.Value.Build by d.Value.BuildConfig into g
+                          where g.Count() > 1
+                          select g;
+            return results;
+        }
+
         public override string ToString()
         {
             var dependencies = Nodes.Select(n => n.Value.ToString()).ToList();
