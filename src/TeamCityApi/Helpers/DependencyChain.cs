@@ -95,7 +95,7 @@ namespace TeamCityApi.Helpers
             if (node == null)
                 node = (GraphNode<CombinedDependency>)Nodes.First();
 
-            var sketch = new string((char)0x2014, level) +
+            var sketch = new string(' ', level * 2) + " - " +
                 node.Value +
                 Environment.NewLine;
 
