@@ -5,6 +5,7 @@ using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.Locators;
+using TeamCityApi.UseCases;
 
 namespace TeamCityApi.Helpers
 {
@@ -98,7 +99,25 @@ namespace TeamCityApi.Helpers
             dependencies.Sort();
             return string.Join(Environment.NewLine, dependencies);
         }
-        
+        public string ToString(ShowBuildChainUseCase.BuildChainFilter filter)
+        {
+            var dependencies = new List<string>();
+            switch (filter)
+            {
+                case ShowBuildChainUseCase.BuildChainFilter.Cloned:
+                    dependencies.AddRange(from node in Nodes where node.Value.IsCloned select node.Value.ToString());
+                    break;
+                case ShowBuildChainUseCase.BuildChainFilter.Original:
+                    dependencies.AddRange(from node in Nodes where !node.Value.IsCloned select node.Value.ToString());
+                    break;
+                default:
+                    dependencies = Nodes.Select(n => n.Value.ToString()).ToList();
+                    break;
+            }
+            dependencies.Sort();
+            return string.Join(Environment.NewLine, dependencies);
+        }
+
 
         public string SketchGraph(GraphNode<CombinedDependency> node = null, int level = 0)
         {

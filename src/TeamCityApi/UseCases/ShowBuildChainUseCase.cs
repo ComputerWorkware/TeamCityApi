@@ -14,6 +14,13 @@ namespace TeamCityApi.UseCases
             Tree
         }
 
+        public enum BuildChainFilter
+        {
+            All,
+            Cloned,
+            Original
+        }
+
         private static readonly ILog Log = LogProvider.GetLogger(typeof(ShowBuildChainUseCase));
 
         private readonly ITeamCityClient _client;
@@ -23,7 +30,7 @@ namespace TeamCityApi.UseCases
             _client = client;
         }
 
-        public async Task Execute(string buildConfigId, BuildChainView view = BuildChainView.List)
+        public async Task Execute(string buildConfigId, BuildChainView view = BuildChainView.List, BuildChainFilter filter = BuildChainFilter.All)
         {
             Log.Info("================ Show Build Chain: start ================");
 
@@ -36,8 +43,7 @@ namespace TeamCityApi.UseCases
                     Log.Info(Environment.NewLine + dependencyChain.SketchGraph());
                     break;
                 default:
-                case BuildChainView.List:
-                    Log.Info(Environment.NewLine + dependencyChain.ToString());
+                    Log.Info(Environment.NewLine + dependencyChain.ToString(filter));
                     break;
             }
 

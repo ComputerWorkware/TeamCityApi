@@ -18,7 +18,9 @@ namespace TeamCityConsole.Tests.Commands
                 var showBuildChainUseCase = new ShowBuildChainUseCase(new TeamCityClient("teamcitytest:8080", "teamcity", "teamcity"));
                 showBuildChainOptions.BuildConfigId = "Installers_Sunlife_VitalObjectsSuite_TrunkKris";
 
-                showBuildChainUseCase.Execute("Installers_Sunlife_VitalObjectsSuite_TrunkKris").Wait();
+                showBuildChainUseCase.Execute("Installers_Sunlife_VitalObjectsSuite_TrunkKris", 
+                    ShowBuildChainUseCase.BuildChainView.List, 
+                    ShowBuildChainUseCase.BuildChainFilter.Cloned).Wait();
             }
         }
     }

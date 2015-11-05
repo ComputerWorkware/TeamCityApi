@@ -45,7 +45,7 @@ namespace TeamCityApi.Clients
 
         public async Task<List<BuildConfigSummary>> GetAll()
         {
-            string requestUri = string.Format("/app/rest/buildTypes");
+            string requestUri = "/app/rest/buildTypes";
 
             List<BuildConfigSummary> buildConfigs = await _http.Get<List<BuildConfigSummary>>(requestUri);
 
