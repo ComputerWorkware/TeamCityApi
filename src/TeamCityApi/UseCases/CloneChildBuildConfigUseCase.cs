@@ -43,7 +43,7 @@ namespace TeamCityApi.UseCases
 
             foreach (var b in buildConfigsToClone)
             {
-                Log.InfoFormat("==== Clone Repo and branch for {0}, Build #: {1} ====", b.BuildConfig.Id, b.Build.Number);
+                Log.InfoFormat("==== Clone Repo and branch for {0}, Build #{1} ====", b.BuildConfig.Id, b.Build.Number);
                 if (!_simulate)
                 {
                     await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newBranchName);
@@ -212,7 +212,7 @@ namespace TeamCityApi.UseCases
 
             public override string ToString()
             {
-                return string.Format("Clone {1} from Build #:{0}", _sourceBuild.Number, _sourceBuild.BuildConfig.Id);
+                return string.Format("Clone {1} from Build #{0}", _sourceBuild.Number, _sourceBuild.BuildConfig.Id);
             }
         }
 

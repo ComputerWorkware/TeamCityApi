@@ -22,7 +22,7 @@ namespace TeamCityApi.UseCases
             _vcsRootHelper = vcsRootHelper;
         }
 
-        public async Task<BuildConfig> Execute(long sourceBuildId, string newNameSuffix)
+        public async Task Execute(long sourceBuildId, string newNameSuffix, bool simulate)
         {
             Log.InfoFormat("Clone Root Build Config. sourceBuildId: {0}, newNameSuffix: {1}", sourceBuildId, newNameSuffix);
 
@@ -32,9 +32,13 @@ namespace TeamCityApi.UseCases
 
             var newBranchName = VcsRootHelper.ToValidGitBranchName(newNameSuffix);
 
-            await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName);
+            Log.InfoFormat("==== Clone Repo and branch for {0}, Build #{1} ====", sourceBuild.Id, sourceBuild.Number);
+            if (!simulate)
+                await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName);
 
-            return await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
+            Log.InfoFormat("==== Clone {1} from Build #{0} ====", sourceBuild.Number, sourceBuild.Id);
+            if (!simulate)
+                await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
         }
 
         private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)

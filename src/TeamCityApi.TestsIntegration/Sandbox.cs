@@ -263,7 +263,7 @@ namespace TeamCityApi.TestsIntegration
                 IVcsRootHelper rootHelper = null;  // NULL object and method will fail unless created or substituted
                 var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient(), rootHelper);
 
-                cloneRootBuildConfigUseCase.Execute(268, "Release Oct 13").Wait();
+                cloneRootBuildConfigUseCase.Execute(268, "Release Oct 13", false).Wait();
             }
         }
 

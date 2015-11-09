@@ -28,7 +28,7 @@ namespace TeamCityApi.Tests.UseCases
             
             var sut = new CloneRootBuildConfigUseCase(client,vcsRootHelper);
 
-            sut.Execute(sourceBuildId, newNameSuffix).Wait();
+            sut.Execute(sourceBuildId, newNameSuffix, false).Wait();
 
             var newBuildConfigName = scenario.BuildConfig.Name + Consts.SuffixSeparator + newNameSuffix;
             client.BuildConfigs.Received(1)

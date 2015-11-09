@@ -23,7 +23,7 @@ namespace TeamCityConsole.Commands
             var cloneBuildConfigOptions = options as CloneRootBuildConfigOptions;
             if (cloneBuildConfigOptions == null) throw new ArgumentNullException("cloneBuildConfigOptions");
 
-            await _cloneRootBuildConfigUseCase.Execute(cloneBuildConfigOptions.BuildId, cloneBuildConfigOptions.NewNameSuffix);
+            await _cloneRootBuildConfigUseCase.Execute(cloneBuildConfigOptions.BuildId, cloneBuildConfigOptions.NewNameSuffix, cloneBuildConfigOptions.Simulate);
 
             Log.Info("================ Clone Build Config: done ================");
         }
