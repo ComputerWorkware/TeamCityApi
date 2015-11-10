@@ -150,6 +150,11 @@ namespace TeamCityApi.Clients
                 if (buildConfigIdsToSkip != null && buildConfigIdsToSkip.Contains(artifactDependency.SourceBuildConfig.Id))
                     continue;
 
+                if (asOfbuild.ArtifactDependencies == null)
+                {
+                    throw new Exception(String.Format("Artifact dependencies for Build #{0} (id: {1}) unexpectedly empty", asOfbuild.Number, asOfbuild.Id));
+                }
+
                 var buildNumber = asOfbuild.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == artifactDependency.SourceBuildConfig.Id).Number;
                 artifactDependency.Properties.Property["revisionName"].Value = "buildNumber";
                 artifactDependency.Properties.Property["revisionValue"].Value = buildNumber;
