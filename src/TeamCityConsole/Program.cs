@@ -30,7 +30,8 @@ namespace TeamCityConsole
 
             var container = SetupContainer();
             DisplayAssemblyInfo();
-
+            DisplayExecutedCommand(args);
+            
             Type[] optionTypes = GetOptionsInThisAssembly();
 
             ParserResult<object> result = Parser.Default.ParseArguments(args, optionTypes);
@@ -63,6 +64,11 @@ namespace TeamCityConsole
 #endif
 
             ExecuteAsync(command, options).GetAwaiter().GetResult();
+        }
+
+        private static void DisplayExecutedCommand(string[] args)
+        {
+            Console.Out.WriteLine(Assembly.GetExecutingAssembly().Location + " " + String.Join(" ", args));
         }
 
         private const string ExtractPrefix = ".extract.";
