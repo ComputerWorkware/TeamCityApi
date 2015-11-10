@@ -61,17 +61,16 @@ namespace TeamCityApi.Helpers
             IGitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
             if (gitRepository == null)
                 throw new Exception("Unable to Clone Git Repository and create branch");
-            
-            gitRepository.AddBranch(branchName, commit.CommitSha);
 
-            if (gitRepository.Push(branchName))
+            if (gitRepository.AddBranch(branchName, commit.CommitSha))
             {
-                gitRepository.DeleteFolder();
+                if (!gitRepository.Push(branchName))
+                {
+                    throw new Exception(string.Format("Unable to Push branch: {0}",branchName));
+                }
             }
-            else
-            {
-                throw new Exception("Unable to Push and remove temporary repository folder.");
-            }
+
+            gitRepository.DeleteFolder();
         }
 
         public static string ToValidGitBranchName(string input)

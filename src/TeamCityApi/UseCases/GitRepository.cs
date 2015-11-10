@@ -231,16 +231,16 @@ namespace TeamCityApi.UseCases
 
         public bool CheckBranchExist(string branchName)
         {
-            Log.Info(string.Format("Checking for Branch Existence: {0}",branchName));
+            Log.Info(string.Format("Checking for Branch Existence: origin/{0}",branchName));
             using (var repo = new Repository(Location))
             {
                 string originBranch = String.Format("origin/{0}",branchName);
                 var firstOrDefault = repo.Branches.FirstOrDefault(b => b.IsRemote && b.Name == originBranch);
                 if (firstOrDefault==null)
-                    Log.Info(string.Format("Branch {0} does not exist",branchName));
+                    Log.Info(string.Format("Branch origin/{0} does not exist",branchName));
                 else
                 {
-                    Log.Info(string.Format("Branch {0} exists", branchName));
+                    Log.Warn(string.Format("Branch origin/{0} exists", branchName));
                 }
                 return firstOrDefault != null;
             }
@@ -248,10 +248,10 @@ namespace TeamCityApi.UseCases
 
         public bool AddBranch(string branchName,string commitSha)
         {
-            Log.Info(string.Format("Add Local Branch {0} at specific commit: {1}", branchName, commitSha));
+            Log.Info(string.Format("Check to add Local Branch {0} tracking origin/{0} at specific commit: {1}", branchName, commitSha));
             if (CheckBranchExist(branchName))
             {
-                Log.Info(string.Format("Local Branch already exists: {0}",branchName));
+                Log.Warn(string.Format("Remote branch already exists: origin/{0}",branchName));
                 return false;
             }
 
