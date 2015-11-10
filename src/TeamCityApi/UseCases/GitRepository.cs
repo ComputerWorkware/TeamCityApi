@@ -352,7 +352,16 @@ namespace TeamCityApi.UseCases
             var process = new Process { StartInfo = startInfo };
             process.ErrorDataReceived += (sender, e) => { Log.Debug(e.Data); };
             process.OutputDataReceived += (sender, e) => { Log.Debug(e.Data); };
-            process.Start();
+            try
+            {
+                process.Start();
+            }
+            catch (Exception)
+            {
+                Log.Fatal("Cannot run git command. Make sure git is installed and in the PATH");
+                throw;
+            }
+            
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             process.WaitForExit();
