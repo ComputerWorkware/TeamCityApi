@@ -43,7 +43,7 @@ namespace TeamCityApi.UseCases
 
             foreach (var b in buildConfigsToClone)
             {
-                Log.InfoFormat("==== Clone Repo and branch for {0}, Build #{1} ====", b.BuildConfig.Id, b.Build.Number);
+                Log.InfoFormat("==== Branch {2} from Build #{1} (id: {0}) ====", b.Build.Id, b.Build.Number, b.BuildConfig.Id);
                 if (!_simulate)
                 {
                     await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newBranchName);

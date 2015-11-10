@@ -32,11 +32,11 @@ namespace TeamCityApi.UseCases
 
             var newBranchName = VcsRootHelper.ToValidGitBranchName(newNameSuffix);
 
-            Log.InfoFormat("==== Clone Repo and branch for {0}, Build #{1} ====", sourceBuild.Id, sourceBuild.Number);
+            Log.InfoFormat("==== Branch {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
             if (!simulate)
                 await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName);
 
-            Log.InfoFormat("==== Clone {1} from Build #{0} ====", sourceBuild.Number, sourceBuild.Id);
+            Log.InfoFormat("==== Clone {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
             if (!simulate)
                 await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
         }
