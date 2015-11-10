@@ -61,6 +61,11 @@ namespace TeamCityApi.Helpers
                 case "sameChainOrLastFinished":
                     if (parentBuild != null)
                     {
+                        if (parentBuild.ArtifactDependencies == null)
+                        {
+                            throw new Exception(String.Format("Can't resolve dependent build. There's an artifact dependency in {0} to {1}, but its build #{2} (id: {3}) doesn't have any artifact dependencies.", parentBuild.BuildConfig.Id, artifactDependency.SourceBuildConfig.Id, parentBuild.Number, parentBuild.Id));
+                        }
+
                         var buildDependencySummary = parentBuild.ArtifactDependencies.FirstOrDefault(d => d.BuildTypeId == dependencyBuildConfig.Id);
                         if (buildDependencySummary != null)
                         {
