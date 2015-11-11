@@ -7,6 +7,7 @@ using TeamCityApi.Helpers;
 using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.UseCases;
 using Xunit;
+using Xunit.Extensions;
 
 namespace TeamCityApi.TestsIntegration
 {
@@ -286,6 +287,19 @@ namespace TeamCityApi.TestsIntegration
                 var deleteClonedBuildChainUseCase = new DeleteClonedBuildChainUseCase(CreateTeamCityClient());
 
                 deleteClonedBuildChainUseCase.Execute("Installers_Sunlife_VitalObjectsSuite_TrunkKrisTest", simulate:true).Wait();
+            }
+        }
+
+        public class ShowBuildChainUseCase
+        {
+            [Theory]
+            public void Should_show_build_chain()
+            {
+                var showBuildChainUseCase = new UseCases.ShowBuildChainUseCase(CreateTeamCityClient());
+
+                showBuildChainUseCase.Execute("Installers_Sunlife_VitalObjectsSuite_TrunkKris",
+                    UseCases.ShowBuildChainUseCase.BuildChainView.List,
+                    UseCases.ShowBuildChainUseCase.BuildChainFilter.Cloned).Wait();
             }
         }
 
