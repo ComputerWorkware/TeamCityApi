@@ -36,6 +36,7 @@
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="Clients\BuildConfigXmlClient.cs" />
     <Compile Include="Clients\VcsRootClient.cs" />
     <Compile Include="Consts.cs" />
     <Compile Include="Clients\BuildClient.cs" />

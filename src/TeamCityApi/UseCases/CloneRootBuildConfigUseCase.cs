@@ -14,12 +14,14 @@ namespace TeamCityApi.UseCases
         private static readonly ILog Log = LogProvider.GetLogger(typeof(CloneRootBuildConfigUseCase));
 
         private readonly ITeamCityClient _client;
+        private readonly IBuildConfigXmlClient _buildConfigXmlClient;
         private readonly IVcsRootHelper _vcsRootHelper;
 
-        public CloneRootBuildConfigUseCase(ITeamCityClient client, IVcsRootHelper vcsRootHelper)
+        public CloneRootBuildConfigUseCase(ITeamCityClient client, IBuildConfigXmlClient buildConfigXmlClient, IVcsRootHelper vcsRootHelper)
         {
             _client = client;
             _vcsRootHelper = vcsRootHelper;
+            _buildConfigXmlClient = buildConfigXmlClient;
         }
 
         public async Task Execute(long sourceBuildId, string newNameSuffix, bool simulate)
@@ -38,26 +40,30 @@ namespace TeamCityApi.UseCases
 
             Log.InfoFormat("==== Clone {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
             if (!simulate)
-                await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
+                CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
         }
 
-        private async Task<BuildConfig> CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)
+        private async Task CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)
         {
-            var newBuildConfig = await _client.BuildConfigs.CopyBuildConfiguration(
-                sourceBuild.BuildConfig.ProjectId,
-                BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix),
-                sourceBuild.BuildConfig.Id
+            var newName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix);
+            var newBuildConfigId = await _client.BuildConfigs.GenerateUniqueBuildConfigId(newName);
+
+            _buildConfigXmlClient.CopyBuildConfiguration(
+                sourceBuild.BuildConfig.Id,
+                sourceBuild.StartDate,
+                newBuildConfigId,
+                newName
             );
 
-            await _client.BuildConfigs.DeleteAllSnapshotDependencies(newBuildConfig);
-            await _client.BuildConfigs.FreezeAllArtifactDependencies(newBuildConfig, sourceBuild);
-            await _client.BuildConfigs.FreezeParameters(newBuildConfig, newBuildConfig.Parameters.Property, sourceBuild.Properties.Property);
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.CloneNameSuffix, newNameSuffix);
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BranchName, branchName);
+            _buildConfigXmlClient.DeleteAllSnapshotDependencies(newBuildConfigId);
+            _buildConfigXmlClient.FreezeAllArtifactDependencies(newBuildConfigId, sourceBuild);
+            _buildConfigXmlClient.FreezeParameters(newBuildConfigId, sourceBuild.Properties.Property);
+            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.CloneNameSuffix, newNameSuffix);
+            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
+            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
+            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.BranchName, branchName);
 
-            return newBuildConfig;
+            _buildConfigXmlClient.Commit();
         }
 
         private async Task EnsureUniqueSuffixProvided(Build sourceBuild, string newNameSuffix)

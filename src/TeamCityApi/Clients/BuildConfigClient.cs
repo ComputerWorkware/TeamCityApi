@@ -31,6 +31,8 @@ namespace TeamCityApi.Clients
             string sourceBuildTypeId, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true);
 
         Task FreezeParameters(Action<BuildTypeLocator> buildTypeLocatorConfig, List<Property> targetParameters, List<Property> sourceParameters);
+
+        Task<string> GenerateUniqueBuildConfigId(string name);
     }
 
     public class BuildConfigClient : IBuildConfigClient
@@ -271,6 +273,14 @@ namespace TeamCityApi.Clients
                         buildTypeLocatorConfig,
                         targetP.Name,
                         sourceParameters.Single(sourceP => sourceP.Name == targetP.Name).Value)));
+        }
+
+        public Task<string> GenerateUniqueBuildConfigId(string name)
+        {
+            //todo: strip non alpha numeric chars
+            //todo: check if teamcity already has made up id
+            //todo: if yes append counter until will find unique
+            throw new NotImplementedException();
         }
     }
 }

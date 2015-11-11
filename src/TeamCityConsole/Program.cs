@@ -169,7 +169,9 @@ namespace TeamCityConsole
 
             container.Register<ICommand>(Verbs.SetConfig, x => new SetConfigCommand(settings));
 
-            container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>(),x.Resolve<IVcsRootHelper>()));
+            container.Register(x => new BuildConfigXmlClient(x.Resolve<IVcsRootHelper>()));
+
+            container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>(), x.Resolve<IBuildConfigXmlClient>(), x.Resolve<IVcsRootHelper>()));
 
             container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>(), x.Resolve<IVcsRootHelper>()));
 

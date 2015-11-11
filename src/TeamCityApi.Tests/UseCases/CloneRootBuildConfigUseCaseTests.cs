@@ -2,6 +2,7 @@
 using NSubstitute;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Xunit;
+using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers;
 using TeamCityApi.Locators;
@@ -21,18 +22,19 @@ namespace TeamCityApi.Tests.UseCases
             int sourceBuildId, 
             string newNameSuffix, 
             ITeamCityClient client, 
+            IBuildConfigXmlClient buildConfigXmlClient, 
             IFixture fixture,
             IVcsRootHelper vcsRootHelper)
         {
             var scenario = new SingleBuildScenario(fixture, client, sourceBuildId);
             
-            var sut = new CloneRootBuildConfigUseCase(client,vcsRootHelper);
+            var sut = new CloneRootBuildConfigUseCase(client, buildConfigXmlClient, vcsRootHelper);
 
             sut.Execute(sourceBuildId, newNameSuffix, false).Wait();
 
             var newBuildConfigName = scenario.BuildConfig.Name + Consts.SuffixSeparator + newNameSuffix;
-            client.BuildConfigs.Received(1)
-                .CopyBuildConfiguration(scenario.Project.Id, newBuildConfigName, scenario.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
+            buildConfigXmlClient.Received(1)
+                .CopyBuildConfiguration(scenario.BuildConfig.Id, scenario.Build.StartDate, Arg.Any<string>(), newBuildConfigName);
         }
     }
 }
