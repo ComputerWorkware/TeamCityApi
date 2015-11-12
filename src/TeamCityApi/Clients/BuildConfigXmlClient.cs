@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers;
 using TeamCityApi.Locators;
@@ -9,81 +10,69 @@ namespace TeamCityApi.Clients
 {
     public interface IBuildConfigXmlClient
     {   
-        void SetParameterValue(string buildConfigId, string name, string value);
-        void CreateSnapshotDependency(CreateSnapshotDependency dependency);
-        void CreateArtifactDependency(CreateArtifactDependency dependency);
-        void DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId);
-        void DeleteAllSnapshotDependencies(string buildConfigId);
-        void FreezeAllArtifactDependencies(string buildConfigId, Build asOfbuild);
-        void CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition);
-        void UpdateArtifactDependency(string buildConfigId, DependencyDefinition artifactDependency);
-        void CopyBuildConfiguration(string sourceBuildTypeId, DateTime asOfDateTime, string newBuildTypeId, string newConfigurationName);
-        void FreezeParameters(string buildConfigId, List<Property> sourceParameters);
-        void Commit();
+        void Track(IBuildConfigXml buildConfigXml);
+        IBuildConfigXml Read(string buildConfigId);
+        IBuildConfigXml ReadAsOf(string buildConfigId, DateTime asOfDateTime);
+        void EndSetOfChanges();
+
     }
 
     public class BuildConfigXmlClient : IBuildConfigXmlClient
     {
         private readonly IVcsRootHelper _vcsRootHelper;
-
+        private readonly List<IBuildConfigXml> _buildConfigXmls = new List<IBuildConfigXml>();
+        
         public BuildConfigXmlClient(IVcsRootHelper vcsRootHelper)
         {
             _vcsRootHelper = vcsRootHelper;
         }
 
-        public void SetParameterValue(string buildConfigId, string name, string value)
+        public void Track(IBuildConfigXml buildConfigXml)
         {
-            throw new NotImplementedException();
+            _buildConfigXmls.Add(buildConfigXml);
         }
 
-        public void CreateSnapshotDependency(CreateSnapshotDependency dependency)
+        public IBuildConfigXml Read(string buildConfigId)
         {
+            //todo: clone settings repo
+            //todo: find file by buildConfigId
+            //todo: read contents to XML doc
+
+            var buildConfigXml = new BuildConfigXml(this);
+
+            buildConfigXml.Xml = new XmlDocument();
+
+            _buildConfigXmls.Add(buildConfigXml);
+
             throw new NotImplementedException();
+
+            return buildConfigXml;
         }
 
-        public void CreateArtifactDependency(CreateArtifactDependency dependency)
+        public IBuildConfigXml ReadAsOf(string buildConfigId, DateTime asOfDateTime)
         {
+            //todo: clone settings, find file by buildConfigId, readit.
+
+
+            var buildConfigXml = new BuildConfigXml(this);
+            _buildConfigXmls.Add(buildConfigXml);
+
             throw new NotImplementedException();
+
+            return buildConfigXml;
         }
 
-        public void DeleteSnapshotDependency(string buildConfigId, string dependencyBuildConfigId)
+        public void EndSetOfChanges()
         {
-            throw new NotImplementedException();
-        }
+            foreach (var buildConfigXml in _buildConfigXmls)
+            {
+                //todo: read from buildConfigXml.Xml, same to file
+            }
 
-        public void DeleteAllSnapshotDependencies(string buildConfigId)
-        {
-            throw new NotImplementedException();
-        }
+            //todo: commit
 
-        public void FreezeAllArtifactDependencies(string buildConfigId, Build asOfbuild)
-        {
-            throw new NotImplementedException();
-        }
+            //todo: push
 
-        public void CreateDependency(string targetBuildConfigId, DependencyDefinition dependencyDefinition)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UpdateArtifactDependency(string buildConfigId, DependencyDefinition artifactDependency)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CopyBuildConfiguration(string sourceBuildTypeId, DateTime asOfDateTime, string newBuildTypeId,
-            string newConfigurationName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void FreezeParameters(string buildConfigId, List<Property> sourceParameters)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Commit()
-        {
             throw new NotImplementedException();
         }
     }

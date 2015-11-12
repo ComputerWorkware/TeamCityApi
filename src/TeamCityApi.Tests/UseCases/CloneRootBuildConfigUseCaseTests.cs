@@ -32,9 +32,8 @@ namespace TeamCityApi.Tests.UseCases
 
             sut.Execute(sourceBuildId, newNameSuffix, false).Wait();
 
-            var newBuildConfigName = scenario.BuildConfig.Name + Consts.SuffixSeparator + newNameSuffix;
             buildConfigXmlClient.Received(1)
-                .CopyBuildConfiguration(scenario.BuildConfig.Id, scenario.Build.StartDate, Arg.Any<string>(), newBuildConfigName);
+                .ReadAsOf(scenario.BuildConfig.Id, scenario.Build.StartDate);
         }
     }
 }

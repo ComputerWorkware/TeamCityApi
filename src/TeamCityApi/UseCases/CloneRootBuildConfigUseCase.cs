@@ -48,22 +48,18 @@ namespace TeamCityApi.UseCases
             var newName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix);
             var newBuildConfigId = await _client.BuildConfigs.GenerateUniqueBuildConfigId(newName);
 
-            _buildConfigXmlClient.CopyBuildConfiguration(
-                sourceBuild.BuildConfig.Id,
-                sourceBuild.StartDate,
-                newBuildConfigId,
-                newName
-            );
+            var buildConfigXml = _buildConfigXmlClient.ReadAsOf(sourceBuild.BuildConfig.Id, sourceBuild.StartDate);
+            var clonedBuildConfigXml = buildConfigXml.CopyBuildConfiguration(newBuildConfigId, newName);
+            
+            clonedBuildConfigXml.DeleteAllSnapshotDependencies();
+            clonedBuildConfigXml.FreezeAllArtifactDependencies(sourceBuild);
+            clonedBuildConfigXml.FreezeParameters(sourceBuild.Properties.Property);
+            clonedBuildConfigXml.SetParameterValue(ParameterName.CloneNameSuffix, newNameSuffix);
+            clonedBuildConfigXml.SetParameterValue(ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
+            clonedBuildConfigXml.SetParameterValue(ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
+            clonedBuildConfigXml.SetParameterValue(ParameterName.BranchName, branchName);
 
-            _buildConfigXmlClient.DeleteAllSnapshotDependencies(newBuildConfigId);
-            _buildConfigXmlClient.FreezeAllArtifactDependencies(newBuildConfigId, sourceBuild);
-            _buildConfigXmlClient.FreezeParameters(newBuildConfigId, sourceBuild.Properties.Property);
-            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.CloneNameSuffix, newNameSuffix);
-            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
-            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
-            _buildConfigXmlClient.SetParameterValue(newBuildConfigId, ParameterName.BranchName, branchName);
-
-            _buildConfigXmlClient.Commit();
+            _buildConfigXmlClient.EndSetOfChanges();
         }
 
         private async Task EnsureUniqueSuffixProvided(Build sourceBuild, string newNameSuffix)

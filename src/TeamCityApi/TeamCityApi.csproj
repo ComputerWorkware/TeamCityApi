@@ -46,6 +46,7 @@
     <Compile Include="Domain\AgentSummary.cs" />
     <Compile Include="Domain\ArtifactsReference.cs" />
     <Compile Include="Domain\Build.cs" />
+    <Compile Include="Domain\BuildConfigXml.cs" />
     <Compile Include="Domain\BuildContinuationMode.cs" />
     <Compile Include="Domain\BuildDependency.cs" />
     <Compile Include="Domain\BuildStep.cs" />
