@@ -40,13 +40,12 @@ namespace TeamCityApi.Clients
 
             var buildConfigXml = new BuildConfigXml(this);
 
-            buildConfigXml.Xml = new XmlDocument();
 
             _buildConfigXmls.Add(buildConfigXml);
 
             throw new NotImplementedException();
 
-            return buildConfigXml;
+            //return buildConfigXml;
         }
 
         public IBuildConfigXml ReadAsOf(string buildConfigId, DateTime asOfDateTime)
@@ -59,7 +58,7 @@ namespace TeamCityApi.Clients
 
             throw new NotImplementedException();
 
-            return buildConfigXml;
+            //return buildConfigXml;
         }
 
         public void EndSetOfChanges()

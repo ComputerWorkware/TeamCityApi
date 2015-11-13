@@ -1,8 +1,8 @@
 ﻿namespace TeamCityApi.Domain
 {
-    public class CreateArtifactDependency
+    public class UpdateArtifactDependency
     {
-        public CreateArtifactDependency(string targetBuildConfigId, string dependencyBuildConfigId)
+        public UpdateArtifactDependency(string targetBuildConfigId, string dependencyBuildConfigId)
         {
             DependencyBuildConfigId = dependencyBuildConfigId;
             TargetBuildConfigId = targetBuildConfigId;

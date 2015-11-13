@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Xml;
+using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 
 namespace TeamCityApi.Tests.Helpers
 {
     public class BuildConfigXmlGenerator
     {
-        private XmlDocument Xml { get; set; }
+        private readonly IBuildConfigXmlClient _buildConfigXmlClient;
+        private BuildConfigXml BuildConfigXml { get; set; }
+        private XmlDocument Xml => BuildConfigXml.Xml;
         private XmlElement BuildTypeElement { get; set; }
         private XmlElement NameElement { get; set; }
         private XmlElement SettingsElement { get; set; }
@@ -14,9 +17,13 @@ namespace TeamCityApi.Tests.Helpers
         private XmlElement ArtifactDependenciesElement { get; set; }
         private XmlElement DependenciesElement { get; set; }
 
-        public BuildConfigXmlGenerator()
+        public BuildConfigXmlGenerator(IBuildConfigXmlClient buildConfigXmlClient = null)
         {
-            Xml = new XmlDocument();
+            _buildConfigXmlClient = buildConfigXmlClient;
+            BuildConfigXml = new BuildConfigXml(_buildConfigXmlClient)
+            {
+                Xml = new XmlDocument()
+            };
 
             BuildTypeElement = (XmlElement)Xml.AppendChild(Xml.CreateElement("build-type"));
             BuildTypeElement.SetAttribute("uuid", Guid.NewGuid().ToString());
@@ -53,14 +60,21 @@ namespace TeamCityApi.Tests.Helpers
         }
 
 
+        public BuildConfigXmlGenerator WithSnapshotDependency(CreateSnapshotDependency dependency)
+        {
+            BuildConfigXml.CreateSnapshotDependency(dependency);
+            return this;
+        }
+
+        public BuildConfigXmlGenerator WithArtifactDependency(CreateArtifactDependency artifactDependency)
+        {
+            BuildConfigXml.CreateArtifactDependency(artifactDependency);
+            return this;
+        }
 
         public IBuildConfigXml Create()
         {
-            var buildConfigXml = new BuildConfigXml(null);
-            buildConfigXml.Xml = Xml;
-            return buildConfigXml;
+            return BuildConfigXml;
         }
-
-
     }
 }

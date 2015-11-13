@@ -40,7 +40,7 @@ namespace TeamCityApi.UseCases
 
             Log.InfoFormat("==== Clone {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
             if (!simulate)
-                CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
+                await CopyBuildConfigurationFromBuild(sourceBuild, newNameSuffix, newBranchName);
         }
 
         private async Task CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)
