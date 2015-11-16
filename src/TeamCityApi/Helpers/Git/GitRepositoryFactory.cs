@@ -18,24 +18,41 @@ namespace TeamCityApi.Helpers.Git
         private static readonly ILog Log = LogProvider.GetLogger(typeof(GitRepositoryFactory));
 
         private readonly List<Credential> _credentials;
-        public string SSHKeyFolder { get; set; }
+        public string SshKeyFolder { get; set; }
 
         public GitRepositoryFactory(List<Credential> credentials)
         {
             _credentials = credentials;
-            SSHKeyFolder = SshKeyHelper.GetSSHKeyFolder();
+            SshKeyFolder = SshKeyHelper.GetSSHKeyFolder();
         }
 
-
         public IGitRepository Clone(VcsCommit commitInfo)
+        {
+            return Clone(commitInfo.AuthenticationType, commitInfo.RepositoryLocation);
+        }
+
+        public IGitRepository Clone(GitAuthenticationType authenticationType, string repositoryLocation)
         {
             string tempFolderPath = Path.GetTempPath();
             string guidTempPath = Guid.NewGuid().ToString().Replace("-", "");
             string temporaryClonePath = Path.Combine(tempFolderPath, guidTempPath);
 
-            Log.Info(string.Format("Clone Repository: {0} into {1}",commitInfo,temporaryClonePath));
+            Log.Info($"Clone Repository: {repositoryLocation} into {temporaryClonePath}");
 
-            GitRepository repository = new GitRepository(commitInfo, temporaryClonePath,SSHKeyFolder,_credentials);
+            GitRepository repository;
+
+            switch (authenticationType)
+            {
+                case GitAuthenticationType.Ssh:
+                    repository = new GitRepositorySsh(repositoryLocation, temporaryClonePath, SshKeyFolder);
+                    break;
+                case GitAuthenticationType.Http:
+                    repository = new GitRepositoryHttp(repositoryLocation, temporaryClonePath, SshKeyFolder, _credentials);
+                    break;
+                default:
+                    throw new Exception($"Non supported authentication type {authenticationType}");
+            }
+
             if (repository.Clone())
             {
                 Log.Info("Repository successfully cloned.");

@@ -11,7 +11,7 @@ namespace TeamCityApi.Domain
     public class VcsCommit
     {
         public string CommitSha { get; set; }
-        public string RespositoryLocation { get; set; }
+        public string RepositoryLocation { get; set; }
         public string BranchName { get; set; }
         public GitAuthenticationType AuthenticationType { get; set; }
         public string VcsRootId { get; set; }
@@ -25,7 +25,7 @@ namespace TeamCityApi.Domain
             Property property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "url");
             if (property != null)
             {
-                RespositoryLocation = property.Value;
+                RepositoryLocation = property.Value;
             }
 
             property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "authMethod");
