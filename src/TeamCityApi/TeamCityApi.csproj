@@ -56,7 +56,6 @@
     <Compile Include="Domain\BuildWrapper.cs" />
     <Compile Include="Domain\Change.cs" />
     <Compile Include="Domain\ChangeSummary.cs" />
-    <Compile Include="Domain\UpdateArtifactDependency.cs" />
     <Compile Include="Domain\CreateArtifactDependency.cs" />
     <Compile Include="Domain\CreateSnapshotDependency.cs" />
     <Compile Include="Domain\Dependency.cs" />

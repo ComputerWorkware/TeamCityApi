@@ -1,4 +1,6 @@
-﻿using System.Xml;
+﻿using System;
+using System.Collections.Generic;
+using System.Xml;
 using NSubstitute;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
@@ -137,27 +139,63 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_update_artifact_dependency(
-            string buildConfigId,
+            string dependencyBuildConfigId,
             CreateArtifactDependency before,
-            UpdateArtifactDependency after)
+            string newRevisionName,
+            string newRevisionValue)
         {
-            before.DependencyBuildConfigId = buildConfigId;
-            after.DependencyBuildConfigId = buildConfigId;
+            before.DependencyBuildConfigId = dependencyBuildConfigId;
 
             var buildConfigXml = new BuildConfigXmlGenerator()
                 .WithArtifactDependency(before)
                 .Create();
             
-            buildConfigXml.UpdateArtifactDependency(after);
+            buildConfigXml.UpdateArtifactDependency(dependencyBuildConfigId, newRevisionName, newRevisionValue);
 
             var dependencyElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/artifact-dependencies/dependency[@sourceBuildTypeId='" + dependencyBuildConfigId + "']");
             var revisionRuleElement = (XmlElement)dependencyElement?.SelectSingleNode("revisionRule");
-            var artifactElement = (XmlElement)dependencyElement?.SelectSingleNode("artifact");
 
-            Assert.Equal(after.CleanDestinationDirectory.ToString().ToLower(), dependencyElement?.Attributes["cleanDestination"].Value);
-            Assert.Equal(after.RevisionName, revisionRuleElement?.Attributes["name"].Value);
-            Assert.Equal(after.RevisionValue, revisionRuleElement?.Attributes["revision"].Value);
-            Assert.Equal(after.PathRules, artifactElement?.Attributes["sourcePath"].Value);
+            Assert.Equal(newRevisionName, revisionRuleElement?.Attributes["name"].Value);
+            Assert.Equal(newRevisionValue, revisionRuleElement?.Attributes["revision"].Value);
+        }
+
+        [Theory]
+        [AutoNSubstituteData]
+        public void Should_freeze_all_artifact_dependencies(
+            string dependencyBuildConfigId,
+            CreateArtifactDependency artifactDependency,
+            Build asOfBuild)
+        {
+            artifactDependency.DependencyBuildConfigId = dependencyBuildConfigId;
+            asOfBuild.ArtifactDependencies[0].BuildTypeId = dependencyBuildConfigId;
+
+            var buildConfigXml = new BuildConfigXmlGenerator()
+                .WithArtifactDependency(artifactDependency)
+                .Create();
+
+            buildConfigXml.FreezeAllArtifactDependencies(asOfBuild);
+
+            var dependencyElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/artifact-dependencies/dependency[@sourceBuildTypeId='" + dependencyBuildConfigId + "']");
+            var revisionRuleElement = (XmlElement)dependencyElement?.SelectSingleNode("revisionRule");
+
+            Assert.Equal("buildNumber", revisionRuleElement?.Attributes["name"].Value);
+            Assert.Equal(asOfBuild.ArtifactDependencies[0].Number, revisionRuleElement?.Attributes["revision"].Value);
+        }
+
+        [Theory]
+        [AutoNSubstituteData]
+        public void Should_freeze_parameters(
+            List<Property> sourceParameters)
+        {
+            var buildConfigXml = new BuildConfigXmlGenerator()
+                .WithParameter(sourceParameters[0].Name, Arg.Any<string>())
+                .Create();
+
+            buildConfigXml.FreezeParameters(sourceParameters);
+
+            var paramElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/parameters/param[@name='" + sourceParameters[0].Name + "']");
+            
+            Assert.Equal(sourceParameters[0].Value, paramElement.Attributes["value"].Value);
         }
     }
 }

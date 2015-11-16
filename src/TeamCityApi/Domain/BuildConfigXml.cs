@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using TeamCityApi.Clients;
 using TeamCityApi.Helpers;
@@ -17,8 +18,8 @@ namespace TeamCityApi.Domain
         void DeleteSnapshotDependency(string dependencyBuildConfigId);
         void DeleteAllSnapshotDependencies();
         void FreezeAllArtifactDependencies(Build asOfbuild);
-        void UpdateArtifactDependency(UpdateArtifactDependency updates);
-        void FreezeParameters(List<Property> sourceParameters);
+        void UpdateArtifactDependency(string sourceBuildTypeId, string revisionName, string revisionValue);
+        void FreezeParameters(IEnumerable<Property> sourceParameters);
     }
 
     public class BuildConfigXml : IBuildConfigXml
@@ -29,7 +30,6 @@ namespace TeamCityApi.Domain
         public XmlDocument Xml { get; set; }
 
         private XmlElement BuildTypeElement => (XmlElement)Xml.SelectSingleNode("/build-type");
-        private XmlElement NameElement => (XmlElement)Xml.SelectSingleNode("/build-type/name");
         private XmlElement ParametersElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/parameters");
         private XmlElement DependenciesElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/dependencies");
         private XmlElement ArtifactDependenciesElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/artifact-dependencies");
@@ -128,24 +128,42 @@ namespace TeamCityApi.Domain
 
         public void FreezeAllArtifactDependencies(Build asOfbuild)
         {
-            throw new NotImplementedException();
+            var dependencyElements = ArtifactDependenciesElement.SelectNodes("dependency");
+
+            if (asOfbuild.ArtifactDependencies == null)
+            {
+                throw new Exception(String.Format("Artifact dependencies for Build #{0} (id: {1}) unexpectedly empty", asOfbuild.Number, asOfbuild.Id));
+            }
+
+            foreach (XmlElement dependencyElement in dependencyElements)
+            {
+                var sourceBuildTypeId = dependencyElement.Attributes["sourceBuildTypeId"].Value;
+                var buildNumber = asOfbuild.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == sourceBuildTypeId).Number;
+                UpdateArtifactDependency(sourceBuildTypeId, "buildNumber", buildNumber);
+            }
         }
 
-        public void UpdateArtifactDependency(UpdateArtifactDependency updates)
+        public void UpdateArtifactDependency(string sourceBuildTypeId, string revisionName, string revisionValue)
         {
-            var dependencyElement = ArtifactDependenciesElement.SelectSingleNode("dependency[@sourceBuildTypeId='" + updates.DependencyBuildConfigId + "']");
+            var dependencyElement = ArtifactDependenciesElement.SelectSingleNode("dependency[@sourceBuildTypeId='" + sourceBuildTypeId + "']");
             var revisionRuleElement = dependencyElement.SelectSingleNode("revisionRule");
-            var artifactElement = dependencyElement.SelectSingleNode("artifact");
 
-            dependencyElement.Attributes["cleanDestination"].Value = updates.CleanDestinationDirectory.ToString().ToLower();
-            revisionRuleElement.Attributes["name"].Value = updates.RevisionName;
-            revisionRuleElement.Attributes["revision"].Value = updates.RevisionValue;
-            artifactElement.Attributes["sourcePath"].Value = updates.PathRules;
+            revisionRuleElement.Attributes["name"].Value = revisionName;
+            revisionRuleElement.Attributes["revision"].Value = revisionValue;
         }
 
-        public void FreezeParameters(List<Property> sourceParameters)
+        public void FreezeParameters(IEnumerable<Property> sourceParameters)
         {
-            throw new NotImplementedException();
+            var paramElements = ParametersElement.SelectNodes("param");
+
+            foreach (XmlElement targetP in paramElements)
+            {
+                SetParameterValue(
+                    targetP.Attributes["name"].Value,
+                    sourceParameters.Single(sourceP => sourceP.Name == targetP.Attributes["name"].Value).Value
+                );
+
+            }
         }
     }
 }

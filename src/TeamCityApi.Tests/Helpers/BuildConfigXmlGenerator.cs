@@ -55,6 +55,10 @@ namespace TeamCityApi.Tests.Helpers
 
         public BuildConfigXmlGenerator WithParameter(string name, string value)
         {
+            var paramElement = (XmlElement)ParametersElement.AppendChild(Xml.CreateElement("param"));
+
+            paramElement.SetAttribute("name", name);
+            paramElement.SetAttribute("value", value);
 
             return this;
         }
