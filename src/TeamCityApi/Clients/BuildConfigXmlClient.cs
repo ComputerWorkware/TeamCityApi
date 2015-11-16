@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Xml;
 using TeamCityApi.Domain;
-using TeamCityApi.Helpers;
-using TeamCityApi.Locators;
+using TeamCityApi.Helpers.Git;
 
 namespace TeamCityApi.Clients
 {

@@ -3,8 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
-using TeamCityApi.Helpers;
-using TeamCityApi.Locators;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.Logging;
 
 namespace TeamCityApi.UseCases

@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Channels;
 using LibGit2Sharp;
 using TeamCityApi.Domain;
 using TeamCityApi.Logging;
 
-namespace TeamCityApi.UseCases
+namespace TeamCityApi.Helpers.Git
 {
     public interface IGitRepository
     {

@@ -10,7 +10,7 @@ using Funq;
 using NLog;
 using TeamCityApi;
 using TeamCityApi.Clients;
-using TeamCityApi.Helpers;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.UseCases;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;

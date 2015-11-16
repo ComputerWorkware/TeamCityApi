@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Logging;
-using TeamCityApi.UseCases;
 
-namespace TeamCityApi.Helpers
+namespace TeamCityApi.Helpers.Git
 {
     public interface IVcsRootHelper
     {

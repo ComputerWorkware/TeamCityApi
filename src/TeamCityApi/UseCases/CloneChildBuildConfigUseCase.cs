@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.Logging;
 

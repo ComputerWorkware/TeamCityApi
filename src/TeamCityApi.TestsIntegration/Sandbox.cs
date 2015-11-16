@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
-using TeamCityApi.Helpers;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.UseCases;
 using Xunit;

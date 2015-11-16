@@ -1,15 +1,10 @@
-﻿using System.Threading.Tasks;
-using NSubstitute;
+﻿using NSubstitute;
 using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Xunit;
 using TeamCityApi.Clients;
-using TeamCityApi.Domain;
-using TeamCityApi.Helpers;
-using TeamCityApi.Locators;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.Tests.Helpers;
 using TeamCityApi.Tests.Scenarios;
 using TeamCityApi.UseCases;
-using Xunit;
 using Xunit.Extensions;
 
 namespace TeamCityApi.Tests.UseCases

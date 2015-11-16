@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using TeamCityApi.Domain;
-using TeamCityApi.Helpers;
 using TeamCityApi.Logging;
 
-namespace TeamCityApi.UseCases
+namespace TeamCityApi.Helpers.Git
 {
     public class Credential
     {
