@@ -20,10 +20,9 @@ namespace TeamCityApi.Tests.Helpers
         public BuildConfigXmlGenerator(IBuildConfigXmlClient buildConfigXmlClient = null)
         {
             _buildConfigXmlClient = buildConfigXmlClient;
-            BuildConfigXml = new BuildConfigXml(_buildConfigXmlClient)
-            {
-                Xml = new XmlDocument()
-            };
+            BuildConfigXml = new BuildConfigXml(_buildConfigXmlClient, Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+
+            Xml.AppendChild(Xml.CreateXmlDeclaration("1.0", "UTF-8", null));
 
             BuildTypeElement = (XmlElement)Xml.AppendChild(Xml.CreateElement("build-type"));
             BuildTypeElement.SetAttribute("uuid", Guid.NewGuid().ToString());
@@ -38,18 +37,11 @@ namespace TeamCityApi.Tests.Helpers
             ArtifactDependenciesElement = (XmlElement)SettingsElement.AppendChild(Xml.CreateElement("artifact-dependencies"));
 
             DependenciesElement = (XmlElement)SettingsElement.AppendChild(Xml.CreateElement("dependencies"));
-            
         }
 
         public BuildConfigXmlGenerator WithName(string name)
         {
             NameElement.InnerText = name;
-            return this;
-        }
-
-        public BuildConfigXmlGenerator WithUuid(string uuid)
-        {
-            BuildTypeElement.SetAttribute("uuid", uuid);
             return this;
         }
 
@@ -62,7 +54,6 @@ namespace TeamCityApi.Tests.Helpers
 
             return this;
         }
-
 
         public BuildConfigXmlGenerator WithSnapshotDependency(CreateSnapshotDependency dependency)
         {

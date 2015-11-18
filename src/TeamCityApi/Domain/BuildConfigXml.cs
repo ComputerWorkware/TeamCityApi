@@ -11,6 +11,8 @@ namespace TeamCityApi.Domain
     public interface IBuildConfigXml
     {
         XmlDocument Xml { get; set; }
+        string BuildConfigId { get; set; }
+        string ProjectId { get; set; }
         IBuildConfigXml CopyBuildConfiguration(string newBuildTypeId, string newConfigurationName);
         void SetParameterValue(string name, string value);
         void CreateSnapshotDependency(CreateSnapshotDependency dependency);
@@ -28,30 +30,36 @@ namespace TeamCityApi.Domain
 
         private readonly IBuildConfigXmlClient _buildConfigXmlClient;
         public XmlDocument Xml { get; set; }
-
+        public string BuildConfigId { get; set; }
+        public string ProjectId { get; set; }
         private XmlElement BuildTypeElement => (XmlElement)Xml.SelectSingleNode("/build-type");
         private XmlElement ParametersElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/parameters");
         private XmlElement DependenciesElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/dependencies");
         private XmlElement ArtifactDependenciesElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/artifact-dependencies");
 
-        private string BuildConfigId => BuildTypeElement.Attributes["uuid"].Value;
-
-        public BuildConfigXml(IBuildConfigXmlClient buildConfigXmlClient)
+        public BuildConfigXml(IBuildConfigXmlClient buildConfigXmlClient, string projectId, string buildConfigId)
         {
             _buildConfigXmlClient = buildConfigXmlClient;
 
             Xml = new XmlDocument();
+
+            BuildConfigId = buildConfigId;
+            ProjectId = projectId;
         }
 
         public IBuildConfigXml CopyBuildConfiguration(string newBuildTypeId, string newConfigurationName)
         {
-            var clonedBuildConfigXml = new BuildConfigXml(_buildConfigXmlClient);
-            
-            var node = clonedBuildConfigXml.Xml.ImportNode(Xml.FirstChild, true);
-            clonedBuildConfigXml.Xml.AppendChild(node);
+            Log.Trace($"XML CopyBuildConfiguration from {BuildConfigId} to {newBuildTypeId}");
+
+            var clonedBuildConfigXml = new BuildConfigXml(_buildConfigXmlClient, ProjectId, newBuildTypeId);
+
+            clonedBuildConfigXml.Xml.AppendChild(clonedBuildConfigXml.Xml.CreateXmlDeclaration("1.0", "UTF-8", null));
+
+            var originalBuildTypeNode = clonedBuildConfigXml.Xml.ImportNode((XmlElement)Xml.SelectSingleNode("/build-type"), true);
+            clonedBuildConfigXml.Xml.AppendChild(originalBuildTypeNode);
 
             var newBuildTypeElement = (XmlElement)clonedBuildConfigXml.Xml.SelectSingleNode("/build-type");
-            newBuildTypeElement.SetAttribute("uuid", newBuildTypeId);
+            newBuildTypeElement.SetAttribute("uuid", Guid.NewGuid().ToString());
 
             var newNameElement = (XmlElement)clonedBuildConfigXml.Xml.SelectSingleNode("/build-type/name");
             newNameElement.InnerText = newConfigurationName;
@@ -63,6 +71,7 @@ namespace TeamCityApi.Domain
 
         public void SetParameterValue(string name, string value)
         {
+            Log.Trace($"XML SetParameterValue for: {BuildConfigId}, {name}: {value}");
             var paramElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings/parameters/param[@name='" + name + "']");
 
             if (paramElement == null)
@@ -79,9 +88,11 @@ namespace TeamCityApi.Domain
 
         public void CreateSnapshotDependency(CreateSnapshotDependency dependency)
         {
+            Log.Debug($"XML CreateSnapshotDependency for: {dependency.TargetBuildConfigId}, to: {dependency.DependencyBuildConfigId}");
+
             var dependOnElement = (XmlElement)DependenciesElement.AppendChild(Xml.CreateElement("depend-on"));
             dependOnElement.SetAttribute("sourceBuildTypeId", dependency.DependencyBuildConfigId);
-            
+
             var optionsElement = (XmlElement)dependOnElement.AppendChild(Xml.CreateElement("options"));
 
             var option1Element = (XmlElement)optionsElement.AppendChild(Xml.CreateElement("option"));
@@ -96,6 +107,8 @@ namespace TeamCityApi.Domain
 
         public void CreateArtifactDependency(CreateArtifactDependency dependency)
         {
+            Log.Debug($"XML CreateArtifactDependency for: {BuildConfigId}, to: {dependency.DependencyBuildConfigId}");
+
             var dependencyElement = (XmlElement)ArtifactDependenciesElement.AppendChild(Xml.CreateElement("dependency"));
             dependencyElement.SetAttribute("sourceBuildTypeId", dependency.DependencyBuildConfigId);
             dependencyElement.SetAttribute("cleanDestination", dependency.CleanDestinationDirectory.ToString().ToLower());
@@ -110,29 +123,34 @@ namespace TeamCityApi.Domain
 
         public void DeleteSnapshotDependency(string dependencyBuildConfigId)
         {
+            Log.Trace($"XML DeleteSnapshotDependency for: {BuildConfigId}, to: {dependencyBuildConfigId}");
+
             var dependOnElement = Xml.SelectSingleNode("/build-type/settings/dependencies/depend-on[@sourceBuildTypeId='" + dependencyBuildConfigId + "']");
             if (dependOnElement == null)
             {
                 Log.WarnFormat("Attempted to delete {0} snapshot dependency from {1}, which doesn't exist", dependencyBuildConfigId, BuildConfigId);
             }
             else
-            {   
+            {
                 DependenciesElement.RemoveChild(dependOnElement);
-            } 
+            }
         }
 
         public void DeleteAllSnapshotDependencies()
         {
+            Log.Debug($"XML DeleteAllSnapshotDependencies for: {BuildConfigId}");
             DependenciesElement.RemoveAll();
         }
 
         public void FreezeAllArtifactDependencies(Build asOfbuild)
         {
+            Log.Debug($"XML FreezeAllArtifactDependencies for {BuildConfigId}, asOfbuild: {asOfbuild.Id}");
+
             var dependencyElements = ArtifactDependenciesElement.SelectNodes("dependency");
 
             if (asOfbuild.ArtifactDependencies == null)
             {
-                throw new Exception(String.Format("Artifact dependencies for Build #{0} (id: {1}) unexpectedly empty", asOfbuild.Number, asOfbuild.Id));
+                throw new Exception($"Artifact dependencies for Build #{asOfbuild.Number} (id: {asOfbuild.Id}) unexpectedly empty");
             }
 
             foreach (XmlElement dependencyElement in dependencyElements)
@@ -145,6 +163,8 @@ namespace TeamCityApi.Domain
 
         public void UpdateArtifactDependency(string sourceBuildTypeId, string revisionName, string revisionValue)
         {
+            Log.Trace($"XML BuildConfig.UpdateArtifactDependency for: {BuildConfigId}, sourceBuildTypeId: {sourceBuildTypeId}, revisionName: {revisionName}, revisionValue: {revisionValue}");
+
             var dependencyElement = ArtifactDependenciesElement.SelectSingleNode("dependency[@sourceBuildTypeId='" + sourceBuildTypeId + "']");
             var revisionRuleElement = dependencyElement.SelectSingleNode("revisionRule");
 
@@ -154,6 +174,8 @@ namespace TeamCityApi.Domain
 
         public void FreezeParameters(IEnumerable<Property> sourceParameters)
         {
+            Log.Trace($"XML FreezeParameters for {BuildConfigId}, to: {sourceParameters}");
+
             var paramElements = ParametersElement.SelectNodes("param");
 
             foreach (XmlElement targetP in paramElements)

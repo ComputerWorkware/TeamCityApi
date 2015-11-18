@@ -22,13 +22,13 @@ namespace TeamCityApi.Tests.UseCases
             IVcsRootHelper vcsRootHelper)
         {
             var scenario = new SingleBuildScenario(fixture, client, sourceBuildId);
-            
+
             var sut = new CloneRootBuildConfigUseCase(client, buildConfigXmlClient, vcsRootHelper);
 
             sut.Execute(sourceBuildId, newNameSuffix, false).Wait();
 
             buildConfigXmlClient.Received(1)
-                .ReadAsOf(scenario.BuildConfig.Id, scenario.Build.StartDate);
+                .ReadAsOf(scenario.BuildConfig.ProjectId, scenario.BuildConfig.Id, scenario.Build.StartDate);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace TeamCityApi.Helpers.Git
         {
         }
 
-        public override bool Push(string branchName)
+        public override void Push(string branchName)
         {
             Log.Debug($"Pushing Branch {branchName} using SSH Authentication");
 
@@ -30,14 +30,12 @@ namespace TeamCityApi.Helpers.Git
 
             if (process.ExitCode == 0)
             {
-                Log.Info($"Branch {branchName} successfully pushed to remote.");
+                Log.Debug($"Branch {branchName} successfully pushed to remote.");
             }
             else
             {
-                Log.Error($"Unable to push branch: {branchName} , Exit code: {process.ExitCode}");
+                throw new Exception($"Unable to push branch: {branchName} , Exit code: {process.ExitCode}");
             }
-
-            return (process.ExitCode == 0);
         }
 
         public override bool Clone()

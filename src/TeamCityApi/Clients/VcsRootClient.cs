@@ -3,7 +3,12 @@ using TeamCityApi.Domain;
 
 namespace TeamCityApi.Clients
 {
-    public class VcsRootClient
+    public interface IVcsRootClient
+    {
+        Task<VcsRoot> ById(string projectId);
+    }
+
+    public class VcsRootClient : IVcsRootClient
     {
         private readonly IHttpClientWrapper _http;
         public VcsRootClient(IHttpClientWrapper http)

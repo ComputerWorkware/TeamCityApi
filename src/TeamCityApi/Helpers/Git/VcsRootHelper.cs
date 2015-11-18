@@ -17,21 +17,19 @@ namespace TeamCityApi.Helpers.Git
     {
         private static readonly ILog Log = LogProvider.GetLogger(typeof(VcsRootHelper));
 
-        private readonly BuildClient _buildClient;
-        private readonly VcsRootClient _vcsRootClient;
-        private readonly GitRepositoryFactory _gitRepositoryFactory;
+        private readonly ITeamCityClient _client;
+        private readonly IGitRepositoryFactory _gitRepositoryFactory;
 
-        public VcsRootHelper(BuildClient buildClient, VcsRootClient vcsRootClient, GitRepositoryFactory gitRepositoryFactory)
+        public VcsRootHelper(ITeamCityClient client, IGitRepositoryFactory gitRepositoryFactory)
         {
-            _buildClient = buildClient;
-            _vcsRootClient = vcsRootClient;
+            _client = client;
             _gitRepositoryFactory = gitRepositoryFactory;
         }
 
         public async Task<VcsCommit> GetCommitInformationByBuildId(long buildId)
         {
             Log.Info(string.Format("Get Commit Information for Build: {0}",buildId));
-            Build build = await _buildClient.ById(buildId);
+            Build build = await _client.Builds.ById(buildId);
 
             Log.Debug("Build Loaded from TeamCity");
 
@@ -42,7 +40,7 @@ namespace TeamCityApi.Helpers.Git
             VcsRootInstance vcsRootInstance = build.Revisions.First().VcsRootInstance;
 
             Log.Debug(string.Format("Get VCSRoot by Id: {0}", vcsRootInstance.Id));
-            VcsRoot vcsRoot = await _vcsRootClient.ById(vcsRootInstance.Id.ToString());
+            VcsRoot vcsRoot = await _client.VcsRoots.ById(vcsRootInstance.Id.ToString());
 
             Log.Debug(string.Format("VCSRoot: {0}",vcsRoot));
             VcsCommit commit = new VcsCommit(vcsRoot, commitSha);
@@ -61,10 +59,7 @@ namespace TeamCityApi.Helpers.Git
 
             if (gitRepository.AddBranch(branchName, commit.CommitSha))
             {
-                if (!gitRepository.Push(branchName))
-                {
-                    throw new Exception(string.Format("Unable to Push branch: {0}",branchName));
-                }
+                gitRepository.Push(branchName);
             }
 
             gitRepository.DeleteFolder();

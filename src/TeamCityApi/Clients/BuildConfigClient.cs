@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TeamCityApi.Domain;
@@ -29,10 +30,8 @@ namespace TeamCityApi.Clients
 
         Task<BuildConfig> CopyBuildConfiguration(string destinationProjectId, string newConfigurationName,
             string sourceBuildTypeId, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true);
-
         Task FreezeParameters(Action<BuildTypeLocator> buildTypeLocatorConfig, List<Property> targetParameters, List<Property> sourceParameters);
-
-        Task<string> GenerateUniqueBuildConfigId(string name);
+        Task<string> GenerateUniqueBuildConfigId(string projectId, string buildConfigName);
     }
 
     public class BuildConfigClient : IBuildConfigClient
@@ -275,12 +274,27 @@ namespace TeamCityApi.Clients
                         sourceParameters.Single(sourceP => sourceP.Name == targetP.Name).Value)));
         }
 
-        public Task<string> GenerateUniqueBuildConfigId(string name)
+        public async Task<string> GenerateUniqueBuildConfigId(string projectId, string buildConfigName)
         {
-            //todo: strip non alpha numeric chars
-            //todo: check if teamcity already has made up id
-            //todo: if yes append counter until will find unique
-            throw new NotImplementedException();
+            var rgx = new Regex("[^a-zA-Z0-9_]");
+            var id = projectId + "_" + rgx.Replace(buildConfigName, "");
+
+            for (int i = 0; i < 100; i++)
+            {
+                var probeBuildConfigId = i == 0 ? id : id + i;
+                try
+                {
+                    await GetByConfigurationId(probeBuildConfigId);
+                    Log.Debug($"Build Configuration Id {probeBuildConfigId} is already taken.");
+                }
+                catch (ResourceNotFoundException)
+                {
+                    Log.Debug($"Build Configuration Id {probeBuildConfigId} is available.");
+                    return id;
+                }
+            }
+
+            throw new Exception("Could not generate unique Build Configuration Id");
         }
     }
 }

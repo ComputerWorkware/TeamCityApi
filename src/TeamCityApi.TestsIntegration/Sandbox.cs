@@ -261,11 +261,14 @@ namespace TeamCityApi.TestsIntegration
             [Fact]
             public void Should_clone_root_build_config()
             {
-                IVcsRootHelper rootHelper = null;  // NULL object and method will fail unless created or substituted
-                IBuildConfigXmlClient buildConfigXmlClient = null;
-                var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(CreateTeamCityClient(), buildConfigXmlClient, rootHelper);
+                var teamCityClient = CreateTeamCityClient();
+                var gitRepositoryFactory = CreateGitRepositoryFactory();
+                var buildConfigXmlClient = new BuildConfigXmlClient(teamCityClient, gitRepositoryFactory);
+                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory);
 
-                cloneRootBuildConfigUseCase.Execute(268, "Release Oct 13", false).Wait();
+                var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(teamCityClient, buildConfigXmlClient, vcsRootHelper);
+
+                cloneRootBuildConfigUseCase.Execute(384, "ViaGitSandbox", false).Wait();
             }
         }
 
@@ -343,6 +346,24 @@ namespace TeamCityApi.TestsIntegration
             var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
             var client = new TeamCityClient(http);
             return client;
+        }
+
+        private static List<Credential> CreateGitCredentials()
+        {
+            return new List<Credential>
+            {
+                new Credential
+                {
+                    HostName = "*",
+                    UserName = "ciserver",
+                    Password = "ciserver"
+                }
+            };
+        }
+
+        private static IGitRepositoryFactory CreateGitRepositoryFactory()
+        {
+            return new GitRepositoryFactory(CreateGitCredentials());
         }
     }
 }

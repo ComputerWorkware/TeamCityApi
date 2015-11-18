@@ -16,11 +16,15 @@ namespace TeamCityApi.Tests.Domain
         [AutoNSubstituteData]
         public void Should_copy_xml_config(string newBuildTypeId, string newConfigurationName, IBuildConfigXmlClient buildConfigXmlClient)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient).Create();
+            var original = new BuildConfigXmlGenerator(buildConfigXmlClient).Create();
 
-            var clone = buildConfigXml.CopyBuildConfiguration(newBuildTypeId, newConfigurationName);
+            var clone = original.CopyBuildConfiguration(newBuildTypeId, newConfigurationName);
+            var originalUuid = original.Xml.SelectSingleNode("/build-type").Attributes["uuid"].Value;
+            var cloneUuid = clone.Xml.SelectSingleNode("/build-type").Attributes["uuid"].Value;
 
-            Assert.Equal(newBuildTypeId, clone.Xml.SelectSingleNode("/build-type").Attributes["uuid"].Value);
+            Assert.NotEqual(originalUuid, cloneUuid);
+            Assert.Equal(newBuildTypeId, clone.BuildConfigId);
+            Assert.Equal(original.ProjectId, clone.ProjectId);
             Assert.Equal(newConfigurationName, clone.Xml.SelectSingleNode("/build-type/name").InnerText);
         }
 
@@ -73,7 +77,7 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_create_artifact_dependency(
-            string dependencyBuildConfigId, 
+            string dependencyBuildConfigId,
             bool cleanDestination,
             string revisionName,
             string revisionValue,
@@ -110,7 +114,7 @@ namespace TeamCityApi.Tests.Domain
             var buildConfigXml = new BuildConfigXmlGenerator()
                 .WithSnapshotDependency(new CreateSnapshotDependency(Arg.Any<string>(), dependencyBuildConfigId))
                 .Create();
-            
+
             buildConfigXml.DeleteSnapshotDependency(dependencyBuildConfigId);
 
             var dependOnElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/dependencies/depend-on[@sourceBuildTypeId='" + dependencyBuildConfigId + "']");
@@ -149,7 +153,7 @@ namespace TeamCityApi.Tests.Domain
             var buildConfigXml = new BuildConfigXmlGenerator()
                 .WithArtifactDependency(before)
                 .Create();
-            
+
             buildConfigXml.UpdateArtifactDependency(dependencyBuildConfigId, newRevisionName, newRevisionValue);
 
             var dependencyElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/artifact-dependencies/dependency[@sourceBuildTypeId='" + dependencyBuildConfigId + "']");
@@ -194,7 +198,7 @@ namespace TeamCityApi.Tests.Domain
             buildConfigXml.FreezeParameters(sourceParameters);
 
             var paramElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/parameters/param[@name='" + sourceParameters[0].Name + "']");
-            
+
             Assert.Equal(sourceParameters[0].Value, paramElement.Attributes["value"].Value);
         }
     }

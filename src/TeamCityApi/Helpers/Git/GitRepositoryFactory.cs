@@ -13,12 +13,18 @@ namespace TeamCityApi.Helpers.Git
         public string HostName { get; set; }
     }
 
-    public class GitRepositoryFactory
+    public interface IGitRepositoryFactory
+    {
+        IGitRepository Clone(VcsCommit commitInfo);
+        IGitRepository Clone(GitAuthenticationType authenticationType, string repositoryLocation);
+    }
+
+    public class GitRepositoryFactory : IGitRepositoryFactory
     {
         private static readonly ILog Log = LogProvider.GetLogger(typeof(GitRepositoryFactory));
 
         private readonly List<Credential> _credentials;
-        public string SshKeyFolder { get; set; }
+        private string SshKeyFolder { get; set; }
 
         public GitRepositoryFactory(List<Credential> credentials)
         {

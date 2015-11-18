@@ -45,11 +45,11 @@ namespace TeamCityApi.UseCases
         private async Task CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)
         {
             var newName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix);
-            var newBuildConfigId = await _client.BuildConfigs.GenerateUniqueBuildConfigId(newName);
+            var newBuildConfigId = await _client.BuildConfigs.GenerateUniqueBuildConfigId(sourceBuild.BuildConfig.ProjectId, newName);
 
-            var buildConfigXml = _buildConfigXmlClient.ReadAsOf(sourceBuild.BuildConfig.Id, sourceBuild.StartDate);
+            var buildConfigXml = _buildConfigXmlClient.ReadAsOf(sourceBuild.BuildConfig.ProjectId, sourceBuild.BuildConfig.Id, sourceBuild.StartDate);
             var clonedBuildConfigXml = buildConfigXml.CopyBuildConfiguration(newBuildConfigId, newName);
-            
+
             clonedBuildConfigXml.DeleteAllSnapshotDependencies();
             clonedBuildConfigXml.FreezeAllArtifactDependencies(sourceBuild);
             clonedBuildConfigXml.FreezeParameters(sourceBuild.Properties.Property);

@@ -17,7 +17,7 @@ namespace TeamCityApi.Helpers.Git
             _credentials = credentials;
         }
 
-        public override bool Push(string branchName)
+        public override void Push(string branchName)
         {
             Log.Debug("Pushing Branch {branchName} using HTTP Authentication");
             try
@@ -29,12 +29,10 @@ namespace TeamCityApi.Helpers.Git
 
                 using (var repo = new Repository(TempClonePath))
                 {
-                    Branch branch =
-                        repo.Branches.FirstOrDefault(b => b.Name == branchName);
+                    Branch branch = repo.Branches.FirstOrDefault(b => b.Name == branchName);
                     if (branch == null)
                     {
-                        Log.Error($"Local Branch: {branchName} cannot be found.");
-                        return false;
+                        throw new Exception($"Local Branch: {branchName} cannot be found.");
                     }
                     repo.Network.Push(branch, options);
                 }
@@ -42,11 +40,10 @@ namespace TeamCityApi.Helpers.Git
             catch (Exception exception)
             {
                 Log.ErrorException($"Exception during Push of branch: {branchName}", exception);
-                return false;
+                throw;
             }
 
-            Log.Info($"Branch {branchName} successfully pushed to remote.");
-            return true;
+            Log.Debug($"Branch {branchName} successfully pushed to remote.");
         }
 
         public override bool Clone()

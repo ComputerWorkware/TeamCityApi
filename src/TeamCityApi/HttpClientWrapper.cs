@@ -124,7 +124,7 @@ namespace TeamCityApi
         {
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                throw new Exception("Resource not found: " + requestUri);
+                throw new ResourceNotFoundException("Resource not found: " + requestUri);
             }
 
             response.EnsureSuccessStatusCode();

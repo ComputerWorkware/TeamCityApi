@@ -11,14 +11,17 @@ namespace TeamCityApi.Helpers.Git
 {
     public interface IGitRepository
     {
-        bool Push(string branchName);
+        string TempClonePath { get; }
+        void Push(string branchName);
         bool ArchiveCurrentBranch(string zipFileLocation);
         bool ArchiveTreeIsh(string zipFileLocation,string treeIsh);
-        bool CheckoutBranch(string branchName);
+        Branch CheckoutBranch(string branchName);
+        Branch CheckoutMostRecentCommitBefore(string branchName, DateTime beforeDateTime);
         void DeleteFolder();
         bool CheckBranchExist(string branchName);
         bool AddBranch(string branchName,string commitSha);
         bool Clone();
+        void StageAndCommit(IEnumerable<string> fileToStage, string message);
     }
 
     public abstract class GitRepository : IGitRepository
@@ -26,7 +29,7 @@ namespace TeamCityApi.Helpers.Git
         private static readonly ILog Log = LogProvider.GetLogger(typeof(GitRepository));
         protected readonly string RepositoryLocation;
         protected readonly string HomeFolder;
-        protected string TempClonePath { get; set; }
+        public string TempClonePath { get; set; }
 
         protected GitRepository(string repositoryLocation, string tempClonePath, string homeFolder)
         {
@@ -35,7 +38,7 @@ namespace TeamCityApi.Helpers.Git
             HomeFolder = homeFolder;
         }
 
-        public abstract bool Push(string branchName);
+        public abstract void Push(string branchName);
 
         public bool ArchiveCurrentBranch(string zipFileLocation)
         {
@@ -93,39 +96,74 @@ namespace TeamCityApi.Helpers.Git
 
         }
 
-        public bool CheckoutBranch(string branchName)
+        public Branch CheckoutBranch(string branchName)
         {
             Log.Info($"Checkout Branch: {branchName}");
             using (var repo = new Repository(TempClonePath))
             {
-                List<Branch> branches = repo.Branches.ToList();
-
                 Branch branch = repo.Branches.FirstOrDefault(b => b.Name == branchName && !b.IsRemote);
                 if (branch == null)
                 {
                     Log.Debug($"Local branch {branchName} cannot be found, looking for remote branch.");
                     string originBranch = $"origin/{branchName}";
                     var trackingBranch = repo.Branches.FirstOrDefault(b => b.Name == originBranch && b.IsRemote);
-                    if (trackingBranch != null)
-                    {
-                        Log.Debug($"Remote branch: {originBranch} found ");
-                        branch = repo.CreateBranch(branchName, trackingBranch.Tip);
-                        branch = repo.Branches.Update(branch, b => b.TrackedBranch = trackingBranch.CanonicalName);
-                        repo.Checkout(branch);
-                        return true;
-                    }
-                    else
-                    {
-                        Log.Error($"Remote branch: {originBranch} cannot be found, cannot create branch: {branchName} ");
-                    }
+                    if (trackingBranch == null)
+                        throw new Exception($"Remote branch: {originBranch} cannot be found, cannot create branch: {branchName} ");
+
+                    Log.Debug($"Remote branch: {originBranch} found ");
+                    branch = repo.CreateBranch(branchName, trackingBranch.Tip);
+                    branch = repo.Branches.Update(branch, b => b.TrackedBranch = trackingBranch.CanonicalName);
+                    repo.Checkout(branch);
+                    return branch;
                 }
                 else
                 {
                     repo.Checkout(branch);
+                    return branch;
                 }
             }
-            return true;
         }
+
+        public Branch CheckoutMostRecentCommitBefore(string branchName, DateTime beforeDateTime)
+        {
+            Log.Trace($"Attempting to checkout the most recent commit before: {beforeDateTime}");
+            using (var repo = new Repository(TempClonePath))
+            {
+                var commits = repo.Commits.QueryBy(new CommitFilter { Since = new[] { repo.Branches[branchName] } });
+
+                var commitToCheckout = FindMostRecentCommitBefore(commits, beforeDateTime);
+                if (commitToCheckout == null)
+                {
+                    Log.Warn($"Couldn't find any commits before {beforeDateTime}. Will use the most old commit when version synchronization was enabled instead.");
+                    commitToCheckout = FindVersionSynchronizationEnabledCommit(commits);
+                }
+
+                Log.Trace($"Checking out commit \"{commitToCheckout.Message}\" ({commitToCheckout.Sha}) from {commitToCheckout.Author.When}");
+
+                return repo.Checkout(commitToCheckout);
+            }
+        }
+
+        private Commit FindMostRecentCommitBefore(ICommitLog commits, DateTime beforeDateTime)
+        {
+            var mostRecentCommit = commits
+                .Where(c => c.Author.When < beforeDateTime)
+                .Aggregate((Commit)null, (curMax, c) => (curMax == null || c.Author.When > curMax.Author.When ? c : curMax));
+
+            return mostRecentCommit;
+        }
+
+        private Commit FindVersionSynchronizationEnabledCommit(ICommitLog commits)
+        {
+            var syncEnabledCommitMessage ="TeamCity change in '<Root project>' project: Synchronization with own VCS root is enabled";
+            var syncEnabledCommit = commits.First(c=> c.Message == syncEnabledCommitMessage);
+
+            if (syncEnabledCommit == null)
+                throw new Exception("Cannot find commit with \"{syncEnabledCommitMessage}\" message.");
+
+            return syncEnabledCommit;
+        }
+
 
         public void DeleteFolder()
         {
@@ -186,6 +224,20 @@ namespace TeamCityApi.Helpers.Git
         }
 
         public abstract bool Clone();
+
+        public void StageAndCommit(IEnumerable<string> filesToStage, string message)
+        {
+            Log.Trace($"Staging and committing files: {string.Join(", ", filesToStage)} with message: \"{message}\"");
+            using (var repo = new Repository(TempClonePath))
+            {
+                foreach (var fileToStage in filesToStage)
+                {
+                    repo.Index.Add(fileToStage);
+                }
+
+                repo.Commit(message);
+            }
+        }
 
         protected ProcessStartInfo GetStartInfo()
         {
