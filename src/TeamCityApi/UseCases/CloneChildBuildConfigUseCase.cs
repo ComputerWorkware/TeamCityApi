@@ -35,7 +35,7 @@ namespace TeamCityApi.UseCases
 
         public async Task Execute(string sourceBuildConfigId, string targetRootBuildConfigId, bool simulate)
         {
-            Log.InfoFormat("Clone Child Build Config. sourceBuildConfigId: {0}, targetRootBuildConfigId: {1}", sourceBuildConfigId, targetRootBuildConfigId);
+            Log.Info($"Clone Child Build Config. sourceBuildConfigId: {sourceBuildConfigId}, targetRootBuildConfigId: {targetRootBuildConfigId}");
 
             await Init(sourceBuildConfigId, targetRootBuildConfigId, simulate);
 
@@ -43,7 +43,7 @@ namespace TeamCityApi.UseCases
 
             foreach (var b in buildConfigsToClone)
             {
-                Log.InfoFormat("==== Branch {2} from Build #{1} (id: {0}) ====", b.Build.Id, b.Build.Number, b.BuildConfig.Id);
+                Log.Info($"==== Branch {b.BuildConfig.Id} from Build #{b.Build.Number} (id: {b.Build.Id}) ====");
                 if (!_simulate)
                 {
                     await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newBranchName);
@@ -53,7 +53,7 @@ namespace TeamCityApi.UseCases
             var cloneBuildConfigCommands = GetCloneBuildConfigsCommands(buildConfigsToClone.ToList());
             await Task.WhenAll(cloneBuildConfigCommands.Select(c =>
             {
-                Log.InfoFormat("==== {0} ====", c);
+                Log.Info($"==== {c} ====");
                 if (_simulate)
                     return Task.FromResult(0);
                 else
@@ -63,7 +63,7 @@ namespace TeamCityApi.UseCases
             var swapDependencyCommands = GetSwapDependenciesCommands(buildConfigsToClone);
             await Task.WhenAll(swapDependencyCommands.Select(c =>
             {
-                Log.InfoFormat("==== {0} ====", c);
+                Log.Info($"==== {c} ====");
                 if (_simulate)
                     return Task.FromResult(0);
                 else
@@ -79,8 +79,7 @@ namespace TeamCityApi.UseCases
 
             if (_targetRootBuildConfig.Parameters[ParameterName.ClonedFromBuildId] == null)
                 throw new Exception(
-                    string.Format("Target root Build Config doesn't appear to be cloned. It is missing the \"{0}\" parameter.",
-                        ParameterName.ClonedFromBuildId));
+                    $"Target root Build Config doesn't appear to be cloned. It is missing the \"{ParameterName.ClonedFromBuildId}\" parameter.");
 
             _targetBuildChainId = _targetRootBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
             _newNameSuffix = _targetRootBuildConfig.Parameters[ParameterName.CloneNameSuffix].Value;
@@ -90,20 +89,18 @@ namespace TeamCityApi.UseCases
             if (!_dependencyChain.Contains(_sourceBuildConfig))
             {
                 throw new Exception(
-                    string.Format(
-                        "Cannot clone Build Config, because requested source Build Config ({0}) " +
-                        "is not found in the current Build Config chain for target Build Config ({1}). " +
-                        "Make sure target Build Config depends on source Build Config." + Environment.NewLine +
-                        "Currently discovered Build Config chain is: " + Environment.NewLine + "{2}",
-                        _sourceBuildConfig.Id, targetRootBuildConfigId, _dependencyChain));
+                    $"Cannot clone Build Config, because requested source Build Config ({_sourceBuildConfig.Id}) " +
+                    $"is not found in the current Build Config chain for target Build Config ({targetRootBuildConfigId}). " +
+                    $"Make sure target Build Config depends on source Build Config." + Environment.NewLine +
+                    $"Currently discovered Build Config chain is: " + Environment.NewLine + "{_dependencyChain}");
             }
 
             if (_sourceBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value == _targetBuildChainId)
                 throw new Exception(
-                    string.Format(
-                        "It appears that Build Config \"{0}\" is already a cloned for target Build Config \"{1}\", because \"{2}\" parameter is the same \"{3}\" . Create a new clone of root Build Config first",
-                        _sourceBuildConfig.Id, _targetRootBuildConfig.Id, ParameterName.BuildConfigChainId,
-                        _sourceBuildConfig.Parameters[ParameterName.BuildConfigChainId]));
+                    $"It appears that Build Config \"{_sourceBuildConfig.Id}\" is already a cloned for target " +
+                    $"Build Config \"{_targetRootBuildConfig.Id}\", because \"{ParameterName.BuildConfigChainId}\" " +
+                    $"parameter is the same \"{_sourceBuildConfig.Parameters[ParameterName.BuildConfigChainId]}\" . " +
+                    $"Create a new clone of root Build Config first");
         }
 
         private HashSet<CombinedDependency> GetBuildsToClone()
@@ -181,7 +178,9 @@ namespace TeamCityApi.UseCases
             var artifactDependencyToSwap = targetBuildConfig.ArtifactDependencies.FirstOrDefault(a => a.SourceBuildConfig.Id == buildConfigIdToSwapFrom);
 
             if (artifactDependencyToSwap == null)
-                throw new Exception(String.Format("Cannot find targetBuildConfig.ArtifactDependencies by SourceBuildConfig.Id == {0}. Available SourceBuildConfig.Ids are: {1}", buildConfigIdToSwapFrom, String.Join(", ", targetBuildConfig.ArtifactDependencies.Select(ad => ad.SourceBuildConfig.Id))));
+                throw new Exception(
+                    $"Cannot find targetBuildConfig.ArtifactDependencies by SourceBuildConfig.Id == {buildConfigIdToSwapFrom}. " +
+                    $"Available SourceBuildConfig.Ids are: {String.Join(", ", targetBuildConfig.ArtifactDependencies.Select(ad => ad.SourceBuildConfig.Id))}");
 
             artifactDependencyToSwap.Properties.Property["revisionName"].Value = "sameChainOrLastFinished";
             artifactDependencyToSwap.Properties.Property["revisionValue"].Value = "latest.sameChainOrLastFinished";
@@ -212,7 +211,7 @@ namespace TeamCityApi.UseCases
 
             public override string ToString()
             {
-                return string.Format("Clone {1} from Build #{0}", _sourceBuild.Number, _sourceBuild.BuildConfig.Id);
+                return $"Clone {_sourceBuild.BuildConfig.Id} from Build #{_sourceBuild.Number}";
             }
         }
 
@@ -238,7 +237,7 @@ namespace TeamCityApi.UseCases
 
             public override string ToString()
             {
-                return string.Format("Swap dependencies on {0}: {1} => {2}", _targetBuildConfig.Id, _buildConfigIdToSwapFrom, _buildConfigToSwapTo.Id);
+                return $"Swap dependencies on {_targetBuildConfig.Id}: {_buildConfigIdToSwapFrom} => {_buildConfigToSwapTo.Id}";
             }
 
         }
