@@ -108,6 +108,7 @@
     <Compile Include="Helpers\Graphs\Node.cs" />
     <Compile Include="Helpers\Graphs\NodeList.cs" />
     <Compile Include="Util\ResourceNotFoundException.cs" />
+    <Compile Include="Util\StringExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="LibGit2Sharp, Version=0.21.0.176, Culture=neutral, processorArchitecture=MSIL">

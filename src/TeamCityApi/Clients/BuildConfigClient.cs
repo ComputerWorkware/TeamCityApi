@@ -276,10 +276,14 @@ namespace TeamCityApi.Clients
 
         public async Task<string> GenerateUniqueBuildConfigId(string projectId, string buildConfigName)
         {
+            //from teamcity: "ID should start with a latin letter and contain only latin letters, digits and underscores (at most 80 characters)."
+
             var rgx = new Regex("[^a-zA-Z0-9_]");
             var id = projectId + "_" + rgx.Replace(buildConfigName, "");
 
-            for (int i = 0; i < 100; i++)
+            id = id.Truncate(78);
+
+            for (int i = 0; i < 99; i++)
             {
                 var probeBuildConfigId = i == 0 ? id : id + i;
                 try
