@@ -64,7 +64,7 @@ namespace TeamCityApi.Domain
             var newNameElement = (XmlElement)clonedBuildConfigXml.Xml.SelectSingleNode("/build-type/name");
             newNameElement.InnerText = newConfigurationName;
 
-            _buildConfigXmlClient.Track(clonedBuildConfigXml);
+            _buildConfigXmlClient.IncludeInEndSetOfChanges(clonedBuildConfigXml);
 
             return clonedBuildConfigXml;
         }

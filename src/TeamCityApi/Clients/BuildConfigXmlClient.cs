@@ -12,10 +12,10 @@ namespace TeamCityApi.Clients
     public interface IBuildConfigXmlClient
     {
         /// <summary>
-        /// Start tracking newly created BuildConfigXmls, to save them to disk on EndSetOfChanges
+        /// Start tracking provided BuildConfigXml, to save it on disk when EndSetOfChanges() called later.
         /// </summary>
         /// <param name="buildConfigXml"></param>
-        void Track(IBuildConfigXml buildConfigXml);
+        void IncludeInEndSetOfChanges(IBuildConfigXml buildConfigXml);
         /// <summary>
         /// Read the most recent version of Build Config from TeamCity settings git repository.
         /// </summary>
@@ -60,7 +60,7 @@ namespace TeamCityApi.Clients
             return rootProject.Properties[ParameterName.VersionedSettingGitRepo].Value;
         }
 
-        public void Track(IBuildConfigXml buildConfigXml)
+        public void IncludeInEndSetOfChanges(IBuildConfigXml buildConfigXml)
         {
             _buildConfigXmls.Add(buildConfigXml);
         }
@@ -87,8 +87,6 @@ namespace TeamCityApi.Clients
 
             var buildConfigXml = new BuildConfigXml(this, projectId, buildConfigId);
             buildConfigXml.Xml.Load(xmlFileName);
-
-            _buildConfigXmls.Add(buildConfigXml);
 
             return buildConfigXml;
         }
