@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using Ploeh.AutoFixture;
+using TeamCityApi.Clients;
 using TeamCityApi.Helpers.Git;
 using TeamCityApi.Tests.Helpers;
 using TeamCityApi.Tests.Scenarios;
@@ -15,10 +16,11 @@ namespace TeamCityApi.Tests.UseCases
         public void Should_clone_child_build_config(
             ITeamCityClient client,
             IVcsRootHelper vcsRootHelper,
+            IBuildConfigXmlClient buildConfigXmlClient,
             IFixture fixture)
         {
             var scenario = new ChainWithRootClonedScenario(fixture, client);
-            var sut = new CloneChildBuildConfigUseCase(client, vcsRootHelper);
+            var sut = new CloneChildBuildConfigUseCase(client, vcsRootHelper, buildConfigXmlClient);
 
             sut.Execute(scenario.ComponentA.BuildConfig.Id, scenario.SuiteCloned.BuildConfig.Id, simulate:false).Wait();
             

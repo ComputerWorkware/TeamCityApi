@@ -14,8 +14,6 @@ namespace TeamCityApi.Tests.Helpers
         private XmlElement NameElement { get; set; }
         private XmlElement SettingsElement { get; set; }
         private XmlElement ParametersElement { get; set; }
-        private XmlElement ArtifactDependenciesElement { get; set; }
-        private XmlElement DependenciesElement { get; set; }
 
         public BuildConfigXmlGenerator(IBuildConfigXmlClient buildConfigXmlClient = null)
         {
@@ -33,10 +31,6 @@ namespace TeamCityApi.Tests.Helpers
             SettingsElement.SetAttribute("ref", "CPlusPlusTemplate_v1");
 
             ParametersElement = (XmlElement)SettingsElement.AppendChild(Xml.CreateElement("parameters"));
-
-            ArtifactDependenciesElement = (XmlElement)SettingsElement.AppendChild(Xml.CreateElement("artifact-dependencies"));
-
-            DependenciesElement = (XmlElement)SettingsElement.AppendChild(Xml.CreateElement("dependencies"));
         }
 
         public BuildConfigXmlGenerator WithName(string name)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers;
 using TeamCityApi.Helpers.Git;
@@ -16,6 +17,7 @@ namespace TeamCityApi.UseCases
 
         private readonly ITeamCityClient _client;
         private readonly IVcsRootHelper _vcsRootHelper;
+        private readonly IBuildConfigXmlClient _buildConfigXmlClient;
 
         private DependencyChain _dependencyChain;
         private string _newNameSuffix;
@@ -23,19 +25,23 @@ namespace TeamCityApi.UseCases
         private string _targetBuildChainId;
         private BuildConfig _sourceBuildConfig;
         private BuildConfig _targetRootBuildConfig;
-        private readonly Dictionary<string, BuildConfig> _clones = new Dictionary<string, BuildConfig>();
+        private readonly Dictionary<string, IBuildConfigXml> _originalBuildConfigIdToCloneMap = new Dictionary<string, IBuildConfigXml>();
 
         private bool _simulate;
 
-        public CloneChildBuildConfigUseCase(ITeamCityClient client, IVcsRootHelper vcsRootHelper)
+        public CloneChildBuildConfigUseCase(ITeamCityClient client, IVcsRootHelper vcsRootHelper, IBuildConfigXmlClient buildConfigXmlClient)
         {
             _client = client;
             _vcsRootHelper = vcsRootHelper;
+            _buildConfigXmlClient = buildConfigXmlClient;
+            
         }
 
         public async Task Execute(string sourceBuildConfigId, string targetRootBuildConfigId, bool simulate)
         {
             Log.Info($"Clone Child Build Config. sourceBuildConfigId: {sourceBuildConfigId}, targetRootBuildConfigId: {targetRootBuildConfigId}");
+
+            _buildConfigXmlClient.Simulate = simulate;
 
             await Init(sourceBuildConfigId, targetRootBuildConfigId, simulate);
 
@@ -43,32 +49,31 @@ namespace TeamCityApi.UseCases
 
             foreach (var b in buildConfigsToClone)
             {
-                Log.Info($"==== Branch {b.BuildConfig.Id} from Build #{b.Build.Number} (id: {b.Build.Id}) ====");
+                Log.Info($"==== Branch {b.HistoricBuild.BuildTypeId} from Build #{b.HistoricBuild.Number} (id: {b.HistoricBuild.Id}) ====");
                 if (!_simulate)
                 {
-                    await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.Build.Id, _newBranchName);
+                    await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.HistoricBuild.Id, _newBranchName);
                 }
             }
 
             var cloneBuildConfigCommands = GetCloneBuildConfigsCommands(buildConfigsToClone.ToList());
-            await Task.WhenAll(cloneBuildConfigCommands.Select(c =>
+            foreach (var c in cloneBuildConfigCommands)
             {
                 Log.Info($"==== {c} ====");
-                if (_simulate)
-                    return Task.FromResult(0);
-                else
-                    return c.Execute();
-            }));
+                if (!_simulate)
+                    c.Execute();
+            }
 
             var swapDependencyCommands = GetSwapDependenciesCommands(buildConfigsToClone);
-            await Task.WhenAll(swapDependencyCommands.Select(c =>
+            foreach (var c in swapDependencyCommands)
             {
                 Log.Info($"==== {c} ====");
-                if (_simulate)
-                    return Task.FromResult(0);
-                else
-                    return c.Execute();
-            }));
+                if (!_simulate)
+                    c.Execute();
+            }
+
+            if (!_simulate)
+                _buildConfigXmlClient.EndSetOfChanges();
         }
 
         private async Task Init(string sourceBuildConfigId, string targetRootBuildConfigId, bool simulate)
@@ -86,7 +91,7 @@ namespace TeamCityApi.UseCases
             _newBranchName = VcsRootHelper.ToValidGitBranchName(_newNameSuffix);
             _dependencyChain = new DependencyChain(_client, _targetRootBuildConfig);
 
-            if (!_dependencyChain.Contains(_sourceBuildConfig))
+            if (!_dependencyChain.Contains(_sourceBuildConfig.Id))
             {
                 throw new Exception(
                     $"Cannot clone Build Config, because requested source Build Config ({_sourceBuildConfig.Id}) " +
@@ -103,94 +108,98 @@ namespace TeamCityApi.UseCases
                     $"Create a new clone of root Build Config first");
         }
 
-        private HashSet<CombinedDependency> GetBuildsToClone()
+        private HashSet<DependencyNode> GetBuildsToClone()
         {
-            var sourceComdinedDependency = _dependencyChain.First(d => d.BuildConfig.Equals(_sourceBuildConfig));
-            var buildsToClone = _dependencyChain.FindAllParents(sourceComdinedDependency);
-            buildsToClone.Remove(new CombinedDependency(_targetRootBuildConfig));
-            buildsToClone.Add(sourceComdinedDependency);
+            var sourceDependency = _dependencyChain.FindByBuildConfigId(_sourceBuildConfig.Id);
+            var buildsToClone = _dependencyChain.FindAllParents(_sourceBuildConfig.Id);
+            buildsToClone.Remove(new DependencyNode(_targetRootBuildConfig));
+            buildsToClone.Add(sourceDependency);
             buildsToClone.RemoveWhere(d => d.IsCloned);
 
             return buildsToClone;
         }
 
-        private IEnumerable<CloneBuildConfigCommand> GetCloneBuildConfigsCommands(IEnumerable<CombinedDependency> buildConfigsToClone)
+        private IEnumerable<CloneBuildConfigCommand> GetCloneBuildConfigsCommands(IEnumerable<DependencyNode> buildConfigsToClone)
         {
-            return buildConfigsToClone.Select(bc => new CloneBuildConfigCommand(this, bc.Build));
+            return buildConfigsToClone.Select(bc => new CloneBuildConfigCommand(this, bc.HistoricBuild));
         }
 
-        private IEnumerable<SwapDependencyCommand> GetSwapDependenciesCommands(IEnumerable<CombinedDependency> buildConfigsToClone)
+        private IEnumerable<SwapDependencyCommand> GetSwapDependenciesCommands(IEnumerable<DependencyNode> buildConfigsToClone)
         {
             var swapDependencyCommands = new List<SwapDependencyCommand>();
             foreach (var buildConfigToClone in buildConfigsToClone)
             {
-                var parentBuildConfigs = _dependencyChain.GetParents(buildConfigToClone);
+                var parentBuildConfigs = _dependencyChain.GetParents(buildConfigToClone.HistoricBuild.BuildTypeId);
 
                 foreach (var parentBuildConfig in parentBuildConfigs)
                 {
-                    var targetBuildConfig = buildConfigsToClone.Contains(parentBuildConfig) ? GetCloneOf(parentBuildConfig.BuildConfig) : parentBuildConfig.BuildConfig;
+                    IBuildConfigXml swapOn;
+                    var parentBuildConfigWasJustCloned = buildConfigsToClone.Contains(parentBuildConfig);
+                    if (parentBuildConfigWasJustCloned)
+                    {
+                        swapOn = GetCloneOf(parentBuildConfig.HistoricBuild.BuildTypeId);
+                    }
+                    else
+                    {
+                        swapOn = _buildConfigXmlClient.Read(parentBuildConfig.CurrentBuildConfig.ProjectId, parentBuildConfig.CurrentBuildConfig.Id);
+                        _buildConfigXmlClient.IncludeInEndSetOfChanges(swapOn);
+                    }
 
-                    swapDependencyCommands.Add(new SwapDependencyCommand(this, targetBuildConfig, GetCloneOf(buildConfigToClone.BuildConfig), buildConfigToClone.BuildConfig.Id));
+                    var swapFrom = buildConfigToClone.HistoricBuild.BuildTypeId;
+                    var swapTo = GetCloneOf(buildConfigToClone.HistoricBuild.BuildTypeId).BuildConfigId;
+
+                    swapDependencyCommands.Add(new SwapDependencyCommand(this, swapOn, swapTo, swapFrom));
                 }
             }
             return swapDependencyCommands;
         }
 
-        private BuildConfig GetCloneOf(BuildConfig buildConfigToClone)
+        private IBuildConfigXml GetCloneOf(string buildConfigToCloneId)
         {
             if (_simulate)
             {
-                var simulatedClone = new BuildConfig();
-                simulatedClone.Name = buildConfigToClone.Name + " Clone";
-                simulatedClone.Id = buildConfigToClone.Id + "_Clone";
+                var simulatedClone = new BuildConfigXml(null, "", buildConfigToCloneId + "_Clone");
                 return simulatedClone;
             }
 
-            return _clones[buildConfigToClone.Id];
+            if (!_originalBuildConfigIdToCloneMap.ContainsKey(buildConfigToCloneId))
+            {
+                throw new Exception($"Could not find key \"{buildConfigToCloneId}\" in {nameof(_originalBuildConfigIdToCloneMap)}");
+            }
+
+            return _originalBuildConfigIdToCloneMap[buildConfigToCloneId];
         }
 
-        public async Task<BuildConfig> CloneBuildConfig(Build sourceBuild)
+        public IBuildConfigXml CloneBuildConfig(Build sourceBuild)
         {
             //Log.DebugFormat("CopyBuildConfigurationFromBuild(sourceBuild: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedFromBuildConfigId: {1})", sourceBuild, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
 
-            var newBuildConfig = await _client.BuildConfigs.CopyBuildConfiguration(
-                sourceBuild.BuildConfig.ProjectId,
-                BuildConfig.NewName(sourceBuild.BuildConfig.Name, _newNameSuffix),
-                sourceBuild.BuildConfig.Id
-            );
+            var newName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, _newNameSuffix);
+            var newBuildConfigId = _client.BuildConfigs.GenerateUniqueBuildConfigId(sourceBuild.BuildConfig.ProjectId, newName).Result;
 
-            _clones.Add(sourceBuild.BuildConfig.Id, newBuildConfig);
+            var newBuildConfigXml = _buildConfigXmlClient.ReadAsOf(sourceBuild.BuildConfig.ProjectId, sourceBuild.BuildConfig.Id, sourceBuild.StartDate);
 
-            await _client.BuildConfigs.DeleteAllSnapshotDependencies(newBuildConfig);
-            await _client.BuildConfigs.FreezeAllArtifactDependencies(newBuildConfig, sourceBuild);
-            await _client.BuildConfigs.FreezeParameters(newBuildConfig, newBuildConfig.Parameters.Property, sourceBuild.Properties.Property);
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BuildConfigChainId, _targetBuildChainId);
-            await _client.BuildConfigs.SetParameterValue(newBuildConfig, ParameterName.BranchName, _newBranchName);
+            var clonedBuildConfigXml = newBuildConfigXml.CopyBuildConfiguration(newBuildConfigId, newName);
 
-            return newBuildConfig;
+            _originalBuildConfigIdToCloneMap.Add(sourceBuild.BuildConfig.Id, clonedBuildConfigXml);
+
+            clonedBuildConfigXml.DeleteAllSnapshotDependencies();
+            clonedBuildConfigXml.FreezeAllArtifactDependencies(sourceBuild);
+            clonedBuildConfigXml.FreezeParameters(sourceBuild.Properties.Property);
+            clonedBuildConfigXml.SetParameterValue(ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
+            clonedBuildConfigXml.SetParameterValue(ParameterName.BuildConfigChainId, _targetBuildChainId);
+            clonedBuildConfigXml.SetParameterValue(ParameterName.BranchName, _newBranchName);
+
+            return clonedBuildConfigXml;
         }
 
-        public async Task SwapDependencies(BuildConfig targetBuildConfig, BuildConfig buildConfigToSwapTo, string buildConfigIdToSwapFrom)
+        public void SwapDependenciesToClone(IBuildConfigXml swapOn, string swapTo, string swapFrom)
         {
-            //Log.DebugFormat("SwapDependenciesToPreviouslyClonedBuildConfig(targetBuildConfig: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedBuildConfigFromBuild: {2})", targetBuildConfig, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
+            //Log.DebugFormat("SwapDependenciesToPreviouslyClonedBuildConfig(swapOn: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedBuildConfigFromBuild: {2})", swapOn, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
+            
+            swapOn.UpdateArtifactDependency(swapFrom, swapTo, "sameChainOrLastFinished", "latest.sameChainOrLastFinished");
 
-            var artifactDependencyToSwap = targetBuildConfig.ArtifactDependencies.FirstOrDefault(a => a.SourceBuildConfig.Id == buildConfigIdToSwapFrom);
-
-            if (artifactDependencyToSwap == null)
-                throw new Exception(
-                    $"Cannot find targetBuildConfig.ArtifactDependencies by SourceBuildConfig.Id == {buildConfigIdToSwapFrom}. " +
-                    $"Available SourceBuildConfig.Ids are: {String.Join(", ", targetBuildConfig.ArtifactDependencies.Select(ad => ad.SourceBuildConfig.Id))}");
-
-            artifactDependencyToSwap.Properties.Property["revisionName"].Value = "sameChainOrLastFinished";
-            artifactDependencyToSwap.Properties.Property["revisionValue"].Value = "latest.sameChainOrLastFinished";
-            artifactDependencyToSwap.SourceBuildConfig.Id = buildConfigToSwapTo.Id;
-            artifactDependencyToSwap.SourceBuildConfig.ProjectId = buildConfigToSwapTo.ProjectId;
-            artifactDependencyToSwap.SourceBuildConfig.ProjectName = buildConfigToSwapTo.ProjectName;
-
-            await _client.BuildConfigs.UpdateArtifactDependency(targetBuildConfig.Id, artifactDependencyToSwap);
-
-            await _client.BuildConfigs.CreateSnapshotDependency(new CreateSnapshotDependency(targetBuildConfig.Id, buildConfigToSwapTo.Id));
+            swapOn.CreateSnapshotDependency(new CreateSnapshotDependency(swapOn.BuildConfigId, swapTo));
         }
 
         private class CloneBuildConfigCommand : ICommand
@@ -204,9 +213,9 @@ namespace TeamCityApi.UseCases
                 _sourceBuild = sourceBuild;
             }
 
-            public async Task Execute()
+            public void Execute()
             {
-                await _receiver.CloneBuildConfig(_sourceBuild);
+                _receiver.CloneBuildConfig(_sourceBuild);
             }
 
             public override string ToString()
@@ -218,33 +227,33 @@ namespace TeamCityApi.UseCases
         private class SwapDependencyCommand : ICommand
         {
             private readonly CloneChildBuildConfigUseCase _receiver;
-            private readonly BuildConfig _targetBuildConfig;
-            private readonly BuildConfig _buildConfigToSwapTo;
-            private readonly string _buildConfigIdToSwapFrom;
+            private readonly IBuildConfigXml _swapOn;
+            private readonly string _swapTo;
+            private readonly string _swapFrom;
 
-            public SwapDependencyCommand(CloneChildBuildConfigUseCase receiver, BuildConfig targetBuildConfig, BuildConfig buildConfigToSwapTo, string buildConfigIdToSwapFrom)
+            public SwapDependencyCommand(CloneChildBuildConfigUseCase receiver, IBuildConfigXml swapOn, string swapTo, string swapFrom)
             {
                 _receiver = receiver;
-                _targetBuildConfig = targetBuildConfig;
-                _buildConfigToSwapTo = buildConfigToSwapTo;
-                _buildConfigIdToSwapFrom = buildConfigIdToSwapFrom;
+                _swapOn = swapOn;
+                _swapTo = swapTo;
+                _swapFrom = swapFrom;
             }
 
-            public async Task Execute()
+            public void Execute()
             {
-                await _receiver.SwapDependencies(_targetBuildConfig, _buildConfigToSwapTo, _buildConfigIdToSwapFrom);
+                _receiver.SwapDependenciesToClone(_swapOn, _swapTo, _swapFrom);
             }
 
             public override string ToString()
             {
-                return $"Swap dependencies on {_targetBuildConfig.Id}: {_buildConfigIdToSwapFrom} => {_buildConfigToSwapTo.Id}";
+                return $"Swap dependencies on {_swapOn.BuildConfigId}: {_swapFrom} => {_swapTo}";
             }
 
         }
 
         private interface ICommand
         {
-            Task Execute();
+            void Execute();
         }
     }
 }

@@ -79,7 +79,6 @@
     <Compile Include="Helpers\DiffMatchPatch.cs" />
     <Compile Include="Helpers\Git\GitRepositoryHttp.cs" />
     <Compile Include="Helpers\Git\GitRepositorySsh.cs" />
-    <Compile Include="Helpers\Graphs\GraphTraversal.cs" />
     <Compile Include="Helpers\Git\SshKeyHelper.cs" />
     <Compile Include="Helpers\Git\VcsRootHelper.cs" />
     <Compile Include="Locators\BranchLocator.cs" />

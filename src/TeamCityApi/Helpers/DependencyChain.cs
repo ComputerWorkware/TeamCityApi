@@ -9,7 +9,7 @@ using TeamCityApi.UseCases;
 
 namespace TeamCityApi.Helpers
 {
-    public class DependencyChain : Graph<CombinedDependency>
+    public class DependencyChain : Graph<DependencyNode>
     {
         private readonly ITeamCityClient _client;
         private readonly string _buildChainId;
@@ -23,66 +23,74 @@ namespace TeamCityApi.Helpers
 
         private void InitGraph(BuildConfig rootBuildConfig)
         {
-            AddBuildConfigWithDependents(new GraphNode<CombinedDependency>(new CombinedDependency(rootBuildConfig)));
+            AddDependencies(new GraphNode<DependencyNode>(new DependencyNode(rootBuildConfig)));
         }
 
-        private void AddBuildConfigWithDependents(GraphNode<CombinedDependency> node)
+        private void AddDependencies(GraphNode<DependencyNode> node)
         {
             AddNode(node);
 
-            if (node.Value.BuildConfig.ArtifactDependencies != null)
+            if (node.Value.CurrentBuildConfig != null)
             {
-                foreach (var artifactDependency in node.Value.BuildConfig.ArtifactDependencies)
+                if (node.Value.CurrentBuildConfig.ArtifactDependencies != null)
                 {
-                    var child = ConstructCombinedDependency(artifactDependency, node.Value.Build);
-                    var childNode = new GraphNode<CombinedDependency>(child);
-
-                    if (!this.Contains(child))
+                    foreach (var artifactDependency in node.Value.CurrentBuildConfig.ArtifactDependencies)
                     {
-                        AddBuildConfigWithDependents(childNode);
+                        AddDependency(
+                            node,
+                            artifactDependency.Properties["revisionName"].Value,
+                            artifactDependency.Properties["revisionValue"].Value,
+                            artifactDependency.SourceBuildConfig.Id);
                     }
+                }
+            }
 
-                    AddDirectedEdge(node, childNode, 0);
+            if (node.Value.HistoricBuild != null)
+            {
+                if (node.Value.HistoricBuild.ArtifactDependencies != null)
+                {
+                    foreach (var artifactDependency in node.Value.HistoricBuild.ArtifactDependencies)
+                    {
+                        AddDependency(
+                            node,
+                            "buildNumber",
+                            artifactDependency.Number,
+                            artifactDependency.BuildTypeId);
+                    }
                 }
             }
         }
 
-        private CombinedDependency ConstructCombinedDependency(DependencyDefinition artifactDependency, Build parentBuild)
+        private void AddDependency(GraphNode<DependencyNode> parentNode, string revisionName, string revisionValue, string sourceBuildConfigId)
         {
-            BuildConfig dependencyBuildConfig = _client.BuildConfigs.GetByConfigurationId(artifactDependency.SourceBuildConfig.Id).Result;
+            BuildConfig currentBuildConfig = null;
+            Build historicBuild = null;
+            bool isCloned = false;
 
-            Build dependencyBuild = null;
-            switch (artifactDependency.Properties["revisionName"].Value)
+            switch (revisionName)
             {
                 case "buildNumber":
-                    var dependsOnBuildNumber = artifactDependency.Properties["revisionValue"].Value;
-                    dependencyBuild = _client.Builds.ByNumber(dependsOnBuildNumber, dependencyBuildConfig.Id).Result;
+                    var dependsOnBuildNumber = revisionValue;
+                    historicBuild = _client.Builds.ByNumber(dependsOnBuildNumber, sourceBuildConfigId).Result;
                     break;
                 case "sameChainOrLastFinished":
-                    if (parentBuild != null)
-                    {
-                        if (parentBuild.ArtifactDependencies == null)
-                        {
-                            throw new Exception(String.Format("Can't resolve dependent build. There's an artifact dependency in {0} to {1}, but its build #{2} (id: {3}) doesn't have any artifact dependencies.", parentBuild.BuildConfig.Id, artifactDependency.SourceBuildConfig.Id, parentBuild.Number, parentBuild.Id));
-                        }
-
-                        var buildDependencySummary = parentBuild.ArtifactDependencies.FirstOrDefault(d => d.BuildTypeId == dependencyBuildConfig.Id);
-                        if (buildDependencySummary != null)
-                        {
-                            dependencyBuild = _client.Builds.ById(buildDependencySummary.Id).Result;
-                        }
-                    }
+                    currentBuildConfig = _client.BuildConfigs.GetByConfigurationId(sourceBuildConfigId).Result;
+                    isCloned = _buildChainId == currentBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
                     break;
             }
 
-            var isCloned = _buildChainId == dependencyBuildConfig.Parameters[ParameterName.BuildConfigChainId].Value;
-
-            return new CombinedDependency()
+            var childDependency = new DependencyNode()
             {
-                BuildConfig = dependencyBuildConfig,
-                Build = dependencyBuild,
+                CurrentBuildConfig = currentBuildConfig,
+                HistoricBuild = historicBuild,
                 IsCloned = isCloned
             };
+
+            var childDependencyGraphNode = new GraphNode<DependencyNode>(childDependency);
+
+            AddDependencies(childDependencyGraphNode);
+
+            AddDirectedEdge(parentNode, childDependencyGraphNode, 0);
         }
 
         /// <summary>
@@ -92,7 +100,7 @@ namespace TeamCityApi.Helpers
         public IEnumerable<IGrouping<BuildConfig, Build>> GetNonUniqueDependencies()
         {
             var results = from d in Nodes
-                          group d.Value.Build by d.Value.BuildConfig into g
+                          group d.Value.HistoricBuild by d.Value.CurrentBuildConfig into g
                           where g.Count() > 1
                           select g;
             return results;
@@ -124,13 +132,13 @@ namespace TeamCityApi.Helpers
         }
 
 
-        public string SketchGraph(GraphNode<CombinedDependency> node = null, int level = 0)
+        public string SketchGraph(GraphNode<DependencyNode> node = null, int level = 0)
         {
             if (level == 0 && Count == 0)
                 return "Empty chain";
 
             if (node == null)
-                node = (GraphNode<CombinedDependency>)Nodes.First();
+                node = (GraphNode<DependencyNode>)Nodes.First();
 
             var sketch = new string(' ', level * 2) + " - " +
                 node.Value +
@@ -138,37 +146,73 @@ namespace TeamCityApi.Helpers
 
             foreach (var child in node.Neighbors)
             {
-                sketch += SketchGraph((GraphNode<CombinedDependency>)child, level + 1);
+                sketch += SketchGraph((GraphNode<DependencyNode>)child, level + 1);
             }
 
             return sketch;
         }
 
-        internal bool Contains(BuildConfig buildConfig)
+        internal bool Contains(string buildConfigId)
         {
-            return this.Any(d => d.BuildConfig.Equals(buildConfig));
+            return this.Any(d => d.CurrentBuildConfig?.Id == buildConfigId || d.HistoricBuild?.BuildTypeId == buildConfigId);
+        }
+
+        internal DependencyNode FindByBuildConfigId(string buildConfigId)
+        {
+            return this.First(d => d.CurrentBuildConfig?.Id == buildConfigId || d.HistoricBuild?.BuildTypeId == buildConfigId);
+        }
+
+        public IEnumerable<DependencyNode> GetParents(string childBuildConfigId)
+        {
+            return from GraphNode<DependencyNode> node in Nodes
+                   where node.Neighbors.Any(n => n.Value.CurrentBuildConfig?.Id == childBuildConfigId || n.Value.HistoricBuild?.BuildTypeId == childBuildConfigId)
+                   select node.Value;
+        }
+
+        public HashSet<DependencyNode> FindAllParents(string childBuildConfigId)
+        {
+            var allParents = new HashSet<DependencyNode>();
+
+            var directParents = GetParents(childBuildConfigId).ToArray();
+
+            allParents.UnionWith(directParents);
+
+            if (directParents.Any())
+            {
+                foreach (var directParent in directParents)
+                {
+                    allParents.UnionWith(FindAllParents(directParent.HistoricBuild?.BuildTypeId ?? directParent.CurrentBuildConfig.Id));
+                }
+            }
+
+            return allParents;
         }
     }
 
-    public class CombinedDependency
+    /// <summary>
+    /// Contains either a Build or BuildConfig. Depending if parent node references it as a:
+    ///  * "fixed build number" dependency => Build
+    ///  * "latest or same chain" dependency => BuildConfig
+    /// </summary>
+    public class DependencyNode
     {
-        public Build Build { get; set; }
-        public BuildConfig BuildConfig { get; set; }
+        public Build HistoricBuild { get; set; }
+        public BuildConfig CurrentBuildConfig { get; set; }
         public bool IsCloned { get; set; }
 
-        public CombinedDependency(BuildConfig buildConfig)
+        public DependencyNode(BuildConfig buildConfig)
         {
-            BuildConfig = buildConfig;
+            CurrentBuildConfig = buildConfig;
         }
 
-        public CombinedDependency()
+        public DependencyNode()
         {
         }
 
         public override string ToString()
         {
-            var buildConfigId = BuildConfig.Id;
-            var buildNumber = (Build != null) ? " | Build #" + Build.Number : " | Same chain";
+            var buildConfigId = CurrentBuildConfig?.Id ?? HistoricBuild.BuildTypeId;
+            var buildNumber = (HistoricBuild != null) ? " | Build #" + HistoricBuild.Number : " | Same chain";
             var cloned = IsCloned ? " | Cloned" : " | Original";
 
             return buildConfigId + buildNumber + cloned;
@@ -183,17 +227,17 @@ namespace TeamCityApi.Helpers
             }
 
             // If parameter cannot be cast to Build return false.
-            CombinedDependency bc = obj as CombinedDependency;
+            DependencyNode bc = obj as DependencyNode;
             if (bc == null)
             {
                 return false;
             }
 
             // Return true if the fields match:
-            return (BuildConfig.Id == bc.BuildConfig.Id && Build?.Id == bc.Build?.Id);
+            return (CurrentBuildConfig?.Id == bc.CurrentBuildConfig?.Id && HistoricBuild?.Id == bc.HistoricBuild?.Id);
         }
 
-        public bool Equals(CombinedDependency bc)
+        public bool Equals(DependencyNode bc)
         {
             // If parameter is null return false:
             if (bc == null)
@@ -202,15 +246,19 @@ namespace TeamCityApi.Helpers
             }
 
             // Return true if the fields match:
-            return (BuildConfig.Id == bc.BuildConfig.Id && Build?.Id == bc.Build?.Id);
+            return (CurrentBuildConfig?.Id == bc.CurrentBuildConfig?.Id && HistoricBuild?.Id == bc.HistoricBuild?.Id);
         }
 
         public override int GetHashCode()
         {
-            var hash = BuildConfig.Id.GetHashCode();
-            if (Build != null)
+            var hash = 37;
+            if (CurrentBuildConfig != null)
             {
-                hash ^= Build.Id.GetHashCode();
+                hash ^= CurrentBuildConfig.Id.GetHashCode();
+            }
+            if (HistoricBuild != null)
+            {
+                hash ^= HistoricBuild.Id.GetHashCode();
             }
             return hash;
         }

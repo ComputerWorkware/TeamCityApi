@@ -10,7 +10,7 @@ using Xunit.Extensions;
 
 namespace TeamCityApi.Tests.Domain
 {
-    public class BuildConfigXmlClientTests
+    public class BuildConfigXmlTests
     {
         [Theory]
         [AutoNSubstituteData]
@@ -145,6 +145,7 @@ namespace TeamCityApi.Tests.Domain
         public void Should_update_artifact_dependency(
             string dependencyBuildConfigId,
             CreateArtifactDependency before,
+            string newSourceBuildConfigId,
             string newRevisionName,
             string newRevisionValue)
         {
@@ -154,9 +155,9 @@ namespace TeamCityApi.Tests.Domain
                 .WithArtifactDependency(before)
                 .Create();
 
-            buildConfigXml.UpdateArtifactDependency(dependencyBuildConfigId, newRevisionName, newRevisionValue);
+            buildConfigXml.UpdateArtifactDependency(dependencyBuildConfigId, newSourceBuildConfigId, newRevisionName, newRevisionValue);
 
-            var dependencyElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/artifact-dependencies/dependency[@sourceBuildTypeId='" + dependencyBuildConfigId + "']");
+            var dependencyElement = (XmlElement)buildConfigXml.Xml.SelectSingleNode("/build-type/settings/artifact-dependencies/dependency[@sourceBuildTypeId='" + newSourceBuildConfigId + "']");
             var revisionRuleElement = (XmlElement)dependencyElement?.SelectSingleNode("revisionRule");
 
             Assert.Equal(newRevisionName, revisionRuleElement?.Attributes["name"].Value);

@@ -200,19 +200,6 @@ namespace TeamCityApi.TestsIntegration
 
                 Assert.Equal(9, buildChain.Count);
             }
-
-            [Fact]
-            public void GetParents()
-            {
-                var client = CreateBuildClient();
-                var build = client.ById(186).Result;
-                var childBuild = client.ById(116).Result;
-
-                var buildChain = new Helpers.BuildChain(client, build);
-                var parentBuilds = buildChain.GetParents(childBuild).ToList();
-
-                Assert.Equal(new List<long> { 181, 132, 124 }, parentBuilds.Select(b => b.Id));
-            }
         }
 
         public class BuildConfigChain
@@ -226,19 +213,6 @@ namespace TeamCityApi.TestsIntegration
                 var buildConfigChain = new Helpers.BuildConfigChain(client, buildConfig);
 
                 Assert.Equal(9, buildConfigChain.Count);
-            }
-
-            [Fact]
-            public void FindAllParents()
-            {
-                var client = CreateBuildConfigClient();
-                var buildConfig = client.GetByConfigurationId("Installers_Sunlife_VitalObjectsSuite_Trunk").Result;
-                var buildConfigChain = new Helpers.BuildConfigChain(client, buildConfig);
-                var child = client.GetByConfigurationId("Sunlife_CwiVoAccountingAddins_Trunk").Result;
-
-                var allParents = buildConfigChain.FindAllParents(child);
-
-                Assert.Equal(6, allParents.Count);
             }
         }
 
@@ -277,7 +251,7 @@ namespace TeamCityApi.TestsIntegration
             [Fact]
             public void Should_clone_child_build_config()
             {
-                var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), null);
+                var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), null, null);
 
                 cloneChildBuildConfigUseCase.Execute("Sunlife_CwiVoAccountingAddins_Trunk", "Installers_Sunlife_VitalObjectsSuite_TrunkAlexTest", true).Wait();
             }

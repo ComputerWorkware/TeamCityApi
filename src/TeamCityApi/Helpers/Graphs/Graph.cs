@@ -89,13 +89,6 @@ namespace TeamCityApi.Helpers.Graphs
             get { return nodeSet.Count; }
         }
 
-        public IEnumerable<T> GetParents(T childNode)
-        {
-            return from GraphNode<T> node in Nodes
-                   where node.Neighbors.Any(n => n.Value.Equals(childNode))
-                   select node.Value;
-        }
-
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             foreach (Node<T> node in nodeSet)

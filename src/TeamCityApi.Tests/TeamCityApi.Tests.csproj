@@ -68,7 +68,7 @@
   <ItemGroup>
     <Compile Include="Clients\BuildConfigXmlClientTests.cs" />
     <Compile Include="Deserialization\JsonTests.cs" />
-    <Compile Include="Domain\BuildConfigXmlClientTests.cs" />
+    <Compile Include="Domain\BuildConfigXmlTests.cs" />
     <Compile Include="Helpers\AutoNSubstituteDataAttribute.cs" />
     <Compile Include="Helpers\BuildConfigXmlGenerator.cs" />
     <Compile Include="Helpers\BuildDependencyGenerator.cs" />

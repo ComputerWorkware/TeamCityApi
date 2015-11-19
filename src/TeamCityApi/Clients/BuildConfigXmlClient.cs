@@ -35,6 +35,8 @@ namespace TeamCityApi.Clients
         /// Saves all tracked BuildConfigXmls to files, commits, pushes and deletes local repo.
         /// </summary>
         void EndSetOfChanges();
+
+        bool Simulate { get; set; }
     }
 
     public class BuildConfigXmlClient : IBuildConfigXmlClient
@@ -55,7 +57,8 @@ namespace TeamCityApi.Clients
         {
             var rootProject = _teamCityClient.Projects.GetById("_Root").Result;
 
-            Log.Trace($"Read root project: {rootProject}");
+            if (!Simulate)
+                Log.Trace($"Read root project: {rootProject}");
 
             return rootProject.Properties[ParameterName.VersionedSettingGitRepo].Value;
         }
@@ -82,8 +85,12 @@ namespace TeamCityApi.Clients
         private IBuildConfigXml ReadBuildConfigXmlContents(string projectId, string buildConfigId)
         {
             var xmlFileName = ConstructXmlFilePath(projectId, buildConfigId);
-            Log.Debug($"Reading BuildConfig contents from {xmlFileName}");
-            Log.Trace(System.IO.File.ReadAllText(xmlFileName));
+
+            if (!Simulate)
+            {
+                Log.Debug($"Reading BuildConfig contents from {xmlFileName}");
+                Log.Trace(System.IO.File.ReadAllText(xmlFileName));
+            }
 
             var buildConfigXml = new BuildConfigXml(this, projectId, buildConfigId);
             buildConfigXml.Xml.Load(xmlFileName);
@@ -109,6 +116,8 @@ namespace TeamCityApi.Clients
 
         public void EndSetOfChanges()
         {
+            Log.Info($"==== Save all changes to TeamCity's settings git repository ====");
+
             var filesToCommit = new List<string>();
 
             _gitRepository.CheckoutBranch("master");
@@ -125,5 +134,7 @@ namespace TeamCityApi.Clients
 
             _gitRepository.DeleteFolder();
         }
+
+        public bool Simulate { get; set; }
     }
 }

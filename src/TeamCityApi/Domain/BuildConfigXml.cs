@@ -13,14 +13,14 @@ namespace TeamCityApi.Domain
         XmlDocument Xml { get; set; }
         string BuildConfigId { get; set; }
         string ProjectId { get; set; }
-        IBuildConfigXml CopyBuildConfiguration(string newBuildTypeId, string newConfigurationName);
+        IBuildConfigXml CopyBuildConfiguration(string newBuildConfigId, string newConfigurationName);
         void SetParameterValue(string name, string value);
         void CreateSnapshotDependency(CreateSnapshotDependency dependency);
         void CreateArtifactDependency(CreateArtifactDependency dependency);
         void DeleteSnapshotDependency(string dependencyBuildConfigId);
         void DeleteAllSnapshotDependencies();
         void FreezeAllArtifactDependencies(Build asOfbuild);
-        void UpdateArtifactDependency(string sourceBuildTypeId, string revisionName, string revisionValue);
+        void UpdateArtifactDependency(string sourceBuildTypeId, string newSourceBuildTypeId, string revisionName, string revisionValue);
         void FreezeParameters(IEnumerable<Property> sourceParameters);
     }
 
@@ -34,8 +34,33 @@ namespace TeamCityApi.Domain
         public string ProjectId { get; set; }
         private XmlElement BuildTypeElement => (XmlElement)Xml.SelectSingleNode("/build-type");
         private XmlElement ParametersElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/parameters");
-        private XmlElement DependenciesElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/dependencies");
-        private XmlElement ArtifactDependenciesElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/artifact-dependencies");
+        private XmlElement DependenciesElement
+        {
+            get
+            {
+                var dependenciesElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings/dependencies");
+                if (dependenciesElement == null)
+                {
+                    var settingsElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings");
+                    dependenciesElement = (XmlElement)settingsElement.AppendChild(Xml.CreateElement("dependencies"));
+                }
+                return dependenciesElement;
+            }
+        }
+
+        private XmlElement ArtifactDependenciesElement
+        {
+            get
+            {
+                var artifactDependenciesElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings/artifact-dependencies");
+                if (artifactDependenciesElement == null)
+                {
+                    var settingsElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings");
+                    artifactDependenciesElement = (XmlElement)settingsElement.AppendChild(Xml.CreateElement("artifact-dependencies"));
+                }
+                return artifactDependenciesElement;
+            }
+        }
 
         public BuildConfigXml(IBuildConfigXmlClient buildConfigXmlClient, string projectId, string buildConfigId)
         {
@@ -47,11 +72,11 @@ namespace TeamCityApi.Domain
             ProjectId = projectId;
         }
 
-        public IBuildConfigXml CopyBuildConfiguration(string newBuildTypeId, string newConfigurationName)
+        public IBuildConfigXml CopyBuildConfiguration(string newBuildConfigId, string newConfigurationName)
         {
-            Log.Trace($"XML CopyBuildConfiguration from {BuildConfigId} to {newBuildTypeId}");
+            Log.Trace($"XML CopyBuildConfiguration from {BuildConfigId} to {newBuildConfigId}");
 
-            var clonedBuildConfigXml = new BuildConfigXml(_buildConfigXmlClient, ProjectId, newBuildTypeId);
+            var clonedBuildConfigXml = new BuildConfigXml(_buildConfigXmlClient, ProjectId, newBuildConfigId);
 
             clonedBuildConfigXml.Xml.AppendChild(clonedBuildConfigXml.Xml.CreateXmlDeclaration("1.0", "UTF-8", null));
 
@@ -102,7 +127,6 @@ namespace TeamCityApi.Domain
             var option2Element = (XmlElement)optionsElement.AppendChild(Xml.CreateElement("option"));
             option2Element.SetAttribute("name", "take-successful-builds-only");
             option2Element.SetAttribute("value", dependency.TakeSuccessFulBuildsOnly.ToString().ToLower());
-
         }
 
         public void CreateArtifactDependency(CreateArtifactDependency dependency)
@@ -148,26 +172,26 @@ namespace TeamCityApi.Domain
 
             var dependencyElements = ArtifactDependenciesElement.SelectNodes("dependency");
 
-            if (asOfbuild.ArtifactDependencies == null)
-            {
-                throw new Exception($"Artifact dependencies for Build #{asOfbuild.Number} (id: {asOfbuild.Id}) unexpectedly empty");
-            }
-
             foreach (XmlElement dependencyElement in dependencyElements)
             {
                 var sourceBuildTypeId = dependencyElement.Attributes["sourceBuildTypeId"].Value;
                 var buildNumber = asOfbuild.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == sourceBuildTypeId).Number;
-                UpdateArtifactDependency(sourceBuildTypeId, "buildNumber", buildNumber);
+                UpdateArtifactDependency(sourceBuildTypeId, sourceBuildTypeId, "buildNumber", buildNumber);
             }
         }
 
-        public void UpdateArtifactDependency(string sourceBuildTypeId, string revisionName, string revisionValue)
+        public void UpdateArtifactDependency(string sourceBuildTypeId, string newSourceBuildTypeId, string revisionName, string revisionValue)
         {
-            Log.Trace($"XML BuildConfig.UpdateArtifactDependency for: {BuildConfigId}, sourceBuildTypeId: {sourceBuildTypeId}, revisionName: {revisionName}, revisionValue: {revisionValue}");
+            Log.Trace($"XML UpdateArtifactDependency for: {BuildConfigId}, sourceBuildTypeId: {sourceBuildTypeId}, newSourceBuildTypeId: {newSourceBuildTypeId}, revisionName: {revisionName}, revisionValue: {revisionValue}");
 
             var dependencyElement = ArtifactDependenciesElement.SelectSingleNode("dependency[@sourceBuildTypeId='" + sourceBuildTypeId + "']");
-            var revisionRuleElement = dependencyElement.SelectSingleNode("revisionRule");
 
+            if (dependencyElement == null)
+                throw new Exception($"Cannot find artifact dependencies with sourceBuildTypeId == {sourceBuildTypeId}.");
+
+            dependencyElement.Attributes["sourceBuildTypeId"].Value = newSourceBuildTypeId;
+
+            var revisionRuleElement = dependencyElement.SelectSingleNode("revisionRule");
             revisionRuleElement.Attributes["name"].Value = revisionName;
             revisionRuleElement.Attributes["revision"].Value = revisionValue;
         }
