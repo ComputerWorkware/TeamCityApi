@@ -49,17 +49,17 @@ namespace TeamCityApi.UseCases
 
             Log.Info("---------------------------------------------------------");
 
-            var nonUniques = dependencyChain.GetNonUniqueDependencies().ToList();
-            if (nonUniques.Any())
+            var dependencies = dependencyChain.GetDependenciesWithMultipleVersions().ToList();
+            if (dependencies.Any())
             {
                 Log.Warn("There are some dependencies in the build chain with different versions:");
 
-                foreach (var nonUnique in nonUniques)
+                foreach (var dependency in dependencies)
                 {
-                    Log.Warn(" - " + nonUnique.Key.Id);
-                    foreach (var build in nonUnique)
+                    Log.Warn(" - " + dependency.Key);
+                    foreach (var buildNumber in dependency.Value)
                     {
-                        Log.Warn("   - " + (build != null ? build.Number : "Same chain"));
+                        Log.Warn("   - " + (buildNumber ?? "Same chain"));
                     }
                 }
             }

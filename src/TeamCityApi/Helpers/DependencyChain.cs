@@ -94,16 +94,28 @@ namespace TeamCityApi.Helpers
         }
 
         /// <summary>
-        /// Returns Build Configs, which are included to Build Chain with multiple versions.
+        /// Returns Build Configs Ids, which are included to Build Chain with multiple versions.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<IGrouping<BuildConfig, Build>> GetNonUniqueDependencies()
+        public IEnumerable<KeyValuePair<string, HashSet<string>>> GetDependenciesWithMultipleVersions()
         {
-            var results = from d in Nodes
-                          group d.Value.HistoricBuild by d.Value.CurrentBuildConfig into g
-                          where g.Count() > 1
-                          select g;
-            return results;
+            var allUniqueCombinations = new Dictionary<string, HashSet<string>>();
+
+            foreach (var node in Nodes)
+            {
+                var buildConfigId = node.Value.CurrentBuildConfig?.Id ?? node.Value.HistoricBuild.BuildTypeId;
+
+                if (!allUniqueCombinations.ContainsKey(buildConfigId))
+                {
+                    allUniqueCombinations.Add(buildConfigId, new HashSet<string>());
+                }
+
+                allUniqueCombinations[buildConfigId].Add(node.Value.HistoricBuild?.Number ?? "Same chain");
+            }
+
+            var dependenciesWithMultipleVersions = allUniqueCombinations.Where(kvp => kvp.Value.Count > 1);
+
+            return dependenciesWithMultipleVersions;
         }
 
         public override string ToString()
