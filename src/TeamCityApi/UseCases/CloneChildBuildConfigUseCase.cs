@@ -124,25 +124,26 @@ namespace TeamCityApi.UseCases
             return buildConfigsToClone.Select(bc => new CloneBuildConfigCommand(this, bc.HistoricBuild));
         }
 
-        private IEnumerable<SwapDependencyCommand> GetSwapDependenciesCommands(IEnumerable<DependencyNode> buildConfigsToClone)
+        private IEnumerable<SwapDependencyCommand> GetSwapDependenciesCommands(IEnumerable<DependencyNode> clonedBuildConfigs)
         {
             var swapDependencyCommands = new List<SwapDependencyCommand>();
-            foreach (var buildConfigToClone in buildConfigsToClone)
+            foreach (var buildConfigToClone in clonedBuildConfigs)
             {
                 var parentBuildConfigs = _dependencyChain.GetParents(buildConfigToClone.HistoricBuild.BuildTypeId);
 
                 foreach (var parentBuildConfig in parentBuildConfigs)
                 {
-                    IBuildConfigXml swapOn;
-                    var parentBuildConfigWasJustCloned = buildConfigsToClone.Contains(parentBuildConfig);
+                    Lazy<IBuildConfigXml> swapOn;
+                    var parentBuildConfigWasJustCloned = clonedBuildConfigs.Contains(parentBuildConfig);
                     if (parentBuildConfigWasJustCloned)
                     {
-                        swapOn = GetCloneOf(parentBuildConfig.HistoricBuild.BuildTypeId);
+                        swapOn = new Lazy<IBuildConfigXml>(() => GetCloneOf(parentBuildConfig.HistoricBuild.BuildTypeId));
                     }
                     else
                     {
-                        swapOn = _buildConfigXmlClient.Read(parentBuildConfig.CurrentBuildConfig.ProjectId, parentBuildConfig.CurrentBuildConfig.Id);
-                        _buildConfigXmlClient.IncludeInEndSetOfChanges(swapOn);
+                        //defer read from file as we want to read the latest version (including previously swapped dependencies)
+                        //if file is read here for each command then swapping each dependency will discard previous changes
+                        swapOn = new Lazy<IBuildConfigXml>(() => _buildConfigXmlClient.Read(parentBuildConfig.CurrentBuildConfig.ProjectId, parentBuildConfig.CurrentBuildConfig.Id));
                     }
 
                     var swapFrom = buildConfigToClone.HistoricBuild.BuildTypeId;
@@ -193,13 +194,15 @@ namespace TeamCityApi.UseCases
             return clonedBuildConfigXml;
         }
 
-        public void SwapDependenciesToClone(IBuildConfigXml swapOn, string swapTo, string swapFrom)
+        public void SwapDependenciesToClone(Lazy<IBuildConfigXml> swapOn, string swapTo, string swapFrom)
         {
             //Log.DebugFormat("SwapDependenciesToPreviouslyClonedBuildConfig(swapOn: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedBuildConfigFromBuild: {2})", swapOn, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
-            
-            swapOn.UpdateArtifactDependency(swapFrom, swapTo, "sameChainOrLastFinished", "latest.sameChainOrLastFinished");
 
-            swapOn.CreateSnapshotDependency(new CreateSnapshotDependency(swapOn.BuildConfigId, swapTo));
+            var swapOnBuildConfigXml = swapOn.Value;
+
+            swapOnBuildConfigXml.UpdateArtifactDependency(swapFrom, swapTo, "sameChainOrLastFinished", "latest.sameChainOrLastFinished");
+
+            swapOnBuildConfigXml.CreateSnapshotDependency(new CreateSnapshotDependency(swapOnBuildConfigXml.BuildConfigId, swapTo));
         }
 
         private class CloneBuildConfigCommand : ICommand
@@ -227,11 +230,11 @@ namespace TeamCityApi.UseCases
         private class SwapDependencyCommand : ICommand
         {
             private readonly CloneChildBuildConfigUseCase _receiver;
-            private readonly IBuildConfigXml _swapOn;
+            private readonly Lazy<IBuildConfigXml> _swapOn;
             private readonly string _swapTo;
             private readonly string _swapFrom;
 
-            public SwapDependencyCommand(CloneChildBuildConfigUseCase receiver, IBuildConfigXml swapOn, string swapTo, string swapFrom)
+            public SwapDependencyCommand(CloneChildBuildConfigUseCase receiver, Lazy<IBuildConfigXml> swapOn, string swapTo, string swapFrom)
             {
                 _receiver = receiver;
                 _swapOn = swapOn;
@@ -246,7 +249,7 @@ namespace TeamCityApi.UseCases
 
             public override string ToString()
             {
-                return $"Swap dependencies on {_swapOn.BuildConfigId}: {_swapFrom} => {_swapTo}";
+                return $"Swap dependencies on {_swapOn}: {_swapFrom} => {_swapTo}";
             }
 
         }
