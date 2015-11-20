@@ -12,11 +12,6 @@ namespace TeamCityApi.Clients
     public interface IBuildConfigXmlClient
     {
         /// <summary>
-        /// Start tracking provided BuildConfigXml, to save it on disk when EndSetOfChanges() called later.
-        /// </summary>
-        /// <param name="buildConfigXml"></param>
-        void IncludeInEndSetOfChanges(IBuildConfigXml buildConfigXml);
-        /// <summary>
         /// Read the most recent version of Build Config from TeamCity settings git repository.
         /// </summary>
         /// <param name="projectId"></param>
@@ -31,10 +26,11 @@ namespace TeamCityApi.Clients
         /// <param name="asOfDateTime"></param>
         /// <returns></returns>
         IBuildConfigXml ReadAsOf(string projectId, string buildConfigId, DateTime asOfDateTime);
+        void Commit(IBuildConfigXml buildConfigXmlToCommit, string message);
         /// <summary>
-        /// Saves all tracked BuildConfigXmls to files, commits, pushes and deletes local repo.
+        /// Push all changes and deletes local repo.
         /// </summary>
-        void EndSetOfChanges();
+        void Push();
 
         bool Simulate { get; set; }
     }
@@ -79,7 +75,11 @@ namespace TeamCityApi.Clients
         {
             _gitRepository.CheckoutMostRecentCommitBefore("master", asOfDateTime);
 
-            return ReadBuildConfigXmlContents(projectId, buildConfigId);
+            var buildConfigXml = ReadBuildConfigXmlContents(projectId, buildConfigId);
+
+            _gitRepository.CheckoutBranch("master");
+
+            return buildConfigXml;
         }
 
         private IBuildConfigXml ReadBuildConfigXmlContents(string projectId, string buildConfigId)
@@ -114,21 +114,16 @@ namespace TeamCityApi.Clients
                 ConstructXmlFileName(projectId, buildConfigId));
         }
 
-        public void EndSetOfChanges()
+        public void Commit(IBuildConfigXml buildConfigXmlToCommit, string message)
         {
-            Log.Info($"==== Save all changes to TeamCity's settings git repository ====");
+            buildConfigXmlToCommit.Xml.Save(ConstructXmlFilePath(buildConfigXmlToCommit.ProjectId, buildConfigXmlToCommit.BuildConfigId));
 
-            var filesToCommit = new List<string>();
+            _gitRepository.StageAndCommit(new List<string>() { ConstructXmlFileName(buildConfigXmlToCommit.ProjectId, buildConfigXmlToCommit.BuildConfigId) }, message);
+        }
 
-            _gitRepository.CheckoutBranch("master");
-
-            foreach (var buildConfigXml in _buildConfigXmls)
-            {
-                buildConfigXml.Xml.Save(ConstructXmlFilePath(buildConfigXml.ProjectId, buildConfigXml.BuildConfigId));
-                filesToCommit.Add(ConstructXmlFileName(buildConfigXml.ProjectId, buildConfigXml.BuildConfigId));
-            }
-
-            _gitRepository.StageAndCommit(filesToCommit, "Changes by TeamCityConsole");
+        public void Push()
+        {
+            Log.Info($"==== Push changes to TeamCity's settings git repository ====");
 
             _gitRepository.Push("master");
 

@@ -227,7 +227,8 @@ namespace TeamCityApi.Helpers.Git
 
         public void StageAndCommit(IEnumerable<string> filesToStage, string message)
         {
-            Log.Trace($"Staging and committing files: {string.Join(", ", filesToStage)} with message: \"{message}\"");
+            //Log.Trace($"Staging and committing files: {string.Join(", ", filesToStage)} with message: \"{message}\"");
+
             using (var repo = new Repository(TempClonePath))
             {
                 foreach (var fileToStage in filesToStage)
@@ -235,7 +236,15 @@ namespace TeamCityApi.Helpers.Git
                     repo.Index.Add(fileToStage);
                 }
 
-                repo.Commit(message);
+                try
+                {
+                    repo.Commit(message);
+                }
+                catch (EmptyCommitException)
+                {
+                    //Don't want to explode on empty commit, as sometimes system would attempt to commit when no changes are done.
+                    //for example when changing parameter to value which is already there
+                }
             }
         }
 

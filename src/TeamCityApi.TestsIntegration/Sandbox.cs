@@ -251,9 +251,14 @@ namespace TeamCityApi.TestsIntegration
             [Fact]
             public void Should_clone_child_build_config()
             {
-                var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), null, null);
+                var teamCityClient = CreateTeamCityClient();
+                var gitRepositoryFactory = CreateGitRepositoryFactory();
+                var buildConfigXmlClient = new BuildConfigXmlClient(teamCityClient, gitRepositoryFactory);
+                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory);
 
-                cloneChildBuildConfigUseCase.Execute("Sunlife_CwiVoAccountingAddins_Trunk", "Installers_Sunlife_VitalObjectsSuite_TrunkAlexTest", true).Wait();
+                var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), vcsRootHelper, buildConfigXmlClient);
+
+                cloneChildBuildConfigUseCase.Execute("Sunlife_CwiVoAccountingAddins_Trunk", "Installers_Sunlife_VitalObjectsSuite_trunkAlexTest10", false).Wait();
             }
         }
 

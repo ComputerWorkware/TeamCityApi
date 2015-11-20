@@ -73,7 +73,7 @@ namespace TeamCityApi.UseCases
             }
 
             if (!_simulate)
-                _buildConfigXmlClient.EndSetOfChanges();
+                _buildConfigXmlClient.Push();
         }
 
         private async Task Init(string sourceBuildConfigId, string targetRootBuildConfigId, bool simulate)

@@ -89,7 +89,7 @@ namespace TeamCityApi.Domain
             var newNameElement = (XmlElement)clonedBuildConfigXml.Xml.SelectSingleNode("/build-type/name");
             newNameElement.InnerText = newConfigurationName;
 
-            _buildConfigXmlClient.IncludeInEndSetOfChanges(clonedBuildConfigXml);
+            _buildConfigXmlClient.Commit(clonedBuildConfigXml, $"TCC {newBuildConfigId} Copy Build Config from {BuildConfigId} ");
 
             return clonedBuildConfigXml;
         }
@@ -109,6 +109,8 @@ namespace TeamCityApi.Domain
             {
                 paramElement.SetAttribute("value", value);
             }
+
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Set Parameter {name} = {value}");
         }
 
         public void CreateSnapshotDependency(CreateSnapshotDependency dependency)
@@ -127,6 +129,8 @@ namespace TeamCityApi.Domain
             var option2Element = (XmlElement)optionsElement.AppendChild(Xml.CreateElement("option"));
             option2Element.SetAttribute("name", "take-successful-builds-only");
             option2Element.SetAttribute("value", dependency.TakeSuccessFulBuildsOnly.ToString().ToLower());
+
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Create Snapshot Dependency to {dependency.DependencyBuildConfigId}");
         }
 
         public void CreateArtifactDependency(CreateArtifactDependency dependency)
@@ -143,6 +147,8 @@ namespace TeamCityApi.Domain
 
             var artifactElement = (XmlElement)dependencyElement.AppendChild(Xml.CreateElement("artifact"));
             artifactElement.SetAttribute("sourcePath", dependency.PathRules);
+
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Create Artifact Dependency to {dependency.DependencyBuildConfigId}");
         }
 
         public void DeleteSnapshotDependency(string dependencyBuildConfigId)
@@ -158,12 +164,14 @@ namespace TeamCityApi.Domain
             {
                 DependenciesElement.RemoveChild(dependOnElement);
             }
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Delete Snapshot Dependency to {dependencyBuildConfigId}");
         }
 
         public void DeleteAllSnapshotDependencies()
         {
             Log.Debug($"XML DeleteAllSnapshotDependencies for: {BuildConfigId}");
             DependenciesElement.RemoveAll();
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Delete all snapshot dependencies");
         }
 
         public void FreezeAllArtifactDependencies(Build asOfbuild)
@@ -178,6 +186,8 @@ namespace TeamCityApi.Domain
                 var buildNumber = asOfbuild.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == sourceBuildTypeId).Number;
                 UpdateArtifactDependency(sourceBuildTypeId, sourceBuildTypeId, "buildNumber", buildNumber);
             }
+
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Freeze all artifact dependencies for asOfbuild: {asOfbuild.Id}");
         }
 
         public void UpdateArtifactDependency(string sourceBuildTypeId, string newSourceBuildTypeId, string revisionName, string revisionValue)
@@ -194,6 +204,8 @@ namespace TeamCityApi.Domain
             var revisionRuleElement = dependencyElement.SelectSingleNode("revisionRule");
             revisionRuleElement.Attributes["name"].Value = revisionName;
             revisionRuleElement.Attributes["revision"].Value = revisionValue;
+
+            _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Update artifact dependency. sourceBuildTypeId: {sourceBuildTypeId}, newSourceBuildTypeId: {newSourceBuildTypeId}, revisionName: {revisionName}, revisionValue: {revisionValue}");
         }
 
         public void FreezeParameters(IEnumerable<Property> sourceParameters)
@@ -208,7 +220,6 @@ namespace TeamCityApi.Domain
                     targetP.Attributes["name"].Value,
                     sourceParameters.Single(sourceP => sourceP.Name == targetP.Attributes["name"].Value).Value
                 );
-
             }
         }
     }

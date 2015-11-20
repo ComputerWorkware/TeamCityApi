@@ -58,7 +58,7 @@ namespace TeamCityApi.UseCases
             clonedBuildConfigXml.SetParameterValue(ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
             clonedBuildConfigXml.SetParameterValue(ParameterName.BranchName, branchName);
 
-            _buildConfigXmlClient.EndSetOfChanges();
+            _buildConfigXmlClient.Push();
         }
 
         private async Task EnsureUniqueSuffixProvided(Build sourceBuild, string newNameSuffix)
