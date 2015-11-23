@@ -249,7 +249,7 @@ namespace TeamCityApi.UseCases
 
             public override string ToString()
             {
-                return $"Swap dependencies on {_swapOn}: {_swapFrom} => {_swapTo}";
+                return $"Swap dependencies on {_swapOn.Value.BuildConfigId}: {_swapFrom} => {_swapTo}";
             }
 
         }
