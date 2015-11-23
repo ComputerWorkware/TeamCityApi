@@ -194,7 +194,10 @@ namespace TeamCityApi.Domain
             foreach (XmlElement dependencyElement in dependencyElements)
             {
                 var sourceBuildTypeId = dependencyElement.Attributes["sourceBuildTypeId"].Value;
-                var buildNumber = asOfbuild.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == sourceBuildTypeId).Number;
+                var buildDependencyByBuildConfigId = asOfbuild.ArtifactDependencies.FirstOrDefault(a => a.BuildTypeId == sourceBuildTypeId);
+                if (buildDependencyByBuildConfigId == null)
+                    throw new Exception($"Build #{asOfbuild.Number} (id: {asOfbuild.Id}) doesn't artifact contain dependency for {sourceBuildTypeId}. Found only following artifact dependencies: {Environment.NewLine + String.Join(Environment.NewLine, asOfbuild.ArtifactDependencies.Select(ad => ad.BuildTypeId))}");
+                var buildNumber = buildDependencyByBuildConfigId.Number;
                 UpdateArtifactDependency(sourceBuildTypeId, sourceBuildTypeId, "buildNumber", buildNumber);
             }
 
