@@ -126,7 +126,7 @@ namespace TeamCityApi.UseCases
 
         private IEnumerable<SwapDependencyCommand> GetSwapDependenciesCommands(IEnumerable<DependencyNode> clonedBuildConfigs)
         {
-            var swapDependencyCommands = new List<SwapDependencyCommand>();
+            var swapDependencyCommands = new HashSet<SwapDependencyCommand>();
             foreach (var buildConfigToClone in clonedBuildConfigs)
             {
                 var parentBuildConfigs = _dependencyChain.GetParents(buildConfigToClone.HistoricBuild.BuildTypeId);
@@ -252,6 +252,29 @@ namespace TeamCityApi.UseCases
                 return $"Swap dependencies on {_swapOn.Value.BuildConfigId}: {_swapFrom} => {_swapTo}";
             }
 
+            protected bool Equals(SwapDependencyCommand other)
+            {
+                return Equals(_swapOn.Value.BuildConfigId, other._swapOn.Value.BuildConfigId) && string.Equals(_swapTo, other._swapTo) && string.Equals(_swapFrom, other._swapFrom);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((SwapDependencyCommand) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = _swapOn?.Value.BuildConfigId.GetHashCode() ?? 0;
+                    hashCode = (hashCode*397) ^ (_swapTo?.GetHashCode() ?? 0);
+                    hashCode = (hashCode*397) ^ (_swapFrom?.GetHashCode() ?? 0);
+                    return hashCode;
+                }
+            }
         }
 
         private interface ICommand

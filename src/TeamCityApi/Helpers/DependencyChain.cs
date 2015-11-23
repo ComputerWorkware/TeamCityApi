@@ -139,8 +139,9 @@ namespace TeamCityApi.Helpers
                     dependencies = Nodes.Select(n => n.Value.ToString()).ToList();
                     break;
             }
-            dependencies.Sort();
-            return string.Join(Environment.NewLine, dependencies);
+            var distinctDependencies = dependencies.Distinct().ToList();
+            distinctDependencies.Sort();
+            return string.Join(Environment.NewLine, distinctDependencies);
         }
 
 
