@@ -15,6 +15,7 @@ namespace TeamCityApi.Domain
         string ProjectId { get; set; }
         IBuildConfigXml CopyBuildConfiguration(string newBuildConfigId, string newConfigurationName);
         void SetParameterValue(string name, string value);
+        void CreateSnapshotDependency(string sourceBuildTypeId);
         void CreateSnapshotDependency(CreateSnapshotDependency dependency);
         void CreateArtifactDependency(CreateArtifactDependency dependency);
         void DeleteSnapshotDependency(string dependencyBuildConfigId);
@@ -32,6 +33,7 @@ namespace TeamCityApi.Domain
         public XmlDocument Xml { get; set; }
         public string BuildConfigId { get; set; }
         public string ProjectId { get; set; }
+        private XmlElement SettingsElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings");
         private XmlElement BuildTypeElement => (XmlElement)Xml.SelectSingleNode("/build-type");
         private XmlElement ParametersElement => (XmlElement)Xml.SelectSingleNode("/build-type/settings/parameters");
         private XmlElement DependenciesElement
@@ -72,7 +74,7 @@ namespace TeamCityApi.Domain
             ProjectId = projectId;
         }
 
-        public IBuildConfigXml CopyBuildConfiguration(string newBuildConfigId, string newConfigurationName)
+        public virtual IBuildConfigXml CopyBuildConfiguration(string newBuildConfigId, string newConfigurationName)
         {
             Log.Trace($"XML CopyBuildConfiguration from {BuildConfigId} to {newBuildConfigId}");
 
@@ -94,13 +96,17 @@ namespace TeamCityApi.Domain
             return clonedBuildConfigXml;
         }
 
-        public void SetParameterValue(string name, string value)
+        public virtual void SetParameterValue(string name, string value)
         {
             Log.Trace($"XML SetParameterValue for: {BuildConfigId}, {name}: {value}");
             var paramElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings/parameters/param[@name='" + name + "']");
 
             if (paramElement == null)
             {
+                if (ParametersElement == null)
+                {
+                    SettingsElement.AppendChild(Xml.CreateElement("parameters"));
+                }
                 var newParamElement = (XmlElement)ParametersElement.AppendChild(Xml.CreateElement("param"));
                 newParamElement.SetAttribute("name", name);
                 newParamElement.SetAttribute("value", value);
@@ -113,7 +119,12 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Set Parameter {name} = {value}");
         }
 
-        public void CreateSnapshotDependency(CreateSnapshotDependency dependency)
+        public virtual void CreateSnapshotDependency(string sourceBuildTypeId)
+        {
+            CreateSnapshotDependency(new CreateSnapshotDependency(BuildConfigId, sourceBuildTypeId));
+        }
+
+        public virtual void CreateSnapshotDependency(CreateSnapshotDependency dependency)
         {
             Log.Debug($"XML CreateSnapshotDependency for: {dependency.TargetBuildConfigId}, to: {dependency.DependencyBuildConfigId}");
 
@@ -133,7 +144,7 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Create Snapshot Dependency to {dependency.DependencyBuildConfigId}");
         }
 
-        public void CreateArtifactDependency(CreateArtifactDependency dependency)
+        public virtual void CreateArtifactDependency(CreateArtifactDependency dependency)
         {
             Log.Debug($"XML CreateArtifactDependency for: {BuildConfigId}, to: {dependency.DependencyBuildConfigId}");
 
@@ -151,7 +162,7 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Create Artifact Dependency to {dependency.DependencyBuildConfigId}");
         }
 
-        public void DeleteSnapshotDependency(string dependencyBuildConfigId)
+        public virtual void DeleteSnapshotDependency(string dependencyBuildConfigId)
         {
             Log.Trace($"XML DeleteSnapshotDependency for: {BuildConfigId}, to: {dependencyBuildConfigId}");
 
@@ -167,14 +178,14 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Delete Snapshot Dependency to {dependencyBuildConfigId}");
         }
 
-        public void DeleteAllSnapshotDependencies()
+        public virtual void DeleteAllSnapshotDependencies()
         {
             Log.Debug($"XML DeleteAllSnapshotDependencies for: {BuildConfigId}");
             DependenciesElement.RemoveAll();
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Delete all snapshot dependencies");
         }
 
-        public void FreezeAllArtifactDependencies(Build asOfbuild)
+        public virtual void FreezeAllArtifactDependencies(Build asOfbuild)
         {
             Log.Debug($"XML FreezeAllArtifactDependencies for {BuildConfigId}, asOfbuild: {asOfbuild.Id}");
 
@@ -190,7 +201,7 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Freeze all artifact dependencies for asOfbuild: {asOfbuild.Id}");
         }
 
-        public void UpdateArtifactDependency(string sourceBuildTypeId, string newSourceBuildTypeId, string revisionName, string revisionValue)
+        public virtual void UpdateArtifactDependency(string sourceBuildTypeId, string newSourceBuildTypeId, string revisionName, string revisionValue)
         {
             Log.Trace($"XML UpdateArtifactDependency for: {BuildConfigId}, sourceBuildTypeId: {sourceBuildTypeId}, newSourceBuildTypeId: {newSourceBuildTypeId}, revisionName: {revisionName}, revisionValue: {revisionValue}");
 
@@ -208,7 +219,7 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Update artifact dependency. sourceBuildTypeId: {sourceBuildTypeId}, newSourceBuildTypeId: {newSourceBuildTypeId}, revisionName: {revisionName}, revisionValue: {revisionValue}");
         }
 
-        public void FreezeParameters(IEnumerable<Property> sourceParameters)
+        public virtual void FreezeParameters(IEnumerable<Property> sourceParameters)
         {
             Log.Trace($"XML FreezeParameters for {BuildConfigId}, to: {sourceParameters}");
 

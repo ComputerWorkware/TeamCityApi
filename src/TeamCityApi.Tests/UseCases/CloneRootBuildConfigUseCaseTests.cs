@@ -14,21 +14,21 @@ namespace TeamCityApi.Tests.UseCases
         [Theory]
         [AutoNSubstituteData]
         public void Should_clone_root_build_config(
-            int sourceBuildId, 
-            string newNameSuffix, 
-            ITeamCityClient client, 
-            IBuildConfigXmlClient buildConfigXmlClient, 
+            int sourceBuildId,
+            string newNameSuffix,
+            ITeamCityClient client,
+            IBuildConfigXmlClient buildConfigXmlClient,
             IFixture fixture,
             IVcsRootHelper vcsRootHelper)
         {
-            var scenario = new SingleBuildScenario(fixture, client, sourceBuildId);
+            var scenario = new SingleBuildScenario(fixture, client, buildConfigXmlClient, sourceBuildId);
 
             var sut = new CloneRootBuildConfigUseCase(client, buildConfigXmlClient, vcsRootHelper);
 
             sut.Execute(sourceBuildId, newNameSuffix, false).Wait();
 
-            buildConfigXmlClient.Received(1)
-                .ReadAsOf(scenario.BuildConfig.ProjectId, scenario.BuildConfig.Id, scenario.Build.StartDate);
+            scenario.BuildConfigXml.Received(1)
+                .CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
         }
     }
 }

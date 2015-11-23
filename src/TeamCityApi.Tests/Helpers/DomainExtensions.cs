@@ -53,27 +53,22 @@ namespace TeamCityApi.Tests.Helpers
             return composer.With(x => x.Id, id);
         }
 
+        public static IPostprocessComposer<BuildConfig> WithProjectId(
+           this IPostprocessComposer<BuildConfig> composer, string projectId)
+        {
+            return composer.With(x => x.ProjectId, projectId);
+        }
+
         public static IPostprocessComposer<BuildConfig> WithName(
            this IPostprocessComposer<BuildConfig> composer, string name)
         {
             return composer.With(x => x.Name, name);
         }
 
-        public static IPostprocessComposer<BuildConfig> WithBuildConfigChainIdParameter(
-           this IPostprocessComposer<BuildConfig> composer, string buildConfigChainId)
+        public static IPostprocessComposer<BuildConfig> WithParameters(
+           this IPostprocessComposer<BuildConfig> composer, Properties buildParameters)
         {
-            return composer.With(x => x.Parameters, new Properties()
-            {
-                Property = new PropertyList()
-                {
-                    new Property()
-                    {
-                        Name = ParameterName.BuildConfigChainId,
-                        Own = true,
-                        Value = buildConfigChainId
-                    }
-                }
-            });
+            return composer.With(x => x.Parameters, buildParameters);
         }
 
 

@@ -14,9 +14,9 @@ namespace TeamCityApi.Tests.Domain
     {
         [Theory]
         [AutoNSubstituteData]
-        public void Should_copy_xml_config(string newBuildTypeId, string newConfigurationName, IBuildConfigXmlClient buildConfigXmlClient)
+        public void Should_copy_xml_config(IBuildConfigXmlClient buildConfigXmlClient, string newBuildTypeId, string newConfigurationName)
         {
-            var original = new BuildConfigXmlGenerator(buildConfigXmlClient).Create();
+            var original = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true).Create();
 
             var clone = original.CopyBuildConfiguration(newBuildTypeId, newConfigurationName);
             var originalUuid = original.Xml.SelectSingleNode("/build-type").Attributes["uuid"].Value;
@@ -30,9 +30,9 @@ namespace TeamCityApi.Tests.Domain
 
         [Theory]
         [AutoNSubstituteData]
-        public void Should_add_parameter_value_when_does_not_exists(string paramName, string paramVal)
+        public void Should_add_parameter_value_when_does_not_exists(IBuildConfigXmlClient buildConfigXmlClient, string paramName, string paramVal)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator().Create();
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true).Create();
 
             buildConfigXml.SetParameterValue(paramName, paramVal);
 
@@ -41,9 +41,9 @@ namespace TeamCityApi.Tests.Domain
 
         [Theory]
         [AutoNSubstituteData]
-        public void Should_update_existing_parameter_value(string paramName, string paramVal)
+        public void Should_update_existing_parameter_value(IBuildConfigXmlClient buildConfigXmlClient, string paramName, string paramVal)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator()
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
                 .WithParameter(paramName, "abc")
                 .Create();
 
@@ -54,9 +54,9 @@ namespace TeamCityApi.Tests.Domain
 
         [Theory]
         [AutoNSubstituteData]
-        public void Should_create_snapshot_dependency(string dependencyBuildConfigId, bool takeStartedBuildWithSameRevisions, bool takeSuccessFulBuildsOnly)
+        public void Should_create_snapshot_dependency(IBuildConfigXmlClient buildConfigXmlClient, string dependencyBuildConfigId, bool takeStartedBuildWithSameRevisions, bool takeSuccessFulBuildsOnly)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator().Create();
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true).Create();
 
             var dependencyToCreate = new CreateSnapshotDependency(Arg.Any<string>(), dependencyBuildConfigId);
             dependencyToCreate.TakeStartedBuildWithSameRevisions = takeStartedBuildWithSameRevisions;
@@ -77,13 +77,14 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_create_artifact_dependency(
+            IBuildConfigXmlClient buildConfigXmlClient,
             string dependencyBuildConfigId,
             bool cleanDestination,
             string revisionName,
             string revisionValue,
             string pathRules)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator().Create();
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true).Create();
 
             var dependencyToCreate = new CreateArtifactDependency(Arg.Any<string>(), dependencyBuildConfigId);
             dependencyToCreate.CleanDestinationDirectory = cleanDestination;
@@ -108,10 +109,11 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_delete_snapshot_dependency(
+            IBuildConfigXmlClient buildConfigXmlClient,
             string buildConfigId,
             string dependencyBuildConfigId)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator()
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
                 .WithSnapshotDependency(new CreateSnapshotDependency(Arg.Any<string>(), dependencyBuildConfigId))
                 .Create();
 
@@ -125,10 +127,11 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_delete_all_snapshot_dependencies(
+            IBuildConfigXmlClient buildConfigXmlClient,
             string buildConfigId,
             string dependencyBuildConfigId)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator()
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
                 .WithSnapshotDependency(new CreateSnapshotDependency(Arg.Any<string>(), Arg.Any<string>()))
                 .WithSnapshotDependency(new CreateSnapshotDependency(Arg.Any<string>(), Arg.Any<string>()))
                 .Create();
@@ -143,6 +146,7 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_update_artifact_dependency(
+            IBuildConfigXmlClient buildConfigXmlClient,
             string dependencyBuildConfigId,
             CreateArtifactDependency before,
             string newSourceBuildConfigId,
@@ -151,7 +155,7 @@ namespace TeamCityApi.Tests.Domain
         {
             before.DependencyBuildConfigId = dependencyBuildConfigId;
 
-            var buildConfigXml = new BuildConfigXmlGenerator()
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
                 .WithArtifactDependency(before)
                 .Create();
 
@@ -167,6 +171,7 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_freeze_all_artifact_dependencies(
+            IBuildConfigXmlClient buildConfigXmlClient,
             string dependencyBuildConfigId,
             CreateArtifactDependency artifactDependency,
             Build asOfBuild)
@@ -174,7 +179,7 @@ namespace TeamCityApi.Tests.Domain
             artifactDependency.DependencyBuildConfigId = dependencyBuildConfigId;
             asOfBuild.ArtifactDependencies[0].BuildTypeId = dependencyBuildConfigId;
 
-            var buildConfigXml = new BuildConfigXmlGenerator()
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
                 .WithArtifactDependency(artifactDependency)
                 .Create();
 
@@ -190,9 +195,10 @@ namespace TeamCityApi.Tests.Domain
         [Theory]
         [AutoNSubstituteData]
         public void Should_freeze_parameters(
+            IBuildConfigXmlClient buildConfigXmlClient,
             List<Property> sourceParameters)
         {
-            var buildConfigXml = new BuildConfigXmlGenerator()
+            var buildConfigXml = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
                 .WithParameter(sourceParameters[0].Name, Arg.Any<string>())
                 .Create();
 

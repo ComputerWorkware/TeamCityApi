@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml;
+using NSubstitute;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 
@@ -15,10 +16,18 @@ namespace TeamCityApi.Tests.Helpers
         private XmlElement SettingsElement { get; set; }
         private XmlElement ParametersElement { get; set; }
 
-        public BuildConfigXmlGenerator(IBuildConfigXmlClient buildConfigXmlClient = null)
+        public BuildConfigXmlGenerator(IBuildConfigXmlClient buildConfigXmlClient = null, bool buildNonStubVersion = false)
         {
             _buildConfigXmlClient = buildConfigXmlClient;
-            BuildConfigXml = new BuildConfigXml(_buildConfigXmlClient, Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+
+            if (buildNonStubVersion)
+            {
+                BuildConfigXml = new BuildConfigXml(_buildConfigXmlClient, Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            }
+            else
+            {
+                BuildConfigXml = Substitute.For<BuildConfigXml>(_buildConfigXmlClient, Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+            }
 
             Xml.AppendChild(Xml.CreateXmlDeclaration("1.0", "UTF-8", null));
 
@@ -36,6 +45,18 @@ namespace TeamCityApi.Tests.Helpers
         public BuildConfigXmlGenerator WithName(string name)
         {
             NameElement.InnerText = name;
+            return this;
+        }
+
+        public BuildConfigXmlGenerator WithProjectId(string projectId)
+        {
+            BuildConfigXml.ProjectId = projectId;
+            return this;
+        }
+
+        public BuildConfigXmlGenerator WithId(string buildConfigId)
+        {
+            BuildConfigXml.BuildConfigId = buildConfigId;
             return this;
         }
 
@@ -61,7 +82,29 @@ namespace TeamCityApi.Tests.Helpers
             return this;
         }
 
-        public IBuildConfigXml Create()
+        public BuildConfigXmlGenerator WithParameters(Properties buildParameters)
+        {
+            foreach (var property in buildParameters.Property)
+            {
+                BuildConfigXml.SetParameterValue(property.Name, property.Value);
+            }
+
+            return this;
+        }
+
+        public BuildConfigXmlGenerator WithDependencies(DependencyDefinition[] dependencyDefinitions)
+        {
+            foreach (var dependencyDefinition in dependencyDefinitions)
+            {
+                var createArtifactDependency = new CreateArtifactDependency(BuildConfigXml.BuildConfigId, dependencyDefinition.SourceBuildConfig.Id);
+
+                BuildConfigXml.CreateArtifactDependency(createArtifactDependency);
+            }
+
+            return this;
+        }
+
+        public BuildConfigXml Create()
         {
             return BuildConfigXml;
         }

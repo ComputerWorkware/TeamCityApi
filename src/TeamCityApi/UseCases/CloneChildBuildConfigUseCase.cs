@@ -202,7 +202,7 @@ namespace TeamCityApi.UseCases
 
             swapOnBuildConfigXml.UpdateArtifactDependency(swapFrom, swapTo, "sameChainOrLastFinished", "latest.sameChainOrLastFinished");
 
-            swapOnBuildConfigXml.CreateSnapshotDependency(new CreateSnapshotDependency(swapOnBuildConfigXml.BuildConfigId, swapTo));
+            swapOnBuildConfigXml.CreateSnapshotDependency(swapTo);
         }
 
         private class CloneBuildConfigCommand : ICommand

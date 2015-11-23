@@ -19,26 +19,23 @@ namespace TeamCityApi.Tests.UseCases
             IBuildConfigXmlClient buildConfigXmlClient,
             IFixture fixture)
         {
-            var scenario = new ChainWithRootClonedScenario(fixture, client);
+            var scenario = new ChainWithRootClonedScenario(fixture, client, buildConfigXmlClient);
             var sut = new CloneChildBuildConfigUseCase(client, vcsRootHelper, buildConfigXmlClient);
 
             sut.Execute(scenario.ComponentA.BuildConfig.Id, scenario.SuiteCloned.BuildConfig.Id, simulate:false).Wait();
-            
-            client.BuildConfigs.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.AppA.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.InstallerA.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.DidNotReceive().CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.SuiteCloned.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.DidNotReceive().CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.Suite.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.InstallerB.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.AppB.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.ComponentA.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.ComponentB.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
-            client.BuildConfigs.DidNotReceive().CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>(), scenario.ComponentC.BuildConfig.Id, Arg.Any<bool>(), Arg.Any<bool>());
+
+            scenario.AppA.BuildConfigXml.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.InstallerA.BuildConfigXml.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.SuiteCloned.BuildConfigXml.DidNotReceive().CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.Suite.BuildConfigXml.DidNotReceive().CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.InstallerB.BuildConfigXml.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.AppB.BuildConfigXml.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.ComponentA.BuildConfigXml.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.ComponentB.BuildConfigXml.Received(1).CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
+            scenario.ComponentC.BuildConfigXml.DidNotReceive().CopyBuildConfiguration(Arg.Any<string>(), Arg.Any<string>());
 
             //todo: received call(s) to update artifact dependency
             //todo: received call(s) to create snapshot dependency
-
-
-
         }
     }
 }

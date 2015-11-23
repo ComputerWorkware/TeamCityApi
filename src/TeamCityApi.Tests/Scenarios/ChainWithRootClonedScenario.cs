@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using NSubstitute;
 using Ploeh.AutoFixture;
+using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Tests.Helpers;
 
@@ -9,7 +10,7 @@ namespace TeamCityApi.Tests.Scenarios
 {
     public class ChainWithRootClonedScenario
     {
-        //                                            Suite Cloned
+        //                                                  Suite Cloned
         // Component A ──────────── App A ── Installer A ── Suite
         //  └───── Component B ──── App B ── Installer B ────┘
         // Component C───┘
@@ -25,10 +26,10 @@ namespace TeamCityApi.Tests.Scenarios
         public SingleBuildScenario ComponentC { get; set; }
         
 
-        public ChainWithRootClonedScenario(IFixture fixture, ITeamCityClient client)
+        public ChainWithRootClonedScenario(IFixture fixture, ITeamCityClient client, IBuildConfigXmlClient buildConfigXmlClient)
         {
-            ComponentA = new SingleBuildScenario(fixture, client, 311, "ComponentA_Trunk", "ComponentA", new List<DependencyDefinition>());
-            ComponentB = new SingleBuildScenario(fixture, client, 310, "ComponentB_Trunk", "ComponentB", 
+            ComponentA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 311, "ComponentA_Trunk", "ComponentA", new List<DependencyDefinition>());
+            ComponentB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 310, "ComponentB_Trunk", "ComponentB",
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactSameChain(ComponentA.BuildConfig)
@@ -38,9 +39,9 @@ namespace TeamCityApi.Tests.Scenarios
                     BuildDependencyGenerator.Artifact(ComponentA.Build)
                 }
             );
-            ComponentC = new SingleBuildScenario(fixture, client, 309, "ComponentC_Trunk", "ComponentC", new List<DependencyDefinition>());
-            
-            AppA = new SingleBuildScenario(fixture, client, 313, "AppA_Trunk", "AppA", 
+            ComponentC = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 309, "ComponentC_Trunk", "ComponentC", new List<DependencyDefinition>());
+
+            AppA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 313, "AppA_Trunk", "AppA", 
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactSameChain(ComponentA.BuildConfig)
@@ -50,7 +51,7 @@ namespace TeamCityApi.Tests.Scenarios
                     BuildDependencyGenerator.Artifact(ComponentA.Build)
                 }
             );
-            AppB = new SingleBuildScenario(fixture, client, 312, "AppB_Trunk", "AppB", 
+            AppB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 312, "AppB_Trunk", "AppB", 
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactSameChain(ComponentB.BuildConfig),
@@ -63,7 +64,7 @@ namespace TeamCityApi.Tests.Scenarios
                 }
             );
 
-            InstallerA = new SingleBuildScenario(fixture, client, 315, "InstallerA_Trunk", "InstallerA", 
+            InstallerA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 315, "InstallerA_Trunk", "InstallerA", 
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactSameChain(AppA.BuildConfig),
@@ -73,7 +74,7 @@ namespace TeamCityApi.Tests.Scenarios
                     BuildDependencyGenerator.Artifact(AppA.Build)
                 }
             );
-            InstallerB = new SingleBuildScenario(fixture, client, 314, "InstallerB_Trunk", "InstallerB", 
+            InstallerB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 314, "InstallerB_Trunk", "InstallerB", 
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactSameChain(AppB.BuildConfig),
@@ -84,7 +85,7 @@ namespace TeamCityApi.Tests.Scenarios
                 }
             );
 
-            Suite = new SingleBuildScenario(fixture, client, 316, "Suite_Trunk", "Suite", 
+            Suite = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 316, "Suite_Trunk", "Suite", 
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactSameChain(InstallerA.BuildConfig),
@@ -96,7 +97,7 @@ namespace TeamCityApi.Tests.Scenarios
                     BuildDependencyGenerator.Artifact(InstallerB.Build)
                 }
             );
-            SuiteCloned = new SingleBuildScenario(fixture, client, 400, "Suite_TrunkCloned", "SuiteCloned", 
+            SuiteCloned = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 400, "Suite_TrunkCloned", "SuiteCloned", 
                 new List<DependencyDefinition>
                 {
                     BuildConfigDependencyGenerator.ArtifactFixedBuild(InstallerA.Build),
@@ -107,7 +108,13 @@ namespace TeamCityApi.Tests.Scenarios
                     BuildDependencyGenerator.Artifact(InstallerA.Build),
                     BuildDependencyGenerator.Artifact(InstallerB.Build)
                 },
-                fixture.Create<string>()
+                new Properties() {
+                    Property = new PropertyList()
+                    {
+                        new Property(ParameterName.BuildConfigChainId, fixture.Create<string>()),
+                        new Property(ParameterName.CloneNameSuffix, "Clone")
+                    }
+                }
             );
 
             client.Builds
