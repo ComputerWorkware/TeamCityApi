@@ -238,7 +238,8 @@ namespace TeamCityApi.Helpers.Git
 
                 try
                 {
-                    repo.Commit(message);
+                    var committer = new Signature("TeamCityConsole", "tcc@cwi", DateTimeOffset.Now);
+                    repo.Commit(message, committer, committer);
                 }
                 catch (EmptyCommitException)
                 {
