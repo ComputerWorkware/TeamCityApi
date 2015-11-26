@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using TeamCityApi.Clients;
 using TeamCityApi.Helpers;
@@ -14,6 +15,7 @@ namespace TeamCityApi.Domain
         string BuildConfigId { get; set; }
         string ProjectId { get; set; }
         IBuildConfigXml CopyBuildConfiguration(string newBuildConfigId, string newConfigurationName);
+        void SwitchTemplateAndRepoToCurrentState(BuildConfig currentBuildConfig);
         void SetParameterValue(string name, string value);
         void CreateSnapshotDependency(string sourceBuildTypeId);
         void CreateSnapshotDependency(CreateSnapshotDependency dependency);
@@ -94,6 +96,33 @@ namespace TeamCityApi.Domain
             _buildConfigXmlClient.Commit(clonedBuildConfigXml, $"TCC {newBuildConfigId} Copy Build Config from {BuildConfigId} ");
 
             return clonedBuildConfigXml;
+        }
+
+        /// <summary>
+        /// Ensure that cloned Build Config uses template used by current version of Build Config
+        /// Because old templates might use VCS root, which is not available anymore
+        /// </summary>
+        /// <param name="currentBuildConfig"></param>
+        public virtual void SwitchTemplateAndRepoToCurrentState(BuildConfig currentBuildConfig)
+        {
+            var settingsElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings");
+            var oldTemplateId = settingsElement.Attributes["ref"].Value;
+
+            var newTemplateId = currentBuildConfig.Template.Id;
+
+            if (oldTemplateId != newTemplateId)
+            {
+                Log.Warn($"XML Switch template on {BuildConfigId} from {oldTemplateId} to {newTemplateId}");
+
+                settingsElement.SetAttribute("ref", currentBuildConfig.Template.Id);
+                _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Switch template from {oldTemplateId} to {newTemplateId}");
+
+                var currentGitRepoPathParameter = currentBuildConfig.Parameters[ParameterName.GitRepoPath];
+                if (currentGitRepoPathParameter != null)
+                {
+                    SetParameterValue(ParameterName.GitRepoPath, currentBuildConfig.Parameters[ParameterName.GitRepoPath].Value);
+                }
+            }
         }
 
         public virtual void SetParameterValue(string name, string value)

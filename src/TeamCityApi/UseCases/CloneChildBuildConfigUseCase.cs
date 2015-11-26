@@ -174,6 +174,7 @@ namespace TeamCityApi.UseCases
         public IBuildConfigXml CloneBuildConfig(Build sourceBuild)
         {
             //Log.DebugFormat("CopyBuildConfigurationFromBuild(sourceBuild: {0}, previouslyClonedBuildConfig: {1}, previouslyClonedFromBuildConfigId: {1})", sourceBuild, previouslyClonedBuildConfig, previouslyClonedFromBuildConfigId);
+            var originalCurrentBuildConfig = _client.BuildConfigs.GetByConfigurationId(sourceBuild.BuildConfig.Id).Result;
 
             var newName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, _newNameSuffix);
             var newBuildConfigId = _client.BuildConfigs.GenerateUniqueBuildConfigId(sourceBuild.BuildConfig.ProjectId, newName).Result;
@@ -190,6 +191,7 @@ namespace TeamCityApi.UseCases
             clonedBuildConfigXml.SetParameterValue(ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
             clonedBuildConfigXml.SetParameterValue(ParameterName.BuildConfigChainId, _targetBuildChainId);
             clonedBuildConfigXml.SetParameterValue(ParameterName.BranchName, _newBranchName);
+            clonedBuildConfigXml.SwitchTemplateAndRepoToCurrentState(originalCurrentBuildConfig);
 
             return clonedBuildConfigXml;
         }

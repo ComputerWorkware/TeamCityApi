@@ -37,6 +37,7 @@
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Clients\BuildConfigXmlClient.cs" />
+    <Compile Include="Clients\VcsRootInstanceClient.cs" />
     <Compile Include="Clients\VcsRootClient.cs" />
     <Compile Include="Consts.cs" />
     <Compile Include="Clients\BuildClient.cs" />
@@ -72,6 +73,8 @@
     <Compile Include="Domain\Trigger.cs" />
     <Compile Include="Domain\VcsCommit.cs" />
     <Compile Include="Domain\VcsRoot.cs" />
+    <Compile Include="Domain\VcsRootEntries.cs" />
+    <Compile Include="Domain\VcsRootEntry.cs" />
     <Compile Include="Domain\VcsRootInstance.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Helpers\DependencyChain.cs" />

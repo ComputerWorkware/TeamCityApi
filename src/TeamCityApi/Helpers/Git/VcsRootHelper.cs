@@ -31,19 +31,22 @@ namespace TeamCityApi.Helpers.Git
             Log.Info(string.Format("Get Commit Information for Build: {0}",buildId));
             Build build = await _client.Builds.ById(buildId);
 
+            BuildConfig currentBuildConfig = await _client.BuildConfigs.GetByConfigurationId(build.BuildConfig.Id);
+
             Log.Debug("Build Loaded from TeamCity");
 
             string commitSha = build.Revisions.First().Version;
 
             Log.Debug(string.Format("Commit SHA from first Revision: {0}",commitSha));
 
-            VcsRootInstance vcsRootInstance = build.Revisions.First().VcsRootInstance;
+            //use VCS Root from the current state of Build Config, instead of the old version, as it could have been moved to a different repository
+            var vcsRootId = currentBuildConfig.VcsRootEntries.VcsRootEntry.First().VcsRoot.Id;
 
-            Log.Debug(string.Format("Get VCSRoot by Id: {0}", vcsRootInstance.Id));
-            VcsRoot vcsRoot = await _client.VcsRoots.ById(vcsRootInstance.Id.ToString());
+            Log.Debug(string.Format("Get VCSRoot by Id: {0}", vcsRootId));
+            VcsRoot vcsRoot = await _client.VcsRoots.ById(vcsRootId);
 
             Log.Debug(string.Format("VCSRoot: {0}",vcsRoot));
-            VcsCommit commit = new VcsCommit(vcsRoot, commitSha);
+            VcsCommit commit = new VcsCommit(vcsRoot, build.Properties.Property, commitSha);
 
             return commit;
 

@@ -18,7 +18,7 @@ namespace TeamCityApi.Clients
 
         public async Task<VcsRoot> ById(string id)
         {
-            string requestUri = string.Format("/app/rest/vcs-root-instances/id:{0}", id);
+            string requestUri = string.Format("/app/rest/vcs-roots/id:{0}", id);
 
             return await _http.Get<VcsRoot>(requestUri);
         }

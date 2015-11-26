@@ -60,6 +60,13 @@ namespace TeamCityApi.Tests.Helpers
             return this;
         }
 
+        public BuildConfigXmlGenerator WithTemplateId(string templateId)
+        {
+            SettingsElement = (XmlElement)BuildTypeElement.AppendChild(Xml.CreateElement("settings"));
+            SettingsElement.SetAttribute("ref", templateId);
+            return this;
+        }
+
         public BuildConfigXmlGenerator WithParameter(string name, string value)
         {
             var paramElement = (XmlElement)ParametersElement.AppendChild(Xml.CreateElement("param"));

@@ -44,6 +44,8 @@ namespace TeamCityApi.UseCases
 
         private async Task CopyBuildConfigurationFromBuild(Build sourceBuild, string newNameSuffix, string branchName)
         {
+            var originalCurrentBuildConfig = _client.BuildConfigs.GetByConfigurationId(sourceBuild.BuildConfig.Id).Result;
+
             var newName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix);
             var newBuildConfigId = await _client.BuildConfigs.GenerateUniqueBuildConfigId(sourceBuild.BuildConfig.ProjectId, newName);
 
@@ -57,6 +59,7 @@ namespace TeamCityApi.UseCases
             clonedBuildConfigXml.SetParameterValue(ParameterName.ClonedFromBuildId, sourceBuild.Id.ToString());
             clonedBuildConfigXml.SetParameterValue(ParameterName.BuildConfigChainId, Guid.NewGuid().ToString());
             clonedBuildConfigXml.SetParameterValue(ParameterName.BranchName, branchName);
+            clonedBuildConfigXml.SwitchTemplateAndRepoToCurrentState(originalCurrentBuildConfig);
 
             _buildConfigXmlClient.Push();
         }

@@ -19,6 +19,7 @@ namespace TeamCityApi
         private readonly Lazy<IBuildConfigClient> _buildConfigClient;
         private readonly Lazy<IProjectClient> _projectsClient;
         private readonly Lazy<IVcsRootClient> _vcsRootClient;
+        private readonly Lazy<IVcsRootInstanceClient> _vcsRootInstanceClient;
 
         public IBuildClient Builds
         {
@@ -40,6 +41,11 @@ namespace TeamCityApi
             get { return _vcsRootClient.Value; }
         }
 
+        public IVcsRootInstanceClient VcsRootInstances
+        {
+            get { return _vcsRootInstanceClient.Value; }
+        }
+
         public TeamCityClient(string hostname, string username, string password) : this(new HttpClientWrapper(hostname, username, password))
         {
             
@@ -52,6 +58,7 @@ namespace TeamCityApi
             _buildConfigClient = new Lazy<IBuildConfigClient>(() => new BuildConfigClient(_http));
             _projectsClient = new Lazy<IProjectClient>(() => new ProjectClient(_http));
             _vcsRootClient = new Lazy<IVcsRootClient>(() => new VcsRootClient(_http));
+            _vcsRootInstanceClient = new Lazy<IVcsRootInstanceClient>(() => new VcsRootInstanceClient(_http));
         }
     }
 }

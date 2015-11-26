@@ -71,6 +71,12 @@ namespace TeamCityApi.Tests.Helpers
             return composer.With(x => x.Parameters, buildParameters);
         }
 
+        public static IPostprocessComposer<BuildConfig> WithTemplate(
+           this IPostprocessComposer<BuildConfig> composer, TemplateSummary template)
+        {
+            return composer.With(x => x.Template, template);
+        }
+
 
         public static IPostprocessComposer<Project> WithId(
            this IPostprocessComposer<Project> composer, string id)

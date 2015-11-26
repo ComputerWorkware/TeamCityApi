@@ -38,7 +38,9 @@ namespace TeamCityApi.Domain
         [JsonProperty("parameters")]
         public Properties Parameters { get; set; }
 
-        //TODO: vcs-root-entries
+        [JsonProperty("vcs-root-entries")]
+        public VcsRootEntries VcsRootEntries { get; set; }
+
         //TODO: features
         //TODO: agent-requirements
         //TODO: builds

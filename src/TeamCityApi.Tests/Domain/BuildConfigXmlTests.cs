@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using NSubstitute;
+using Ploeh.AutoFixture;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Tests.Helpers;
@@ -26,6 +29,35 @@ namespace TeamCityApi.Tests.Domain
             Assert.Equal(newBuildTypeId, clone.BuildConfigId);
             Assert.Equal(original.ProjectId, clone.ProjectId);
             Assert.Equal(newConfigurationName, clone.Xml.SelectSingleNode("/build-type/name").InnerText);
+        }
+
+        [Theory]
+        [AutoNSubstituteData]
+        public void Should_update_template_and_git_repo_to_current_state(
+            IBuildConfigXmlClient buildConfigXmlClient,
+            IBuildConfigClient buildConfigClient,
+            IFixture fixture,
+            string buildConfigId,
+            string currentRepoPath)
+        {
+            var oldVersion = new BuildConfigXmlGenerator(buildConfigXmlClient, buildNonStubVersion: true)
+                .WithId(buildConfigId)
+                .WithTemplateId("CPlusPlusTemplate_v1")
+                .Create();
+
+            var currentVersion = fixture.Build<BuildConfig>()
+                .WithId(buildConfigId)
+                .WithParameters(new Properties { Property = new PropertyList()
+                {
+                    new Property(ParameterName.GitRepoPath, currentRepoPath),
+                }})
+                .WithTemplate(new TemplateSummary() {Id = "BaseTemplateV5GitLab" })
+                .Create();
+
+            oldVersion.SwitchTemplateAndRepoToCurrentState(currentVersion);
+
+            Assert.Equal("BaseTemplateV5GitLab", oldVersion.Xml.SelectSingleNode("/build-type/settings").Attributes["ref"].Value);
+            Assert.Equal(currentRepoPath, oldVersion.Xml.SelectSingleNode("/build-type/settings/parameters/param[@name='" + ParameterName.GitRepoPath + "']").Attributes["value"].Value);
         }
 
         [Theory]

@@ -16,7 +16,14 @@ namespace TeamCityApi.Domain
         public GitAuthenticationType AuthenticationType { get; set; }
         public string VcsRootId { get; set; }
 
-        public VcsCommit(VcsRoot vcsRoot, string commitHash)
+        /// <summary>
+        /// Encapsulate Repo location, Branch and Commit.
+        /// Since VcsRoot contains parameter placeholders, build parameters needed to generate end values
+        /// </summary>
+        /// <param name="vcsRoot"></param>
+        /// <param name="parameters"></param>
+        /// <param name="commitHash"></param>
+        public VcsCommit(VcsRoot vcsRoot, PropertyList parameters, string commitHash)
         {
             CommitSha = commitHash;
             AuthenticationType = GitAuthenticationType.Http;
@@ -25,7 +32,7 @@ namespace TeamCityApi.Domain
             Property property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "url");
             if (property != null)
             {
-                RepositoryLocation = property.Value;
+                RepositoryLocation = parameters.ReplaceInString(property.Value);
             }
 
             property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "authMethod");
@@ -37,7 +44,7 @@ namespace TeamCityApi.Domain
             property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "branch");
             if (property != null)
             {
-                BranchName = property.Value;
+                BranchName = parameters.ReplaceInString(property.Value);
             }
 
         }
