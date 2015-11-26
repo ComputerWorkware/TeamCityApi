@@ -19,7 +19,7 @@ namespace TeamCityApi.Helpers.Git
 
         public override void Push(string branchName)
         {
-            Log.Debug("Pushing Branch {branchName} using HTTP Authentication");
+            Log.Debug($"Pushing Branch {branchName} using HTTP Authentication");
             try
             {
                 PushOptions options = new PushOptions()
