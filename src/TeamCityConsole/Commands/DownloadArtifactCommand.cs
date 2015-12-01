@@ -31,7 +31,7 @@ namespace TeamCityConsole.Commands
         {
             var artifactOptions = options as GetArtifactOptions;
 
-            Log.Info("Getting artifacts for: {0}, {1}", artifactOptions.BuildConfigId, string.IsNullOrEmpty(artifactOptions.Tag) ? "not by tag" : "by \"" + artifactOptions.Tag + "\" tag");
+            Log.Info("Getting artifacts for: {0}{1}", artifactOptions.BuildConfigId, string.IsNullOrEmpty(artifactOptions.Tag) ? "" : ", by \"" + artifactOptions.Tag + "\" tag");
 
             Settings settings = new Settings();
             settings.Load();
