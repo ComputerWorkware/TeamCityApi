@@ -56,7 +56,14 @@ namespace TeamCityApi.Clients
             if (!Simulate)
                 Log.Trace($"Read root project: {rootProject}");
 
-            return rootProject.Properties[ParameterName.VersionedSettingGitRepo].Value;
+            var versionedSettingGitRepo = rootProject.Properties[ParameterName.VersionedSettingGitRepo].Value;
+
+            if (String.IsNullOrEmpty(versionedSettingGitRepo))
+            {
+                throw new Exception($"Required {ParameterName.VersionedSettingGitRepo} parameter was not found on root project.");
+            }
+
+            return versionedSettingGitRepo;
         }
 
         public void IncludeInEndSetOfChanges(IBuildConfigXml buildConfigXml)
