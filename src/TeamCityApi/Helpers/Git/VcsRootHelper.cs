@@ -46,7 +46,7 @@ namespace TeamCityApi.Helpers.Git
             VcsRoot vcsRoot = await _client.VcsRoots.ById(vcsRootId);
 
             Log.Debug(string.Format("VCSRoot: {0}",vcsRoot));
-            VcsCommit commit = new VcsCommit(vcsRoot, build.Properties.Property, commitSha);
+            VcsCommit commit = new VcsCommit(vcsRoot, currentBuildConfig.Parameters.Property, commitSha);
 
             return commit;
 
