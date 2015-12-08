@@ -253,15 +253,15 @@ namespace TeamCityApi.Domain
 
         public virtual void FreezeParameters(IEnumerable<Property> sourceParameters)
         {
-            Log.Trace($"XML FreezeParameters for {BuildConfigId}, to: {sourceParameters}");
+            Log.Trace($"XML FreezeParameters for {BuildConfigId}, to: {string.Join(", ", sourceParameters.Select(p => $"{p.Name}:{p.Value}"))}");
 
             var paramElements = ParametersElement.SelectNodes("param");
 
-            foreach (XmlElement targetP in paramElements)
+            foreach (var sourceP in sourceParameters)
             {
                 SetParameterValue(
-                    targetP.Attributes["name"].Value,
-                    sourceParameters.Single(sourceP => sourceP.Name == targetP.Attributes["name"].Value).Value
+                    sourceP.Name,
+                    sourceP.Value
                 );
             }
         }
