@@ -14,6 +14,7 @@ namespace TeamCityApi.Clients
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
         Task<List<File>> GetFiles(long buildId);
         Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag = null);
+        Task<Properties> GetResultingProperties(long id);
     }
 
     public class BuildClient : IBuildClient
@@ -97,6 +98,11 @@ namespace TeamCityApi.Clients
             Build build = await buildSummary.GetDetails();
 
             return build;
+        }
+
+        public async Task<Properties> GetResultingProperties(long id)
+        {
+            return await _http.Get<Properties>($"/app/rest/builds/id:{id}/resulting-properties");
         }
     }
 }

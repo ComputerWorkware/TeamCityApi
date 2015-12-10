@@ -30,6 +30,14 @@ namespace TeamCityApi.TestsIntegration
         }
 
         [Fact]
+        public void Build_GetResultingProperties()
+        {
+            var buildClient = CreateBuildClient();
+
+            var properties = buildClient.GetResultingProperties(456).Result;
+        }
+
+        [Fact]
         public void Build_Artifacts()
         {
             var buildClient = CreateBuildClient();
