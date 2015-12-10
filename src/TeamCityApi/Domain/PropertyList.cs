@@ -29,8 +29,33 @@ namespace TeamCityApi.Domain
         public string ReplaceInString(string tokenizedString)
         {
             var re = new Regex(@"\%([\w\.]+)\%", RegexOptions.Compiled);
+            var resolvedValuesHavePlaceholders = false;
 
-            return re.Replace(tokenizedString, match => this[match.Groups[1].Value].Value);
+            var replaced = re.Replace(tokenizedString,
+                match =>
+                {
+                    var resolvedValue = this[match.Groups[1].Value].Value;
+                    if (!string.IsNullOrEmpty(resolvedValue))
+                    {
+                        if (resolvedValue.Contains("%"))
+                        {
+                            resolvedValuesHavePlaceholders = true;
+                        }
+                        return resolvedValue;
+                    }
+                    else
+                    {
+                        //if could not resolve a placeholder then do not replace it.
+                        return match.Value;
+                    }
+                });
+
+            if (resolvedValuesHavePlaceholders)
+            {
+                replaced = ReplaceInString(replaced);
+            }
+
+            return replaced;
         }
     }
 }

@@ -10,5 +10,7 @@
 
         public const string VersionedSettingGitRepo = "VersionedSettingGitRepo";
 
+        public const string SystemTeamcityProjectName = "system.teamcity.projectName";
+
     }
 }

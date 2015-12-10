@@ -46,6 +46,13 @@ namespace TeamCityApi.Helpers.Git
             VcsRoot vcsRoot = await _client.VcsRoots.ById(vcsRootId);
 
             Log.Debug(string.Format("VCSRoot: {0}",vcsRoot));
+            //build configs don't have resolved system parameters, so manually inject it as a workaround.
+            //Another way to get resolved system parameters is to use ResultingProperties API call for the latest build of the config
+            currentBuildConfig.Parameters.Property.Add(new Property
+            {
+                Name = ParameterName.SystemTeamcityProjectName,
+                Value = currentBuildConfig.Project.Name
+            });
             VcsCommit commit = new VcsCommit(vcsRoot, currentBuildConfig.Parameters.Property, commitSha);
 
             return commit;
