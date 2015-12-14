@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NLog;
 using TeamCityApi;
 using TeamCityApi.Domain;
+using TeamCityConsole.Logging;
 using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
 
@@ -11,7 +12,7 @@ namespace TeamCityConsole.Commands
 {
     class UpdateCommand : ICommand
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         private readonly ITeamCityClient _client;
 
@@ -44,7 +45,7 @@ namespace TeamCityConsole.Commands
                 return;
             }
 
-            Log.Info("Preparing to update version {0} to {1}.", _assemblyMetada.FileVersion, build.Number);
+            Log.InfoFormat("Preparing to update version {0} to {1}.", _assemblyMetada.FileVersion, build.Number);
 
             string exePath = _assemblyMetada.Location;
 

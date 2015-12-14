@@ -5,7 +5,7 @@ namespace TeamCityConsole.Model
 {
     public class BuildInfo
     {
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string Number { get; set; }
         public string BuildConfigId { get; set; }
         public string CommitHash { get; set; }
@@ -43,7 +43,7 @@ namespace TeamCityConsole.Model
         {
             unchecked
             {
-                int hashCode = (Id != null ? Id.GetHashCode() : 0);
+                int hashCode = Id.GetHashCode();
                 hashCode = (hashCode*397) ^ (Number != null ? Number.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (BuildConfigId != null ? BuildConfigId.GetHashCode() : 0);
                 hashCode = (hashCode*397) ^ (CommitHash != null ? CommitHash.GetHashCode() : 0);

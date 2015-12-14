@@ -13,9 +13,6 @@
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>d02ceb21</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -79,7 +76,13 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="Commands\CloneChildBuildConfigCommand.cs" />
+    <Compile Include="Commands\CloneRootBuildConfigCommand.cs" />
+    <Compile Include="Commands\CompareBuildsCommand.cs" />
+    <Compile Include="Commands\DeleteClonedBuildChainCommand.cs" />
     <Compile Include="Commands\SetConfigCommand.cs" />
+    <Compile Include="Commands\ShowBuildChainCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
     <Compile Include="DownloadDataFlow.cs" />
     <Compile Include="Model\BuildInfo.cs" />
@@ -88,10 +91,15 @@
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\ResolveDependencyCommand.cs" />
     <Compile Include="ModuleInitializer.cs" />
+    <Compile Include="Options\CloneRootBuildConfigOptions.cs" />
+    <Compile Include="Options\CloneChildBuildConfigOptions.cs" />
+    <Compile Include="Options\CompareBuildsOptions.cs" />
+    <Compile Include="Options\DeleteClonedBuildChainOptions.cs" />
     <Compile Include="Options\GetArtifactOptions.cs" />
     <Compile Include="Options\GetDependenciesOptions.cs" />
     <Compile Include="Options\SelfUpdateOptions.cs" />
     <Compile Include="Options\SetConfigOptions.cs" />
+    <Compile Include="Options\ShowBuildChainOptions.cs" />
     <Compile Include="Options\Verbs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -155,15 +163,8 @@
       <Link>extract\git2-e0902fb.dll</Link>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\packages\LibGit2Sharp.0.21.0.176\build\net40\LibGit2Sharp.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\LibGit2Sharp.0.21.0.176\build\net40\LibGit2Sharp.props'))" />
-  </Target>
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.4\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>

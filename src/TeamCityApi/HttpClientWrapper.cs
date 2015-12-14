@@ -19,6 +19,8 @@ namespace TeamCityApi
         Task<Stream> GetStream(string url, params object[] args);
         Task<string> GetString(string url, params object[] args);
         Task PostXml(string url, string xml);
+        Task<T> PostXml<T>(string url, string xml);
+        Task PutJson(string url, string data);
         Task Delete(string url);
     }
 
@@ -35,7 +37,7 @@ namespace TeamCityApi
         {
             string requestUri = string.Format(url, args);
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
 
             VerifyResponse(response, requestUri);
 
@@ -48,7 +50,7 @@ namespace TeamCityApi
         {
             string requestUri = string.Format(url, args);
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
 
             VerifyResponse(response, requestUri);
 
@@ -59,7 +61,7 @@ namespace TeamCityApi
         {
             string requestUri = string.Format(url, args);
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUri);
+            HttpResponseMessage response = await _httpClient.GetAsync(requestUri).ConfigureAwait(false);
 
             VerifyResponse(response, requestUri);
 
@@ -69,9 +71,29 @@ namespace TeamCityApi
         public async Task PostXml(string url, string xml)
         {
             var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
-            var httpResponseMessage = await _httpClient.PostAsync(url, stringContent);
+            var response = await _httpClient.PostAsync(url, stringContent).ConfigureAwait(false);
 
-            VerifyResponse(httpResponseMessage, url);
+            VerifyResponse(response, url);
+        }
+
+        public async Task<T> PostXml<T>(string url, string xml)
+        {
+            var stringContent = new StringContent(xml, Encoding.UTF8, "application/xml");
+            var response = await _httpClient.PostAsync(url, stringContent).ConfigureAwait(false);
+
+            VerifyResponse(response, url);
+
+            string json = await response.Content.ReadAsStringAsync();
+
+            return Json.Deserialize<T>(json);
+        }
+
+        public async Task PutJson(string url, string data)
+        {
+            var stringContent = new StringContent(data, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync(url, stringContent).ConfigureAwait(false);
+
+            VerifyResponse(response, url);
         }
 
         public async Task Delete(string url)
@@ -102,7 +124,7 @@ namespace TeamCityApi
         {
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                throw new Exception("Resource not found: " + requestUri);
+                throw new ResourceNotFoundException("Resource not found: " + requestUri);
             }
 
             response.EnsureSuccessStatusCode();

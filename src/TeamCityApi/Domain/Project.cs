@@ -16,7 +16,8 @@ namespace TeamCityApi.Domain
         [JsonProperty("buildTypes")]
         public List<BuildConfigSummary> BuildConfigs { get; set; }
 
-        public List<Property> Properties { get; set; }
+        [JsonProperty("parameters")]
+        public Properties Properties { get; set; }
 
         public List<ProjectSummary> Projects { get; set; }
 
@@ -25,7 +26,7 @@ namespace TeamCityApi.Domain
 
         public override string ToString()
         {
-            return string.Format("Id: {0}, Name: {1}, ParentProjectId: {2}, Href: {3}, WebUrl: {4}", Id, Name, ParentProjectId, Href, WebUrl);
+            return string.Format("Id: {0}, Name: {1}, ParentProjectId: {2}, Href: {3}, WebUrl: {4}, Properties #: {5}", Id, Name, ParentProjectId, Href, WebUrl, Properties.Count);
         }
     }
 }

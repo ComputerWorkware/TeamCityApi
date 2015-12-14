@@ -20,6 +20,7 @@ properties {
     $voVersion = "$major_ver.$minor_ver.0.0"
     $fileVersion = "$major_ver.$minor_ver.$buildVer.$revisionVer"
     $assemblyVersion = $voVersion
+    $visualStudioVersion = "14.0"
 
 
     #general dirs
@@ -42,12 +43,16 @@ task clean {
 	delete_directory "$build_dir"
 }
 
+task restore_packages {
+    exec { nuget restore $source_dir\$project.sln }
+}
+
 task release {
     $global:config = "release"
 }
 
-task compile -depends clean { 
-    exec { msbuild /t:Clean /t:Build /p:Configuration=$config /p:OutDir=$build_dir /p:TeamCityApiPath="$build_dir\" $source_dir\$project.sln }
+task compile -depends clean, restore_packages {
+    exec { msbuild /t:Clean /t:Build /tv:$visualStudioVersion /p:VisualStudioVersion=$visualStudioVersion /p:Configuration=$config /p:OutDir=$build_dir /p:TeamCityApiPath="$build_dir\" $source_dir\$project.sln }
     if ( -not (Test-Path "$source_dir\TeamCityApi\bin\Debug\"))
     {
         New-Item -ItemType directory -Path "$source_dir\TeamCityApi\bin\Debug\"
@@ -61,11 +66,11 @@ task commonAssemblyInfo {
 
 task test {
     create_directory "$build_dir\results"
-    
-    $testassemblies = @(get-childitem $build_dir -recurse -include *tests.dll);
-    if ($testassemblies.count -gt 0)
-    {
-        exec { & $tools_dir\xunit\xunit.console.clr4.exe $testassemblies /teamcity }
+
+    @(get-childitem $build_dir -recurse -include *tests.dll) | `
+    Foreach-Object{
+        Write-Host $tools_dir\xunit\xunit.console.clr4.exe $_.FullName /teamcity
+        exec { & $tools_dir\xunit\xunit.console.clr4.exe $_.FullName /teamcity }
     }
 }
 

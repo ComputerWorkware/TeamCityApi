@@ -8,6 +8,7 @@ using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Xunit;
 using TeamCityApi;
 using TeamCityApi.Domain;
+using TeamCityApi.Tests.Helpers;
 using TeamCityApi.Util;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Model;

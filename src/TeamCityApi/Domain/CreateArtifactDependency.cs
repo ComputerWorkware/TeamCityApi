@@ -13,8 +13,8 @@
             PathRules = "** => ";
         }
 
-        public string TargetBuildConfigId { get; private set; }
-        public string DependencyBuildConfigId { get; private set; }
+        public string TargetBuildConfigId { get; set; }
+        public string DependencyBuildConfigId { get; set; }
 
         public bool CleanDestinationDirectory { get; set; }
         public string PathRules { get; set; }

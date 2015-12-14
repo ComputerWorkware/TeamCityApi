@@ -1,19 +1,21 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
 using Funq;
 using NLog;
 using TeamCityApi;
+using TeamCityApi.Clients;
+using TeamCityApi.Helpers.Git;
+using TeamCityApi.UseCases;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
+using File = System.IO.File;
 
 
 namespace TeamCityConsole
@@ -27,9 +29,9 @@ namespace TeamCityConsole
             ExtractResources();
 
             var container = SetupContainer();
-
             DisplayAssemblyInfo();
-
+            DisplayExecutedCommand(args);
+            
             Type[] optionTypes = GetOptionsInThisAssembly();
 
             ParserResult<object> result = Parser.Default.ParseArguments(args, optionTypes);
@@ -62,6 +64,11 @@ namespace TeamCityConsole
 #endif
 
             ExecuteAsync(command, options).GetAwaiter().GetResult();
+        }
+
+        private static void DisplayExecutedCommand(string[] args)
+        {
+            Console.Out.WriteLine(Assembly.GetExecutingAssembly().Location + " " + String.Join(" ", args));
         }
 
         private const string ExtractPrefix = ".extract.";
@@ -160,8 +167,42 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.SelfUpdate,
                 x => new UpdateCommand(x.Resolve<ITeamCityClient>(), x.Resolve<IFileSystem>(), x.Resolve<IFileDownloader>(), assemblyMetada, settings));
 
-            container.Register<ICommand>(Verbs.SetConfig,
-                x => new SetConfigCommand(settings));
+            container.Register<ICommand>(Verbs.SetConfig, x => new SetConfigCommand(settings));
+
+            container.Register<IBuildConfigXmlClient>(x => new BuildConfigXmlClient(x.Resolve<ITeamCityClient>(), x.Resolve<IGitRepositoryFactory>()));
+
+            container.Register(x => new CloneRootBuildConfigUseCase(x.Resolve<ITeamCityClient>(), x.Resolve<IBuildConfigXmlClient>(), x.Resolve<IVcsRootHelper>()));
+
+            container.Register(x => new CloneChildBuildConfigUseCase(x.Resolve<ITeamCityClient>(), x.Resolve<IVcsRootHelper>(), x.Resolve<IBuildConfigXmlClient>()));
+
+            container.Register(x => new DeleteClonedBuildChainUseCase(x.Resolve<ITeamCityClient>()));
+
+            container.Register(x => new ShowBuildChainUseCase(x.Resolve<ITeamCityClient>()));
+
+            container.Register(x => new CompareBuildsUseCase(x.Resolve<ITeamCityClient>()));
+
+            container.Register<ICommand>(Verbs.CloneRootBuildConfig, x => new CloneRootBuildConfigCommand(x.Resolve<CloneRootBuildConfigUseCase>()));
+
+            container.Register<ICommand>(Verbs.CloneChildBuildConfig, x => new CloneChildBuildConfigCommand(x.Resolve<CloneChildBuildConfigUseCase>()));
+
+            container.Register<ICommand>(Verbs.DeleteClonedBuildChain, x => new DeleteClonedBuildChainCommand(x.Resolve<DeleteClonedBuildChainUseCase>()));
+
+            container.Register<ICommand>(Verbs.ShowBuildChain, x => new ShowBuildChainCommand(x.Resolve<ShowBuildChainUseCase>()));
+
+            container.Register<ICommand>(Verbs.CompareBuilds, x => new CompareBuildsCommand(x.Resolve<CompareBuildsUseCase>()));
+
+            container.Register<List<Credential>>(x=>new List<Credential>
+            {
+                new Credential
+                {
+                    HostName = "*",
+                    UserName = settings.Username,
+                    Password = settings.Password
+                }
+            });
+
+            container.Register<IGitRepositoryFactory>(x => new GitRepositoryFactory(x.Resolve<List<Credential>>()));
+            container.Register<IVcsRootHelper>(x => new VcsRootHelper(x.Resolve<ITeamCityClient>(), x.Resolve<IGitRepositoryFactory>()));
 
             return container;
         }

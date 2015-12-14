@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using TeamCityApi.Clients;
 
 namespace TeamCityApi.Domain
@@ -7,7 +8,7 @@ namespace TeamCityApi.Domain
     {
         private IBuildClient _buildClient;
 
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string BuildTypeId { get; set; }
         public string Href { get; set; }
         public string Number { get; set; }
@@ -28,6 +29,21 @@ namespace TeamCityApi.Domain
         public override string ToString()
         {
             return string.Format("Id: {0}, Number: {1}, BuildTypeId: {2}, State: {3}, Status: {4}", Id, Number, BuildTypeId, State, Status);
+        }
+
+        public static explicit operator BuildSummary(Build b)
+        {
+            return new BuildSummary()
+            {
+                
+                Id = b.Id,
+                BuildTypeId = b.BuildTypeId,
+                Number = b.Number,
+                Status = b.Status,
+                State = b.State,
+                Href = b.Href,
+                WebUrl = b.WebUrl
+            };
         }
     }
 }

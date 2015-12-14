@@ -9,10 +9,12 @@ namespace TeamCityApi.Clients
 {
     public interface IBuildClient
     {
-        Task<Build> ById(string id);
+        Task<Build> ById(long id);
+        Task<Build> ByNumber(string number, string buildTypeId);
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
         Task<List<File>> GetFiles(long buildId);
         Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag = null);
+        Task<Properties> GetResultingProperties(long id);
     }
 
     public class BuildClient : IBuildClient
@@ -24,7 +26,7 @@ namespace TeamCityApi.Clients
             _http = http;
         }
 
-        public async Task<Build> ById(string id)
+        public async Task<Build> ById(long id)
         {
             string requestUri = string.Format("/app/rest/builds/id:{0}", id);
 
@@ -33,6 +35,13 @@ namespace TeamCityApi.Clients
             build.ArtifactsReference.Initialize(_http);
 
             return build;
+        }
+
+        public async Task<Build> ByNumber(string number, string buildTypeId)
+        {
+            var buildSummaries = await ByBuildLocator(l => l.WithNumber(number, buildTypeId));
+
+            return await ById(buildSummaries.First().Id);
         }
 
         public async Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig)
@@ -89,6 +98,11 @@ namespace TeamCityApi.Clients
             Build build = await buildSummary.GetDetails();
 
             return build;
+        }
+
+        public async Task<Properties> GetResultingProperties(long id)
+        {
+            return await _http.Get<Properties>($"/app/rest/builds/id:{id}/resulting-properties");
         }
     }
 }

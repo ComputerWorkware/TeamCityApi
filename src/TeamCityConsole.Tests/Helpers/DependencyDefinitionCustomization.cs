@@ -10,7 +10,7 @@ namespace TeamCityConsole.Tests.Helpers
         {
             fixture.Customize<DependencyDefinition>(
                 composer =>
-                    composer.With(x => x.Properties,
+                    composer.With(x => x.Properties.Property,
                         new List<Property> {new Property {Name = "pathRules", Value = "file.dll => assemblies "}}));
         }
     }
