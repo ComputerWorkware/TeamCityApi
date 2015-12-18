@@ -22,9 +22,9 @@ namespace TeamCityConsole.Commands
             var compareBuildsOptions = options as CompareBuildsOptions;
             if (compareBuildsOptions == null) throw new ArgumentNullException("compareBuildsOptions");
 
-            Log.Info("BuildId #1: " + compareBuildsOptions.BuildId1 + " -- BuildId #2: " + compareBuildsOptions.BuildId2);
+            Log.Info("BuildId #1: " + compareBuildsOptions.NewBuildId + " -- BuildId #2: " + compareBuildsOptions.OldBuildId);
 
-            await _compareBuildsUseCase.Execute(compareBuildsOptions.BuildId1, compareBuildsOptions.BuildId2, compareBuildsOptions.BCompare);
+            await _compareBuildsUseCase.Execute(compareBuildsOptions.NewBuildId, compareBuildsOptions.OldBuildId, compareBuildsOptions.BCompare, compareBuildsOptions.Dump);
 
             Log.Info("================Compare Builds: done ================");
         }

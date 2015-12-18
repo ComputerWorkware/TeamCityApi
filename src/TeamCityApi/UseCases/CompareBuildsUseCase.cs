@@ -20,20 +20,20 @@ namespace TeamCityApi.UseCases
             _client = client;
         }
 
-        public async Task Execute(long buildId1, long buildId2, bool bCompare)
+        public async Task Execute(long newBuildId, long oldBuildId, bool bCompare, bool dump)
         {
             Log.Info("================Compare Builds: start ================");
 
-            var build1 = await _client.Builds.ById(buildId1);
-            var build2 = await _client.Builds.ById(buildId2);
+            var build1 = await _client.Builds.ById(newBuildId);
+            var build2 = await _client.Builds.ById(oldBuildId);
             
             var buildChain1 = new BuildChain(_client.Builds, build1);
             var buildChain2 = new BuildChain(_client.Builds, build2);
 
-            CompareBuilds(buildChain1, buildChain2, bCompare);
+            CompareBuilds(buildChain1, buildChain2, bCompare, dump);
         }
 
-        private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2, bool bCompare)
+        private void CompareBuilds(BuildChain buildChain1, BuildChain buildChain2, bool bCompare, bool dump)
         {
             var build1List = buildChain1.Nodes.Select(node => node.Value.Properties.Property["project.name"]?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
             var build2List = buildChain2.Nodes.Select(node => node.Value.Properties.Property["project.name"]?.Value + " (" + node.Value.BuildConfig.ProjectName + ") - " + node.Value.Number).ToList();
@@ -41,7 +41,11 @@ namespace TeamCityApi.UseCases
             var build1Text = build1List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
             var build2Text = build2List.OrderBy(b => b).Aggregate("", (current, build) => current + (build + "\r\n"));
 
-            if (bCompare)
+            if (dump)
+            {
+                DumpTextToConsole(build1Text, build2Text);
+            }
+            else if (bCompare)
             {
                 ShowDifferencesInBCompare(build1Text, build2Text);
             }
@@ -49,6 +53,12 @@ namespace TeamCityApi.UseCases
             {
                 ShowDifferencesInBrowser(build1Text, build2Text);
             }
+        }
+
+        private void DumpTextToConsole(string build1Text, string build2Text)
+        {
+            Log.Info("--NewBuild\r\n" + build1Text.Trim() + "\r\nNewBuild--");
+            Log.Info("--OldBuild\r\n" + build2Text.Trim() + "\r\nOldBuild--");
         }
 
         private void ShowDifferencesInBCompare(string build1Text, string build2Text)
