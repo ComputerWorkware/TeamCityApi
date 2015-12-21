@@ -16,7 +16,7 @@ namespace TeamCityApi.Tests.Clients
         public void Should_clone_settings_repo(ITeamCityClient teamCityClient, IGitRepositoryFactory gitRepositoryFactory, Project project, string repoPath)
         {
             project.Properties.Property.Add(new Property(ParameterName.VersionedSettingGitRepo, repoPath));
-            teamCityClient.Projects.GetById("_Root").Returns(Task.FromResult(project));
+            teamCityClient.Projects.GetById("RestHelper").Returns(Task.FromResult(project));
 
             var sut = new BuildConfigXmlClient(teamCityClient, gitRepositoryFactory);
 

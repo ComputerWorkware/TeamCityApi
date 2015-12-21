@@ -6,6 +6,7 @@ using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Git;
 using TeamCityApi.Logging;
 using TeamCityApi.UseCases;
+using TeamCityApi.Util;
 
 namespace TeamCityApi.Clients
 {
@@ -51,16 +52,24 @@ namespace TeamCityApi.Clients
 
         private string GetTeamCitySettingsRepositoryLocation()
         {
-            var rootProject = _teamCityClient.Projects.GetById("_Root").Result;
+            Project restHelperProject;
+            try
+            {
+                restHelperProject = _teamCityClient.Projects.GetById("RestHelper").Result;
+            }
+            catch (ResourceNotFoundException e)
+            {
+                throw new Exception($"Required project with id: RestHelper was not found.", e);
+            }
 
             if (!Simulate)
-                Log.Trace($"Read root project: {rootProject}");
+                Log.Trace($"Read RestHelper project: {restHelperProject}");
 
-            var versionedSettingGitRepo = rootProject.Properties[ParameterName.VersionedSettingGitRepo].Value;
+            var versionedSettingGitRepo = restHelperProject.Properties[ParameterName.VersionedSettingGitRepo].Value;
 
             if (String.IsNullOrEmpty(versionedSettingGitRepo))
             {
-                throw new Exception($"Required {ParameterName.VersionedSettingGitRepo} parameter was not found on root project.");
+                throw new Exception($"Required {ParameterName.VersionedSettingGitRepo} parameter was not found on RestHelper project.");
             }
 
             return versionedSettingGitRepo;
