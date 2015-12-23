@@ -84,6 +84,7 @@
     <Compile Include="Helpers\Git\GitRepositorySsh.cs" />
     <Compile Include="Helpers\Git\SshKeyHelper.cs" />
     <Compile Include="Helpers\Git\VcsRootHelper.cs" />
+    <Compile Include="Helpers\RandomStringGenerator.cs" />
     <Compile Include="Locators\BranchLocator.cs" />
     <Compile Include="Locators\BuildLocator.cs" />
     <Compile Include="BuildStatus.cs" />
