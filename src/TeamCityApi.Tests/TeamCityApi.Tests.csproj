@@ -79,6 +79,7 @@
     <Compile Include="Locators\BuildLocatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scenarios\ChainWithRootClonedScenario.cs" />
+    <Compile Include="Scenarios\ScenarioDependency.cs" />
     <Compile Include="Scenarios\SingleBuildScenario.cs" />
     <Compile Include="UseCases\CloneChildBuildConfigUseCaseTests.cs" />
     <Compile Include="UseCases\CloneRootBuildConfigUseCaseTests.cs" />

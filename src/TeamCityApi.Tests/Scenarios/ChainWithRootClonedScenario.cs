@@ -24,91 +24,45 @@ namespace TeamCityApi.Tests.Scenarios
         public SingleBuildScenario ComponentA { get; set; }
         public SingleBuildScenario ComponentB { get; set; }
         public SingleBuildScenario ComponentC { get; set; }
-        
 
         public ChainWithRootClonedScenario(IFixture fixture, ITeamCityClient client, IBuildConfigXmlClient buildConfigXmlClient)
         {
-            ComponentA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 311, "ComponentA_Trunk", "ComponentA", new List<DependencyDefinition>());
-            ComponentB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 310, "ComponentB_Trunk", "ComponentB",
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactSameChain(ComponentA.BuildConfig)
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(ComponentA.Build)
-                }
-            );
-            ComponentC = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 309, "ComponentC_Trunk", "ComponentC", new List<DependencyDefinition>());
+            ComponentA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 311, "ComponentA_Trunk", "ComponentA", new List<ScenarioDependency>());
 
-            AppA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 313, "AppA_Trunk", "AppA", 
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactSameChain(ComponentA.BuildConfig)
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(ComponentA.Build)
-                }
-            );
-            AppB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 312, "AppB_Trunk", "AppB", 
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactSameChain(ComponentB.BuildConfig),
-                    BuildConfigDependencyGenerator.ArtifactSameChain(ComponentC.BuildConfig)
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(ComponentB.Build),
-                    BuildDependencyGenerator.Artifact(ComponentC.Build)
-                }
-            );
+			ComponentB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 310, "ComponentB_Trunk", "ComponentB", new List<ScenarioDependency>{
+	            ComponentA.AsArtifactSameChainDependency()
+			});
 
-            InstallerA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 315, "InstallerA_Trunk", "InstallerA", 
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactSameChain(AppA.BuildConfig),
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(AppA.Build)
-                }
-            );
-            InstallerB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 314, "InstallerB_Trunk", "InstallerB", 
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactSameChain(AppB.BuildConfig),
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(AppB.Build)
-                }
-            );
+			ComponentC = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 309, "ComponentC_Trunk", "ComponentC", new List<ScenarioDependency>());
 
-            Suite = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 316, "Suite_Trunk", "Suite", 
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactSameChain(InstallerA.BuildConfig),
-                    BuildConfigDependencyGenerator.ArtifactSameChain(InstallerB.BuildConfig)
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(InstallerA.Build),
-                    BuildDependencyGenerator.Artifact(InstallerB.Build)
-                }
-            );
-            SuiteCloned = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 400, "Suite_TrunkCloned", "SuiteCloned", 
-                new List<DependencyDefinition>
-                {
-                    BuildConfigDependencyGenerator.ArtifactFixedBuild(InstallerA.Build),
-                    BuildConfigDependencyGenerator.ArtifactFixedBuild(InstallerB.Build)
-                },
-                new List<Dependency>()
-                {
-                    BuildDependencyGenerator.Artifact(InstallerA.Build),
-                    BuildDependencyGenerator.Artifact(InstallerB.Build)
-                },
-                new Properties() {
+            AppA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 313, "AppA_Trunk", "AppA", new List<ScenarioDependency>{
+				ComponentA.AsArtifactSameChainDependency()
+			});
+
+            AppB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 312, "AppB_Trunk", "AppB", new List<ScenarioDependency>{
+				ComponentB.AsArtifactSameChainDependency(),
+				ComponentC.AsArtifactSameChainDependency()
+			});
+
+			InstallerA = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 315, "InstallerA_Trunk", "InstallerA", new List<ScenarioDependency>{
+				AppA.AsArtifactSameChainDependency()
+			});
+
+			InstallerB = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 314, "InstallerB_Trunk", "InstallerB", new List<ScenarioDependency>{
+				AppB.AsArtifactSameChainDependency()
+			});
+
+			Suite = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 316, "Suite_Trunk", "Suite", new List<ScenarioDependency>{
+				InstallerA.AsArtifactSameChainDependency(),
+				InstallerB.AsArtifactSameChainDependency(),
+			});
+
+			SuiteCloned = new SingleBuildScenario(fixture, client, buildConfigXmlClient, 400, "Suite_TrunkCloned", "SuiteCloned", new List<ScenarioDependency>
+				{
+					InstallerA.AsArtifactFixedBuildDependency(),
+					InstallerB.AsArtifactFixedBuildDependency(),
+				},
+				new Properties() {
                     Property = new PropertyList()
                     {
                         new Property(ParameterName.BuildConfigChainId, fixture.Create<string>()),

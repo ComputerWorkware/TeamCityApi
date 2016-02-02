@@ -27,8 +27,7 @@ namespace TeamCityApi.Tests.Scenarios
             long buildId,
             string buildConfigId = null,
             string buildConfigName = null,
-            IEnumerable<DependencyDefinition> buildConfigDependencies = null,
-            IEnumerable<Dependency> buildDependencies = null,
+            List<ScenarioDependency> dependencies = null,
             Properties buildParameters = null)
         {
             var projectId = fixture.Create<string>();
@@ -39,7 +38,7 @@ namespace TeamCityApi.Tests.Scenarios
                 .WithProjectId(projectId)
                 .WithName(buildConfigName ?? fixture.Create<string>())
                 .WithParameters(buildParameters ?? fixture.Create<Properties>())
-                .WithDependencies(buildConfigDependencies?.ToArray() ??
+                .WithDependencies(dependencies?.Select(d => d.AsDependencyDefinition()).ToArray() ??
                                   fixture.CreateMany<DependencyDefinition>().ToArray())
                 .Create();
 
@@ -48,13 +47,14 @@ namespace TeamCityApi.Tests.Scenarios
                 .WithId(buildConfigId)
                 .WithName(buildConfigName ?? fixture.Create<string>())
                 .WithParameters(buildParameters ?? fixture.Create<Properties>())
-                .WithDependencies(buildConfigDependencies?.ToArray() ??
-                                  fixture.CreateMany<DependencyDefinition>().ToArray())
+				.WithDependencies(dependencies?.Select(d => d.AsDependencyDefinition()).ToArray() ??
+								  fixture.CreateMany<DependencyDefinition>().ToArray())
                 .Create();
 
             Build = fixture.Build<Build>()
                 .WithId(buildId)
-                .WithDependencies(buildDependencies?.ToArray() ?? fixture.CreateMany<Dependency>().ToArray())
+				.WithDependencies(dependencies?.Select(d => d.AsDependency()).ToArray() ??
+								  fixture.CreateMany<Dependency>().ToArray())
                 .WithBuildConfigSummary(BuildConfig)
                 .Create();
 
@@ -93,7 +93,16 @@ namespace TeamCityApi.Tests.Scenarios
 
             client.BuildConfigs.GenerateUniqueBuildConfigId(projectId, clonedBuildConfig.Name)
                 .Returns(Task.FromResult(clonedBuildConfig.Id));
-
         }
-    }
+
+	    public ScenarioDependency AsArtifactSameChainDependency()
+	    {
+			return new ScenarioDependency(this, DependencyType.ArtifactSameChain);
+	    }
+
+		public ScenarioDependency AsArtifactFixedBuildDependency()
+		{
+			return new ScenarioDependency(this, DependencyType.ArtifactFixedBuild);
+		}
+	}
 }
