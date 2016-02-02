@@ -133,23 +133,26 @@ namespace TeamCityApi.UseCases
 
                 foreach (var parentBuildConfig in parentBuildConfigs)
                 {
-                    Lazy<IBuildConfigXml> swapOn;
-                    var parentBuildConfigWasJustCloned = clonedBuildConfigs.Contains(parentBuildConfig);
+                    Lazy<IBuildConfigXml> swapOnXml;
+	                string swapOnId;
+					var parentBuildConfigWasJustCloned = clonedBuildConfigs.Contains(parentBuildConfig);
                     if (parentBuildConfigWasJustCloned)
                     {
-                        swapOn = new Lazy<IBuildConfigXml>(() => GetCloneOf(parentBuildConfig.HistoricBuild.BuildTypeId));
+	                    swapOnId = parentBuildConfig.HistoricBuild.BuildTypeId;
+						swapOnXml = new Lazy<IBuildConfigXml>(() => GetCloneOf(swapOnId));
                     }
                     else
                     {
-                        //defer read from file as we want to read the latest version (including previously swapped dependencies)
-                        //if file is read here for each command then swapping each dependency will discard previous changes
-                        swapOn = new Lazy<IBuildConfigXml>(() => _buildConfigXmlClient.Read(parentBuildConfig.CurrentBuildConfig.ProjectId, parentBuildConfig.CurrentBuildConfig.Id));
+						//defer read from file as we want to read the latest version (including previously swapped dependencies)
+						//if file is read here for each command then swapping each dependency will discard previous changes
+						swapOnId = parentBuildConfig.CurrentBuildConfig.Id;
+						swapOnXml = new Lazy<IBuildConfigXml>(() => _buildConfigXmlClient.Read(parentBuildConfig.CurrentBuildConfig.ProjectId, swapOnId));
                     }
 
                     var swapFrom = buildConfigToClone.HistoricBuild.BuildTypeId;
                     var swapTo = GetCloneOf(buildConfigToClone.HistoricBuild.BuildTypeId).BuildConfigId;
 
-                    swapDependencyCommands.Add(new SwapDependencyCommand(this, swapOn, swapTo, swapFrom));
+                    swapDependencyCommands.Add(new SwapDependencyCommand(this, swapOnXml, swapOnId, swapTo, swapFrom));
                 }
             }
             return swapDependencyCommands;
@@ -232,31 +235,33 @@ namespace TeamCityApi.UseCases
         private class SwapDependencyCommand : ICommand
         {
             private readonly CloneChildBuildConfigUseCase _receiver;
-            private readonly Lazy<IBuildConfigXml> _swapOn;
+            private readonly Lazy<IBuildConfigXml> _swapOnXml;
+            private readonly string _swapOnId;
             private readonly string _swapTo;
             private readonly string _swapFrom;
 
-            public SwapDependencyCommand(CloneChildBuildConfigUseCase receiver, Lazy<IBuildConfigXml> swapOn, string swapTo, string swapFrom)
+            public SwapDependencyCommand(CloneChildBuildConfigUseCase receiver, Lazy<IBuildConfigXml> swapOnXml, string swapOnId, string swapTo, string swapFrom)
             {
                 _receiver = receiver;
-                _swapOn = swapOn;
+				_swapOnXml = swapOnXml;
+				_swapOnId = swapOnId;
                 _swapTo = swapTo;
                 _swapFrom = swapFrom;
             }
 
             public void Execute()
             {
-                _receiver.SwapDependenciesToClone(_swapOn, _swapTo, _swapFrom);
+                _receiver.SwapDependenciesToClone(_swapOnXml, _swapTo, _swapFrom);
             }
 
             public override string ToString()
             {
-                return $"Swap dependencies on {_swapOn.Value.BuildConfigId}: {_swapFrom} => {_swapTo}";
+                return $"Swap dependencies on {_swapOnId}: {_swapFrom} => {_swapTo}";
             }
 
             protected bool Equals(SwapDependencyCommand other)
             {
-                return Equals(_swapOn.Value.BuildConfigId, other._swapOn.Value.BuildConfigId) && string.Equals(_swapTo, other._swapTo) && string.Equals(_swapFrom, other._swapFrom);
+                return Equals(_swapOnId, other._swapOnId) && string.Equals(_swapTo, other._swapTo) && string.Equals(_swapFrom, other._swapFrom);
             }
 
             public override bool Equals(object obj)
@@ -271,7 +276,7 @@ namespace TeamCityApi.UseCases
             {
                 unchecked
                 {
-                    var hashCode = _swapOn?.Value.BuildConfigId.GetHashCode() ?? 0;
+                    var hashCode = _swapOnId?.GetHashCode() ?? 0;
                     hashCode = (hashCode*397) ^ (_swapTo?.GetHashCode() ?? 0);
                     hashCode = (hashCode*397) ^ (_swapFrom?.GetHashCode() ?? 0);
                     return hashCode;
