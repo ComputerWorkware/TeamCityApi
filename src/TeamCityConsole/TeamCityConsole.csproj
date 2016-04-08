@@ -80,7 +80,9 @@
     <Compile Include="Commands\CloneChildBuildConfigCommand.cs" />
     <Compile Include="Commands\CloneRootBuildConfigCommand.cs" />
     <Compile Include="Commands\CompareBuildsCommand.cs" />
-    <Compile Include="Commands\DeleteClonedBuildChainCommand.cs" />
+    <Compile Include="Commands\DeleteClonedBuildChainCommand - Copy.cs" />
+    <Compile Include="Commands\PropagateVersionCommand.cs" />
+    <Compile Include="Commands\ShowVersionsCommand.cs" />
     <Compile Include="Commands\SetConfigCommand.cs" />
     <Compile Include="Commands\ShowBuildChainCommand.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
@@ -94,6 +96,8 @@
     <Compile Include="Options\CloneRootBuildConfigOptions.cs" />
     <Compile Include="Options\CloneChildBuildConfigOptions.cs" />
     <Compile Include="Options\CompareBuildsOptions.cs" />
+    <Compile Include="Options\PropagateVersionOptions.cs" />
+    <Compile Include="Options\ShowVersionsOptions.cs" />
     <Compile Include="Options\DeleteClonedBuildChainOptions.cs" />
     <Compile Include="Options\GetArtifactOptions.cs" />
     <Compile Include="Options\GetDependenciesOptions.cs" />

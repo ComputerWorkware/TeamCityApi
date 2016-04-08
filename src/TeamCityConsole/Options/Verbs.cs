@@ -11,5 +11,7 @@
         public const string DeleteClonedBuildChain = "delete-cloned-build-chain";
         public const string ShowBuildChain = "show-build-chain";
         public const string CompareBuilds = "compare-builds";
+        public const string ShowVersions = "show-versions";
+        public const string PropagateVersion = "propagate-version";
     }
 }

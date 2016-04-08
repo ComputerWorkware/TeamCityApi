@@ -181,6 +181,10 @@ namespace TeamCityConsole
 
             container.Register(x => new CompareBuildsUseCase(x.Resolve<ITeamCityClient>()));
 
+            container.Register(x => new PropagateVersionUseCase(x.Resolve<ITeamCityClient>()));
+
+            container.Register(x => new ShowVersionsUseCase(x.Resolve<ITeamCityClient>()));
+
             container.Register<ICommand>(Verbs.CloneRootBuildConfig, x => new CloneRootBuildConfigCommand(x.Resolve<CloneRootBuildConfigUseCase>()));
 
             container.Register<ICommand>(Verbs.CloneChildBuildConfig, x => new CloneChildBuildConfigCommand(x.Resolve<CloneChildBuildConfigUseCase>()));
@@ -190,6 +194,10 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.ShowBuildChain, x => new ShowBuildChainCommand(x.Resolve<ShowBuildChainUseCase>()));
 
             container.Register<ICommand>(Verbs.CompareBuilds, x => new CompareBuildsCommand(x.Resolve<CompareBuildsUseCase>()));
+
+            container.Register<ICommand>(Verbs.PropagateVersion, x => new PropagateVersionCommand(x.Resolve<PropagateVersionUseCase>()));
+
+            container.Register<ICommand>(Verbs.ShowVersions, x => new ShowVersionsCommand(x.Resolve<ShowVersionsUseCase>()));
 
             container.Register<List<Credential>>(x=>new List<Credential>
             {

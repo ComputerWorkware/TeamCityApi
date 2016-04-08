@@ -7,6 +7,8 @@
         public const string BuildConfigChainId = "_BuildConfigChainId";
         public const string BranchName = "branch.name";
         public const string GitRepoPath = "git.repo.path";
+        public const string MajorVersion = "MajorVersion";
+        public const string MinorVersion = "MinorVersion";
 
         public const string VersionedSettingGitRepo = "VersionedSettingGitRepo";
 

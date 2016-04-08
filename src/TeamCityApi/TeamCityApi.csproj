@@ -105,6 +105,8 @@
     <Compile Include="UseCases\DeleteClonedBuildChainUseCase.cs" />
     <Compile Include="Helpers\Git\GitRepository.cs" />
     <Compile Include="Helpers\Git\GitRepositoryFactory.cs" />
+    <Compile Include="UseCases\ShowVersionsUseCase.cs" />
+    <Compile Include="UseCases\PropagateVersionUseCase.cs" />
     <Compile Include="UseCases\ShowBuildChainUseCase.cs" />
     <Compile Include="Util\Json.cs" />
     <Compile Include="Util\CollectionWrapperConverter.cs" />
