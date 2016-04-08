@@ -78,7 +78,7 @@ namespace TeamCityApi.Helpers.Git
         public static string ToValidGitBranchName(string input)
         {
             input = input.Replace(" ", "-");
-            input = new Regex("[^a-zA-Z0-9-]").Replace(input, "");
+            input = new Regex("[^a-zA-Z0-9-.]").Replace(input, "");
             return input;
         }
 
