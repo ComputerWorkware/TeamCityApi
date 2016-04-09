@@ -80,7 +80,7 @@
     <Compile Include="Commands\CloneChildBuildConfigCommand.cs" />
     <Compile Include="Commands\CloneRootBuildConfigCommand.cs" />
     <Compile Include="Commands\CompareBuildsCommand.cs" />
-    <Compile Include="Commands\DeleteClonedBuildChainCommand - Copy.cs" />
+    <Compile Include="Commands\DeleteClonedBuildChainCommand.cs" />
     <Compile Include="Commands\PropagateVersionCommand.cs" />
     <Compile Include="Commands\ShowVersionsCommand.cs" />
     <Compile Include="Commands\SetConfigCommand.cs" />
