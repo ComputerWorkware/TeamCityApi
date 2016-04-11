@@ -34,6 +34,14 @@ namespace TeamCityApi.UseCases
                 Log.Info($"Setting {node.Value.Id} to version {majorVersion}.{minorVersion}");
                 if (!simulate)
                 {
+                    //1st pass: set different, then in a project, value. Just to make parameter "own", see more: https://youtrack.jetbrains.com/issue/TW-42811
+                    await _client.BuildConfigs.SetParameterValue(
+                        l => l.WithId(node.Value.Id),
+                        ParameterName.MajorVersion,
+                        "Temporary value, different from the parent project value!"
+                    );
+
+                    //2ns pass: set real value.
                     await _client.BuildConfigs.SetParameterValue(
                         l => l.WithId(node.Value.Id),
                         ParameterName.MajorVersion,
@@ -41,6 +49,14 @@ namespace TeamCityApi.UseCases
                         true
                     );
 
+                    //1st pass: set different, then in a project, value. Just to make parameter "own", see more: https://youtrack.jetbrains.com/issue/TW-42811
+                    await _client.BuildConfigs.SetParameterValue(
+                        l => l.WithId(node.Value.Id),
+                        ParameterName.MinorVersion,
+                        "Temporary value, different from the parent project value!"
+                    );
+
+                    //2ns pass: set real value.
                     await _client.BuildConfigs.SetParameterValue(
                         l => l.WithId(node.Value.Id),
                         ParameterName.MinorVersion,
