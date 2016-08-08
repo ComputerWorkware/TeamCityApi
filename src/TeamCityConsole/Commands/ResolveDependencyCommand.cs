@@ -106,7 +106,15 @@ namespace TeamCityConsole.Commands
                 return;
             }
 
-            Build build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id, tag);
+            Build build;
+            if (dependency.Properties.Property["revisionName"].Value == "buildNumber")
+            {
+                build = await _client.Builds.ByNumber(dependency.Properties.Property["revisionValue"].Value, dependency.SourceBuildConfig.Id);
+            }
+            else 
+            {
+                build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id, tag);
+            }
 
             lock (_builds)
             {
