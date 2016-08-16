@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Newtonsoft.Json;
 using NLog;
 using TeamCityApi;
@@ -12,6 +11,7 @@ using TeamCityConsole.Model;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
+using System.Text.RegularExpressions;
 
 namespace TeamCityConsole.Commands
 {
@@ -33,6 +33,10 @@ namespace TeamCityConsole.Commands
 
         private string _configFullPath;
 
+        private string _majorVersion;
+
+        private string _minorVersion;
+
         public ResolveDependencyCommand(ITeamCityClient client, IFileSystem fileSystem, IDownloadDataFlow downloadDataFlow)
         {
             _fileSystem = fileSystem;
@@ -50,7 +54,16 @@ namespace TeamCityConsole.Commands
 
             _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
 
-            DependencyConfig dependencyConfig = await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
+            DependencyConfig dependencyConfig =
+                await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
+
+            var buildConfig = await _client.BuildConfigs.GetByConfigurationId(_dependencyConfig.BuildConfigId);
+            _majorVersion = GetVersionFromXml(buildConfig, ParameterName.MajorVersion);
+            _minorVersion = GetVersionFromXml(buildConfig, ParameterName.MinorVersion);
+
+            UpdateAssemblyVersion();
+            UpdateBuildVersion();
+            UpdateVersionIncVersion();
 
             //only writes the file if changes were made to the config.
             if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
@@ -224,7 +237,99 @@ namespace TeamCityConsole.Commands
             }
         }
 
-        
+        private string GetVersionFromXml(BuildConfig buildConfig, string versionPart)
+        {
+            foreach (var prop in buildConfig.Parameters.Property)
+            {
+                if (prop.Name == versionPart)
+                {
+                    return prop.Value;
+                }
+            }
+            return "";
+        }
+
+        private string GetSolutionDirectory()
+        {
+            var solutionDirectoryName = Directory.GetParent(Directory.GetCurrentDirectory()).Parent?.Parent?.FullName;  //src folder
+
+            if (solutionDirectoryName != null && Directory.Exists(solutionDirectoryName))
+            {
+                return solutionDirectoryName;
+            }
+
+            return "";
+        }
+
+        private string GetRootDirectory()
+        {
+            var rootDirectoryName = Directory.GetParent(Directory.GetCurrentDirectory()).Parent?.Parent?.Parent?.FullName;  //root project folder
+
+            if (rootDirectoryName != null && Directory.Exists(rootDirectoryName))
+            {
+                return rootDirectoryName;
+            }
+
+            return "";
+        }
+
+        private void UpdateAssemblyVersion()
+        {
+            string path = GetSolutionDirectory() + "\\CommonAssemblyInfo.cs";
+
+            if (System.IO.File.Exists(path))
+            {
+                Regex regex = new Regex(@"^(\s*\[assembly:\s*AssemblyVersion\s*\("")(\d*\.\d*\.\d*\.\d*)(""\)\]\s*$)",
+                    RegexOptions.Multiline);
+
+                System.IO.File.WriteAllText(path,
+                    regex.Replace(System.IO.File.ReadAllText(path),
+                        $@"${{1}}{_majorVersion}.{_minorVersion}.0.0$3"));
+            }
+        }
+
+        private void UpdateBuildVersion()
+        {
+            string rootDirectory = GetRootDirectory();
+
+            if (System.IO.File.Exists(rootDirectory + "\\build.bat"))
+            {
+                ReplaceBuildVersion(rootDirectory + "\\build.bat");
+            }
+            if (System.IO.File.Exists(rootDirectory + "\\nonbuild\\build.bat"))
+            {
+                ReplaceBuildVersion(rootDirectory + "\\nonbuild\\build.bat");
+            }
+        }
+
+        private void ReplaceBuildVersion(string path)
+        {
+            Regex regex = new Regex(@"(\s*major_ver=')(\d*)(';\s)(\s*minor_ver=')(\d*)(';\s)");
+
+            System.IO.File.WriteAllText(path,
+                regex.Replace(System.IO.File.ReadAllText(path),
+                    $@"${{1}}{_majorVersion}$3${{4}}{_minorVersion}$6"));
+        }
+
+        private void UpdateVersionIncVersion()
+        {
+            var rootDirectory = Directory.GetFiles(GetRootDirectory(), "Version.inc", SearchOption.AllDirectories);
+
+            if (!rootDirectory.Any())
+                return;
+
+            Regex regexMajor = new Regex(@"(\s*_MAJORNUMBER\s)(\d*)(\s*$)", RegexOptions.Multiline);
+            Regex regexMinor = new Regex(@"(\s*_MINORNUMBER\s)(\d*)(\s*$)", RegexOptions.Multiline);
+
+            System.IO.File.WriteAllText(rootDirectory[0],
+                regexMajor.Replace(System.IO.File.ReadAllText(rootDirectory[0]),
+                    $@"${{1}}{_majorVersion}$3"));
+
+            System.IO.File.WriteAllText(rootDirectory[0],
+                regexMinor.Replace(System.IO.File.ReadAllText(rootDirectory[0]),
+                    $@"${{1}}{_minorVersion}$3"));
+        }
+
     }
 
     public class PathFilePair
