@@ -58,12 +58,15 @@ namespace TeamCityConsole.Commands
                 await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
 
             var buildConfig = await _client.BuildConfigs.GetByConfigurationId(_dependencyConfig.BuildConfigId);
-            _majorVersion = GetVersionFromXml(buildConfig, ParameterName.MajorVersion);
-            _minorVersion = GetVersionFromXml(buildConfig, ParameterName.MinorVersion);
+            _majorVersion = buildConfig.Parameters[ParameterName.MajorVersion]?.Value;
+            _minorVersion = buildConfig.Parameters[ParameterName.MinorVersion]?.Value;
 
-            UpdateAssemblyVersion();
-            UpdateBuildVersion();
-            UpdateVersionIncVersion();
+            if (!String.IsNullOrEmpty(_majorVersion) || !String.IsNullOrEmpty(_minorVersion))
+            {
+                UpdateAssemblyVersion();
+                UpdateBuildVersion();
+                UpdateVersionIncVersion();
+            }
 
             //only writes the file if changes were made to the config.
             if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
@@ -236,19 +239,7 @@ namespace TeamCityConsole.Commands
                 yield return path + Path.DirectorySeparatorChar + fileName;
             }
         }
-
-        private string GetVersionFromXml(BuildConfig buildConfig, string versionPart)
-        {
-            foreach (var prop in buildConfig.Parameters.Property)
-            {
-                if (prop.Name == versionPart)
-                {
-                    return prop.Value;
-                }
-            }
-            return "";
-        }
-
+        
         private string GetSolutionDirectory()
         {
             var solutionDirectoryName = Directory.GetParent(Directory.GetCurrentDirectory()).Parent?.Parent?.FullName;  //src folder
