@@ -92,6 +92,8 @@
     <Compile Include="HttpClientWrapper.cs" />
     <Compile Include="Locators\CriteriaBuilder.cs" />
     <Compile Include="Locators\ProjectLocator.cs" />
+    <Compile Include="Model\BuildInfo.cs" />
+    <Compile Include="Model\DependencyConfig.cs" />
     <Compile Include="ParameterNames.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Locators\UserLocator.cs" />

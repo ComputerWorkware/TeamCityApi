@@ -250,7 +250,7 @@ namespace TeamCityApi.TestsIntegration
 
                 var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(teamCityClient, buildConfigXmlClient, vcsRootHelper);
 
-                cloneRootBuildConfigUseCase.Execute(384, "ViaGitSandbox", false).Wait();
+                cloneRootBuildConfigUseCase.Execute(781, "TestingDependenciesConfig12", false).Wait();
             }
         }
 
@@ -266,7 +266,7 @@ namespace TeamCityApi.TestsIntegration
 
                 var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), vcsRootHelper, buildConfigXmlClient);
 
-                cloneChildBuildConfigUseCase.Execute("Sunlife_CwiVoAccountingAddins_Trunk", "Installers_Sunlife_VitalObjectsSuite_trunkAlexTest10", false).Wait();
+                cloneChildBuildConfigUseCase.Execute("Installers_Sunlife_PaymentCollections_Trunk", "Installers_Sunlife_VitalObjectsSuite_trunkTestingDependenciesConfig12", false).Wait();
             }
         }
 

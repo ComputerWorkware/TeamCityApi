@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Ploeh.AutoFixture.Xunit;
+using TeamCityApi.Model;
 using TeamCityConsole.Commands;
-using TeamCityConsole.Model;
 using Xunit;
 using Xunit.Extensions;
 

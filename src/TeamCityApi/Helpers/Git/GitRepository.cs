@@ -118,7 +118,7 @@ namespace TeamCityApi.Helpers.Git
                 }
                 else
                 {
-                    repo.Checkout(branch);
+                    repo.Checkout(branch, new CheckoutOptions() {CheckoutModifiers = CheckoutModifiers.Force}); //had to add CheckoutModifiers.Force, because for some reason couldn't switch to newly created branch. It was throwing "1 conflict prevents checkout" even there were no conflicts and was able to checkout new branch in SmartGit successfully.
                     return branch;
                 }
             }

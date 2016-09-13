@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using TeamCityApi.Domain;
 
-namespace TeamCityConsole.Model
+namespace TeamCityApi.Model
 {
     public class BuildInfo
     {
@@ -36,7 +36,7 @@ namespace TeamCityConsole.Model
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((BuildInfo) obj);
+            return Equals((BuildInfo)obj);
         }
 
         public override int GetHashCode()
@@ -44,9 +44,9 @@ namespace TeamCityConsole.Model
             unchecked
             {
                 int hashCode = Id.GetHashCode();
-                hashCode = (hashCode*397) ^ (Number != null ? Number.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (BuildConfigId != null ? BuildConfigId.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (CommitHash != null ? CommitHash.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Number != null ? Number.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (BuildConfigId != null ? BuildConfigId.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (CommitHash != null ? CommitHash.GetHashCode() : 0);
                 return hashCode;
             }
         }

@@ -1,16 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Logging;
+using TeamCityApi.Model;
+using TeamCityApi.Util;
 
 namespace TeamCityApi.Helpers.Git
 {
     public interface IVcsRootHelper
     {
-        Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName);
+        /// <summary>
+        /// Clones, branches, pushes cleans up local folder
+        /// </summary>
+        /// <param name="buildId"></param>
+        /// <param name="branchName"></param>
+        /// <param name="newBuildConfigId">Used to update dependencies.config</param>
+        /// <returns></returns>
+        Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName, string newBuildConfigId);
     }
 
     public class VcsRootHelper : IVcsRootHelper
@@ -59,7 +71,7 @@ namespace TeamCityApi.Helpers.Git
 
         }
         
-        public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName)
+        public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName, string newBuildConfigId)
         {
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 
@@ -69,10 +81,34 @@ namespace TeamCityApi.Helpers.Git
 
             if (gitRepository.AddBranch(branchName, commit.CommitSha))
             {
+                gitRepository.CheckoutBranch(branchName);
+                UpdateDependencyConfig(gitRepository, newBuildConfigId);
                 gitRepository.Push(branchName);
             }
 
             gitRepository.DeleteFolder();
+        }
+
+        private void UpdateDependencyConfig(IGitRepository gitRepository, string newBuildConfigId)
+        {
+            var dependenciesConfigFileName = "dependencies.config";
+            var dependenciesConfigPath = Path.Combine(gitRepository.TempClonePath, dependenciesConfigFileName);
+            if (!System.IO.File.Exists(dependenciesConfigPath))
+            {
+                Log.Debug($"dependencies.config at {dependenciesConfigPath} is not found. Skipping BuildConfigId change.");
+                return;
+            }
+
+            var jsonString = System.IO.File.ReadAllText(dependenciesConfigPath);
+
+            var config = Json.Deserialize<DependencyConfig>(jsonString);
+            config.BuildConfigId = newBuildConfigId;
+
+            System.IO.File.WriteAllText(dependenciesConfigPath, JsonConvert.SerializeObject(config, Formatting.Indented));
+
+            gitRepository.StageAndCommit(new List<string> { dependenciesConfigFileName }, $"Change BuildConfigId in dependencies.config to {newBuildConfigId}");
+
+            Log.Debug($"Changed BuildConfigId in dependencies.config to {newBuildConfigId}");
         }
 
         public static string ToValidGitBranchName(string input)

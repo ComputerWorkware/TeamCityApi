@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using NLog;
 using TeamCityApi;
 using TeamCityApi.Domain;
-using TeamCityConsole.Model;
+using TeamCityApi.Model;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;

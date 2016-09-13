@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace TeamCityConsole.Model
+namespace TeamCityApi.Model
 {
     public class DependencyConfig
     {
@@ -27,7 +26,7 @@ namespace TeamCityConsole.Model
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((DependencyConfig) obj);
+            return Equals((DependencyConfig)obj);
         }
 
         public override int GetHashCode()
@@ -35,7 +34,7 @@ namespace TeamCityConsole.Model
             unchecked
             {
                 int hashCode = (BuildConfigId != null ? BuildConfigId.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (BuildInfos != null ? BuildInfos.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (BuildInfos != null ? BuildInfos.GetHashCode() : 0);
                 return hashCode;
             }
         }
