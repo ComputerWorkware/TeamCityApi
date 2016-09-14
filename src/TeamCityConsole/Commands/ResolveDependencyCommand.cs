@@ -242,26 +242,16 @@ namespace TeamCityConsole.Commands
         
         private string GetSolutionDirectory()
         {
-            var solutionDirectoryName = Directory.GetParent(Directory.GetCurrentDirectory()).Parent?.Parent?.FullName;  //src folder
+            var solutionDirectoryName = GetRootDirectory() + "\\src";
 
-            if (solutionDirectoryName != null && Directory.Exists(solutionDirectoryName))
-            {
-                return solutionDirectoryName;
-            }
-
-            return "";
+            return Directory.Exists(solutionDirectoryName) ? solutionDirectoryName : "";
         }
 
         private string GetRootDirectory()
         {
-            var rootDirectoryName = Directory.GetParent(Directory.GetCurrentDirectory()).Parent?.Parent?.Parent?.FullName;  //root project folder
+            var rootDirectoryName = Directory.GetCurrentDirectory();
 
-            if (rootDirectoryName != null && Directory.Exists(rootDirectoryName))
-            {
-                return rootDirectoryName;
-            }
-
-            return "";
+            return Directory.Exists(rootDirectoryName) ? rootDirectoryName : "";
         }
 
         private void UpdateAssemblyVersion()
