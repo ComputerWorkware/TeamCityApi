@@ -43,6 +43,12 @@ namespace TeamCityApi.Helpers.Git
             Log.Info(string.Format("Get Commit Information for Build: {0}",buildId));
             Build build = await _client.Builds.ById(buildId);
 
+            if (!build.Revisions.Any())
+            {
+                Log.Debug("Build doesn't have any VCS data");
+                return null;
+            }
+
             BuildConfig currentBuildConfig = await _client.BuildConfigs.GetByConfigurationId(build.BuildConfig.Id);
 
             Log.Debug("Build Loaded from TeamCity");
@@ -74,6 +80,12 @@ namespace TeamCityApi.Helpers.Git
         public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName, string newBuildConfigId)
         {
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
+
+            if (commit == null)
+            {
+                Log.Info("Could not find commit for build. Skipping creation of branch step.");
+                return;
+            }
 
             IGitRepository gitRepository = _gitRepositoryFactory.Clone(commit);
             if (gitRepository == null)
