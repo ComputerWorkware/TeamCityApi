@@ -106,7 +106,15 @@ namespace TeamCityApi.Domain
         public virtual void SwitchTemplateAndRepoToCurrentState(BuildConfig currentBuildConfig)
         {
             var settingsElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings");
-            var oldTemplateId = settingsElement.Attributes["ref"].Value;
+
+            var refAttribute = settingsElement.Attributes["ref"];
+            if (refAttribute == null)
+            {
+                Log.Debug("Build Configuration is not attached to any template. Skipping template switching step.");
+                return;
+            }
+
+            var oldTemplateId = refAttribute.Value;
 
             var newTemplateId = currentBuildConfig.Template.Id;
 
