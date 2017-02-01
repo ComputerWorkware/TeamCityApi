@@ -29,7 +29,7 @@ namespace TeamCityApi.Helpers.Git
 
                 using (var repo = new Repository(TempClonePath))
                 {
-                    Branch branch = repo.Branches.FirstOrDefault(b => b.Name == branchName);
+                    Branch branch = repo.Branches.FirstOrDefault(b => b.FriendlyName == branchName);
                     if (branch == null)
                     {
                         throw new Exception($"Local Branch: {branchName} cannot be found.");
@@ -44,6 +44,28 @@ namespace TeamCityApi.Helpers.Git
             }
 
             Log.Debug($"Branch {branchName} successfully pushed to remote.");
+        }
+
+        public bool Clone(CloneOptions options)
+        {
+            if (options==null)
+                options = new CloneOptions();
+
+            Log.Debug($"Clone repository with Http: {RepositoryLocation} into {TempClonePath}");
+            options.CredentialsProvider = (_url, _user, _cred) => LookupCredentials(_url, _user, _cred);
+
+            string clone = Repository.Clone(RepositoryLocation, TempClonePath, options);
+
+            if (string.IsNullOrWhiteSpace(clone))
+            {
+                Log.Error($"Could not clone repository: {RepositoryLocation}");
+            }
+            else
+            {
+                Log.Debug($"Repository cloned successfully: {clone}");
+            }
+
+            return !string.IsNullOrWhiteSpace(clone);
         }
 
         public override bool Clone()

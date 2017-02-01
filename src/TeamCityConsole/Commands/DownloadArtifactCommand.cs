@@ -11,7 +11,7 @@ using File = TeamCityApi.Domain.File;
 
 namespace TeamCityConsole.Commands
 {
-    class DownloadArtifactCommand : ICommand
+    public class DownloadArtifactCommand : ICommand
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -31,14 +31,30 @@ namespace TeamCityConsole.Commands
         {
             var artifactOptions = options as GetArtifactOptions;
 
-            Log.Info("Getting artifacts for: {0}{1}", artifactOptions.BuildConfigId, string.IsNullOrEmpty(artifactOptions.Tag) ? "" : ", by \"" + artifactOptions.Tag + "\" tag");
+            if (artifactOptions.BuildId != 0)
+            {
+                Log.Info("Getting artifacts for: {0}{1}", artifactOptions.BuildConfigId, ", by \"" + artifactOptions.BuildId + "\" build id");
+            }
+            else
+            {
+                Log.Info("Getting artifacts for: {0}{1}", artifactOptions.BuildConfigId, string.IsNullOrEmpty(artifactOptions.Tag) ? "" : ", by \"" + artifactOptions.Tag + "\" tag");
+            }
 
             Settings settings = new Settings();
             settings.Load();
 
             var client = new TeamCityClient(settings.TeamCityUri, settings.Username, settings.Password);
 
-            Build build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.BuildConfigId, artifactOptions.Tag);
+            Build build;
+
+            if (artifactOptions.BuildId != 0)
+            {
+                build = await client.Builds.ById(artifactOptions.BuildId);
+            }
+            else
+            {
+                build = await client.Builds.LastSuccessfulBuildFromConfig(artifactOptions.BuildConfigId, artifactOptions.Tag);
+            }
 
             Log.Info("Build Number: {0}", build.Number);
 

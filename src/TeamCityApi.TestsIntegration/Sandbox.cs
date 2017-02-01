@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Git;
@@ -8,6 +11,7 @@ using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.UseCases;
 using Xunit;
 using Xunit.Extensions;
+using File = TeamCityApi.Domain.File;
 
 namespace TeamCityApi.TestsIntegration
 {
@@ -330,7 +334,7 @@ namespace TeamCityApi.TestsIntegration
 
         private static ITeamCityClient CreateTeamCityClient()
         {
-            var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
+            var http = new HttpClientWrapper("devciserver:8080", "dnolf", "kreskin");
             var client = new TeamCityClient(http);
             return client;
         }

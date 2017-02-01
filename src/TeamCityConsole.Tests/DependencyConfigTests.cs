@@ -10,7 +10,7 @@ namespace TeamCityConsole.Tests
 {
     public class DependencyConfigTests
     {
-        public class Equals
+        public new class Equals
         {
             [Theory]
             [AutoData]

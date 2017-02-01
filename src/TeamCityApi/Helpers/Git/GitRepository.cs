@@ -101,24 +101,24 @@ namespace TeamCityApi.Helpers.Git
             Log.Info($"Checkout Branch: {branchName}");
             using (var repo = new Repository(TempClonePath))
             {
-                Branch branch = repo.Branches.FirstOrDefault(b => b.Name == branchName && !b.IsRemote);
+                Branch branch = repo.Branches.FirstOrDefault(b => b.FriendlyName == branchName && !b.IsRemote);
                 if (branch == null)
                 {
                     Log.Debug($"Local branch {branchName} cannot be found, looking for remote branch.");
                     string originBranch = $"origin/{branchName}";
-                    var trackingBranch = repo.Branches.FirstOrDefault(b => b.Name == originBranch && b.IsRemote);
+                    var trackingBranch = repo.Branches.FirstOrDefault(b => b.FriendlyName == originBranch && b.IsRemote);
                     if (trackingBranch == null)
                         throw new Exception($"Remote branch: {originBranch} cannot be found, cannot create branch: {branchName} ");
 
                     Log.Debug($"Remote branch: {originBranch} found ");
                     branch = repo.CreateBranch(branchName, trackingBranch.Tip);
                     branch = repo.Branches.Update(branch, b => b.TrackedBranch = trackingBranch.CanonicalName);
-                    repo.Checkout(branch);
+                    Commands.Checkout(repo,branch);
                     return branch;
                 }
                 else
                 {
-                    repo.Checkout(branch, new CheckoutOptions() {CheckoutModifiers = CheckoutModifiers.Force}); //had to add CheckoutModifiers.Force, because for some reason couldn't switch to newly created branch. It was throwing "1 conflict prevents checkout" even there were no conflicts and was able to checkout new branch in SmartGit successfully.
+                    Commands.Checkout(repo,branch, new CheckoutOptions() {CheckoutModifiers = CheckoutModifiers.Force}); //had to add CheckoutModifiers.Force, because for some reason couldn't switch to newly created branch. It was throwing "1 conflict prevents checkout" even there were no conflicts and was able to checkout new branch in SmartGit successfully.
                     return branch;
                 }
             }
@@ -129,7 +129,7 @@ namespace TeamCityApi.Helpers.Git
             Log.Trace($"Attempting to checkout the most recent commit before: {beforeDateTime}");
             using (var repo = new Repository(TempClonePath))
             {
-                var commits = repo.Commits.QueryBy(new CommitFilter { Since = new[] { repo.Branches[branchName] } });
+                var commits = repo.Commits.QueryBy(new CommitFilter { IncludeReachableFrom = new[] { repo.Branches[branchName] } });
 
                 var commitToCheckout = FindMostRecentCommitBefore(commits, beforeDateTime);
                 if (commitToCheckout == null)
@@ -140,7 +140,7 @@ namespace TeamCityApi.Helpers.Git
 
                 Log.Trace($"Checking out commit \"{commitToCheckout.Message}\" ({commitToCheckout.Sha}) from {commitToCheckout.Author.When}");
 
-                return repo.Checkout(commitToCheckout);
+                return Commands.Checkout(repo,commitToCheckout);
             }
         }
 
@@ -186,7 +186,7 @@ namespace TeamCityApi.Helpers.Git
             using (var repo = new Repository(TempClonePath))
             {
                 string originBranch = $"origin/{branchName}";
-                var firstOrDefault = repo.Branches.FirstOrDefault(b => b.IsRemote && b.Name == originBranch);
+                var firstOrDefault = repo.Branches.FirstOrDefault(b => b.IsRemote && b.FriendlyName == originBranch);
                 if (firstOrDefault==null)
                     Log.Info($"Branch origin/{branchName} does not exist");
                 else

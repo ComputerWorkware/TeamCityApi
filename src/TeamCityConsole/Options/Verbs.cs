@@ -13,5 +13,6 @@
         public const string CompareBuilds = "compare-builds";
         public const string ShowVersions = "show-versions";
         public const string PropagateVersion = "propagate-version";
+        public const string GenerateEscrow = "generate-escrow";
     }
 }

@@ -377,7 +377,7 @@ namespace TeamCityConsole.Tests.Commands
                 {
                     command.LoadConfigFile(options, "dependencies.config");
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //An exception happens because the config files is not found.
                     //Do nothing, we just want to test that all paths were probed
@@ -406,7 +406,7 @@ namespace TeamCityConsole.Tests.Commands
                     .Without(x => x.BuildConfigId)
                     .Create();
 
-                Exception exception = Assert.Throws<Exception>(() => command.LoadConfigFile(options, "dependencies.config"));
+                Exception exception = Assert.Throws<Exception>(() => command.LoadConfigFile(options, config));
 
                 Assert.True(exception.Message.StartsWith("Config file not found"));
             }

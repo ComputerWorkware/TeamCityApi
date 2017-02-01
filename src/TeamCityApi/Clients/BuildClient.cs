@@ -13,6 +13,7 @@ namespace TeamCityApi.Clients
         Task<Build> ByNumber(string number, string buildTypeId);
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
         Task<List<File>> GetFiles(long buildId);
+        Task<List<File>> GetFiles(long buildId,string folder, string locatorPattern);
         Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag = null);
         Task<Properties> GetResultingProperties(long id);
     }
@@ -77,6 +78,18 @@ namespace TeamCityApi.Clients
 
             return files;
         }
+
+        public async Task<List<File>> GetFiles(long buildId, string folder,string locatorPattern)
+        {
+            string requestUri = string.Format("/app/rest/builds/id:{0}/artifacts/children/{1}?locator=pattern:{2}", buildId,folder,locatorPattern);
+
+            List<File> files = await _http.Get<List<File>>(requestUri);
+
+            files.ForEach(file => file.Initialize(_http));
+
+            return files;
+        }
+
 
         public async Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag)
         {

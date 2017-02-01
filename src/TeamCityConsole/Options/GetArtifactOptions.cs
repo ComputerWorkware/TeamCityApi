@@ -13,5 +13,8 @@ namespace TeamCityConsole.Options
 
         [Option('t', "tag", Required = false, HelpText = "Optional tag for pulling artifacts.")]
         public string Tag { get; set; }
+
+        [Option('i', "id", Required = false, HelpText = "Option build Id for pulling artifacts")]
+        public int BuildId { get; set; }
     }
 }

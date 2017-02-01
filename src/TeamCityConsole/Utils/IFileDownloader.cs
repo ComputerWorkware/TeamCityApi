@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using TeamCityApi;
@@ -35,14 +37,21 @@ namespace TeamCityConsole.Utils
                 unzip = true;
             }
 
-            var destFileName = BuildFullName(destPath, file);
+            if (file.Name=="**")
+            {
+                file.ContentHref = file.ChildrenHref.Replace("!/**", string.Empty);
+                string[] parts = file.ContentHref.Split('/');
+                file.Name = parts[parts.Length-1];
+                unzip = true;
+            }
 
-            //Log.Debug("Downloading: {0}", destFileName);
+            var destFileName = BuildFullName(destPath, file);
 
             EnsureDirectoryExists(destFileName);
 
             using (Stream stream = await _http.GetStream(file.ContentHref))
             {
+                EnsureDirectoryExists(destFileName);
                 await _fileSystem.CreateFileFromStreamAsync(destFileName, stream);
             }
 
@@ -52,10 +61,10 @@ namespace TeamCityConsole.Utils
 
                 var tempFileName = _fileSystem.CreateTempFile();
                 _fileSystem.CopyFile(destFileName, tempFileName, true);
-                if (_fileSystem.DirectoryExists(destPath))
-                {
-                    _fileSystem.DeleteDirectory(destPath, true);
-                }
+                //if (_fileSystem.DirectoryExists(destPath))
+                //{
+                //    _fileSystem.DeleteDirectory(destPath, true);
+                //}
                 _fileSystem.ExtractToDirectory(tempFileName,destPath);
                 _fileSystem.DeleteFile(tempFileName);
             }
@@ -88,6 +97,11 @@ namespace TeamCityConsole.Utils
             }
 
             _fileSystem.CreateDirectory(directoryName);
+
+            if (!_fileSystem.DirectoryExists(directoryName))
+            {
+                Thread.Sleep(500); // Wait as OS may now have committed the change.
+            }
         }
     }
 }
