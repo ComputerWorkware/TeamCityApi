@@ -23,20 +23,5 @@ namespace TeamCityConsole.Tests.Utils
 
             fileSystem.Received().ExtractToDirectory(tempFile, @"c:\temp");
         }
-
-        [Theory]
-        [AutoNSubstituteData]
-        public void Should_delete_target_directory_when_unziping([Frozen]IFileSystem fileSystem, FileDownloader downloader)
-        {
-            var file = new File() { Name = "web.zip!**", ContentHref = "" };
-            
-            var destPath = @"c:\temp";
-
-            fileSystem.DirectoryExists(destPath).Returns(true);
-
-            downloader.Download(destPath, file).Wait();
-
-            fileSystem.Received().DeleteDirectory(destPath, true);
-        } 
     }
 }
