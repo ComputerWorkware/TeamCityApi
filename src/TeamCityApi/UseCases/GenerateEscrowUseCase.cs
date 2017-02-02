@@ -101,11 +101,11 @@ namespace TeamCityApi.UseCases
             element.RevisionVersion = Convert.ToInt32(versionElements[2]);
             element.BuildNumberVersion = Convert.ToInt32(versionElements[3]);
 
-            element.VersionControlServer = "http://cwigitlab.computerworkware.com/";
-
             if (build.Revisions.Count > 0)
             {
                 element.VersionControlHash = build.Revisions[0]?.Version;
+                element.VersionControlHash = GetStringProperty(build.Revisions[0]?.VcsRootInstance.Parameters, "url").Replace(@"%git.repo.path%.git",String.Empty);
+
             }
 
             element.VersionControlPath = GetStringProperty(build, "git.repo.path");
@@ -126,6 +126,14 @@ namespace TeamCityApi.UseCases
             }
 
             return element;
+        }
+
+        private string GetStringProperty(Properties properties, string propertyName)
+        {
+            var property =properties.Property.FirstOrDefault(x => string.Equals(propertyName, x.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (property == null)
+                return string.Empty;
+            return property.Value;
         }
 
         public int GetIntProperty(Build build, string propertyName)
