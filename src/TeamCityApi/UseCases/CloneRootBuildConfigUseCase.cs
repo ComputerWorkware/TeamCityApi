@@ -36,9 +36,7 @@ namespace TeamCityApi.UseCases
             Log.InfoFormat("==== Branch {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
             if (!simulate)
             {
-                var newBuildConfigName = BuildConfig.NewName(sourceBuild.BuildConfig.Name, newNameSuffix);
-                var newBuildConfigId = _client.BuildConfigs.GenerateUniqueBuildConfigId(sourceBuild.BuildConfig.ProjectId, newBuildConfigName).Result;
-                await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName, newBuildConfigId);
+                await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName);
             }
 
             Log.InfoFormat("==== Clone {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
