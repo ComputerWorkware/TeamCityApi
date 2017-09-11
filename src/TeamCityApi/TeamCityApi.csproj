@@ -81,6 +81,7 @@
     <Compile Include="Helpers\DependencyChain.cs" />
     <Compile Include="Helpers\BuildConfigChain.cs" />
     <Compile Include="Helpers\DiffMatchPatch.cs" />
+    <Compile Include="Helpers\Git\GitHelper.cs" />
     <Compile Include="Helpers\Git\GitRepositoryHttp.cs" />
     <Compile Include="Helpers\Git\GitRepositorySsh.cs" />
     <Compile Include="Helpers\Git\SshKeyHelper.cs" />

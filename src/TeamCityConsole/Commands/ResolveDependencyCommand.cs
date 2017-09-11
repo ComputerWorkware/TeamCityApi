@@ -12,6 +12,7 @@ using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
 using System.Text.RegularExpressions;
+using TeamCityApi.Helpers.Git;
 
 namespace TeamCityConsole.Commands
 {
@@ -24,8 +25,6 @@ namespace TeamCityConsole.Commands
         private readonly IDownloadDataFlow _downloadDataFlow;
 
         private readonly IFileSystem _fileSystem;
-
-        private const string ConfigFile = "dependencies.config";
 
         private DependencyConfig _dependencyConfig;
 
@@ -48,11 +47,19 @@ namespace TeamCityConsole.Commands
         {
             var dependenciesOptions = (GetDependenciesOptions)options;
 
-            _configFullPath = dependenciesOptions.Force
-                ? Path.Combine(_fileSystem.GetWorkingDirectory(), ConfigFile)
-                : GetConfigFullPath(dependenciesOptions, ConfigFile);
+            var currentGitBranch = GitHelper.GetCurrentBranchName(_fileSystem.GetWorkingDirectory());
+            var configFile = $"{currentGitBranch}.config";
+            
+            if (string.IsNullOrWhiteSpace(currentGitBranch))
+            {
+                return;
+            }
 
-            _dependencyConfig = LoadConfigFile(dependenciesOptions, ConfigFile);
+            _configFullPath = dependenciesOptions.Force
+                ? Path.Combine(GetTccDirectory(), configFile)
+                : GetConfigFullPath(dependenciesOptions, configFile);
+
+            _dependencyConfig = LoadConfigFile(dependenciesOptions, configFile);
 
             DependencyConfig dependencyConfig =
                 await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
@@ -72,7 +79,7 @@ namespace TeamCityConsole.Commands
             if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
             {
                 string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
-
+                _fileSystem.EnsureDirectoryExists(_configFullPath);
                 _fileSystem.WriteAllTextToFile(_configFullPath, json);
             }
 
@@ -141,18 +148,11 @@ namespace TeamCityConsole.Commands
 
             List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
 
-            string basePath = PathHelper.PathRelativeTo(Path.GetDirectoryName(_configFullPath), _fileSystem.GetWorkingDirectory());
-
-            if (string.IsNullOrWhiteSpace(basePath))
-            {
-                basePath = ".";
-            }
-
             //create fake files with the reference to the TC resources in order to download.
             List<PathFilePair> files = artifactRules.Select(x => new PathFilePair
             {
                 File = x.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
-                Path = Path.Combine(basePath, x.Dest)
+                Path = Path.Combine(".", x.Dest)
             }).ToList();
 
             DownloadFiles(files);
@@ -210,34 +210,21 @@ namespace TeamCityConsole.Commands
 
         private string GetConfigFullPath(GetDependenciesOptions options, string fileName)
         {
-            string fullPath = _fileSystem.GetWorkingDirectory();
+            string fullPath = GetTccDirectory();
 
             if (string.IsNullOrEmpty(options.ConfigFilePath) == false)
             {
                 fullPath = _fileSystem.GetFullPath(options.ConfigFilePath);
             }
 
-            IEnumerable<string> probingPaths = GetProbingPaths(fullPath, fileName);
+            string configPath = Path.Combine(fullPath, fileName);
 
-            string configPath = probingPaths.FirstOrDefault(x => _fileSystem.FileExists(x));
-
-            if (string.IsNullOrEmpty(configPath))
+            if (string.IsNullOrEmpty(configPath) || _fileSystem.FileExists(configPath) == false)
             {
                 throw new Exception("Config file not found. From command line use the '-i' option to create a new config file or '-p' to provide a custom path to the file.");
             }
 
             return configPath;
-        }
-
-        private static IEnumerable<string> GetProbingPaths(string directoryName, string fileName)
-        {
-            IList<string> pathParts = PathHelper.GetPathParts(directoryName);
-
-            for (int i = pathParts.Count ; i > 0 ; i--)
-            {
-                string path = string.Join(Path.DirectorySeparatorChar.ToString(), pathParts.Take(i));
-                yield return path + Path.DirectorySeparatorChar + fileName;
-            }
         }
         
         private string GetSolutionDirectory()
@@ -252,6 +239,11 @@ namespace TeamCityConsole.Commands
             var rootDirectoryName = Directory.GetCurrentDirectory();
 
             return Directory.Exists(rootDirectoryName) ? rootDirectoryName : "";
+        }
+
+        private string GetTccDirectory()
+        {
+            return Path.Combine(_fileSystem.GetWorkingDirectory(), ".tcc");
         }
 
         private void UpdateAssemblyVersion()
