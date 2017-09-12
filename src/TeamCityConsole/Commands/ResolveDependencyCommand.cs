@@ -217,7 +217,11 @@ namespace TeamCityConsole.Commands
                 fullPath = _fileSystem.GetFullPath(options.ConfigFilePath);
             }
 
-            string configPath = Path.Combine(fullPath, fileName);
+            IEnumerable<string> probingPaths = GetProbingPaths(fullPath, fileName);
+
+            string configPath = probingPaths.FirstOrDefault(x => _fileSystem.FileExists(x));
+
+            //string configPath = Path.Combine(fullPath, fileName);
 
             if (string.IsNullOrEmpty(configPath) || _fileSystem.FileExists(configPath) == false)
             {
@@ -226,7 +230,18 @@ namespace TeamCityConsole.Commands
 
             return configPath;
         }
-        
+
+        private static IEnumerable<string> GetProbingPaths(string directoryName, string fileName)
+        {
+            IList<string> pathParts = PathHelper.GetPathParts(directoryName);
+
+            for (int i = pathParts.Count; i > 0; i--)
+            {
+                string path = string.Join(Path.DirectorySeparatorChar.ToString(), pathParts.Take(i));
+                yield return path + Path.DirectorySeparatorChar + fileName;
+            }
+        }
+
         private string GetSolutionDirectory()
         {
             var solutionDirectoryName = GetRootDirectory() + "\\src";
