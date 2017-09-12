@@ -49,7 +49,7 @@ namespace TeamCityConsole.Commands
 
             var currentGitBranch = GitHelper.GetCurrentBranchName(_fileSystem.GetWorkingDirectory());
             var configFile = $"{currentGitBranch}.config";
-            
+
             if (string.IsNullOrWhiteSpace(currentGitBranch))
             {
                 return;
@@ -58,6 +58,8 @@ namespace TeamCityConsole.Commands
             _configFullPath = dependenciesOptions.Force
                 ? Path.Combine(GetTccDirectory(), configFile)
                 : GetConfigFullPath(dependenciesOptions, configFile);
+
+            Log.Info("Using '{0}' as dependency config", _configFullPath);
 
             _dependencyConfig = LoadConfigFile(dependenciesOptions, configFile);
 
