@@ -26,6 +26,8 @@ namespace TeamCityConsole
 
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
+
             ExtractResources();
 
             var container = SetupContainer();
@@ -64,6 +66,11 @@ namespace TeamCityConsole
 #endif
 
             ExecuteAsync(command, options).GetAwaiter().GetResult();
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            Log.Info("Exiting TeamCityConsole Process");
         }
 
         private static void DisplayExecutedCommand(string[] args)
