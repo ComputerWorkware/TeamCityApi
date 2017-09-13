@@ -213,7 +213,7 @@ namespace TeamCityConsole.Commands
 
         private string GetConfigFullPath(GetDependenciesOptions options, string fileName)
         {
-            string fullPath = GetTccDirectory();
+            string fullPath = _fileSystem.GetWorkingDirectory();// GetTccDirectory();
 
             if (string.IsNullOrEmpty(options.ConfigFilePath) == false)
             {
@@ -228,6 +228,7 @@ namespace TeamCityConsole.Commands
 
             if (string.IsNullOrEmpty(configPath) || _fileSystem.FileExists(configPath) == false)
             {
+                Log.Info("Config path: {0}", configPath);
                 throw new Exception("Config file not found. From command line use the '-i' option to create a new config file or '-p' to provide a custom path to the file.");
             }
 
@@ -241,7 +242,7 @@ namespace TeamCityConsole.Commands
             for (int i = pathParts.Count; i > 0; i--)
             {
                 string path = string.Join(Path.DirectorySeparatorChar.ToString(), pathParts.Take(i));
-                yield return path + Path.DirectorySeparatorChar + fileName;
+                yield return path + Path.DirectorySeparatorChar + ".tcc" + Path.DirectorySeparatorChar + fileName;
             }
         }
 
