@@ -52,6 +52,7 @@ namespace TeamCityConsole.Commands
 
             if (string.IsNullOrWhiteSpace(currentGitBranch))
             {
+                Log.Error("Current git branch is not found. Likely git is not initialized. Exiting the program");
                 return;
             }
 
