@@ -22,11 +22,13 @@ namespace TeamCityConsole
 {
     class Program
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static Logger Log;
 
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
+
+            Log = LogManager.GetCurrentClassLogger();
 
             ExtractResources();
 
