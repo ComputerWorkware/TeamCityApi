@@ -67,6 +67,8 @@ namespace TeamCityConsole.Commands
             DependencyConfig dependencyConfig =
                 await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
 
+            Log.Info("Finished resolving dependencies");
+
             var buildConfig = await _client.BuildConfigs.GetByConfigurationId(_dependencyConfig.BuildConfigId);
             _majorVersion = buildConfig.Parameters[ParameterName.MajorVersion]?.Value;
             _minorVersion = buildConfig.Parameters[ParameterName.MinorVersion]?.Value;
@@ -78,12 +80,16 @@ namespace TeamCityConsole.Commands
                 UpdateVersionIncVersion();
             }
 
+            Log.Info("Finished updating versions");
+
             //only writes the file if changes were made to the config.
             if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
             {
+                Log.Info("Updating config file...");
                 string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
                 _fileSystem.EnsureDirectoryExists(_configFullPath);
                 _fileSystem.WriteAllTextToFile(_configFullPath, json);
+                Log.Info("Done updating config file");
             }
 
             Log.Info("================ Get Dependencies: done ================");
