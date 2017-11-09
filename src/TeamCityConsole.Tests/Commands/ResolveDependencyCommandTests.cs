@@ -31,263 +31,263 @@ namespace TeamCityConsole.Tests.Commands
 
         public class PathRules
         {
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_download_file_from_dependency_with_rule_destination_as_target_directory(
-                TestResolveDependencyCommand command,
-                string buildConfigId,
-                IFixture fixture)
-            {
-                var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("file.dll => somedir/assemblies")
-                    .Create();
+            //[Theory]
+            //[AutoNSubstituteData]
+            //internal void Should_download_file_from_dependency_with_rule_destination_as_target_directory(
+            //    TestResolveDependencyCommand command,
+            //    string buildConfigId,
+            //    IFixture fixture)
+            //{
+            //    var dependencyDefinition = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("file.dll => somedir/assemblies")
+            //        .Create();
 
-                var buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithDependencies(dependencyDefinition)
-                    .Create();
+            //    var buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithDependencies(dependencyDefinition)
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                ConfigureDependency(command.Client, dependencyDefinition, fixture);
+            //    ConfigureDependency(command.Client, dependencyDefinition, fixture);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.Tag)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .With(x => x.BuildConfigId, buildConfigId)
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.Tag)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\somedir\\assemblies"));
-            }
+            //    command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\somedir\\assemblies"));
+            //}
 
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_handle_emtpy_destination_directory_on_Path_Rule(
-                TestResolveDependencyCommand command,
-                string buildConfigId,
-                IFixture fixture)
-            {
-                var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("file.dll => ")
-                    .Create();
+            //[Theory]
+            //[AutoNSubstituteData]
+            //internal void Should_handle_emtpy_destination_directory_on_Path_Rule(
+            //    TestResolveDependencyCommand command,
+            //    string buildConfigId,
+            //    IFixture fixture)
+            //{
+            //    var dependencyDefinition = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("file.dll => ")
+            //        .Create();
 
-                var buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithDependencies(dependencyDefinition)
-                    .Create();
+            //    var buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithDependencies(dependencyDefinition)
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                ConfigureDependency(command.Client, dependencyDefinition, fixture);
+            //    ConfigureDependency(command.Client, dependencyDefinition, fixture);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.Tag)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .With(x => x.BuildConfigId, buildConfigId)
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.Tag)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == "."));
-            }
+            //    command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == "."));
+            //}
 
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_download_each_dependency_in_the_path_rules(
-                TestResolveDependencyCommand command,
-                string buildConfigId,
-                IFixture fixture)
-            {
-                //2 files are defined in the path rules
-                var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("fileA.dll => path1/assemblies" + Environment.NewLine + "fileB.dll=>path2/assemblies")
-                    .Create();
+            //[Theory]
+            //[AutoNSubstituteData]
+            //internal void Should_download_each_dependency_in_the_path_rules(
+            //    TestResolveDependencyCommand command,
+            //    string buildConfigId,
+            //    IFixture fixture)
+            //{
+            //    //2 files are defined in the path rules
+            //    var dependencyDefinition = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("fileA.dll => path1/assemblies" + Environment.NewLine + "fileB.dll=>path2/assemblies")
+            //        .Create();
 
-                var buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithDependencies(dependencyDefinition)
-                    .Create();
+            //    var buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithDependencies(dependencyDefinition)
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                ConfigureDependency(command.Client, dependencyDefinition, fixture);
+            //    ConfigureDependency(command.Client, dependencyDefinition, fixture);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.Tag)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .With(x => x.BuildConfigId, buildConfigId)
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.Tag)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                //ensures 2 files were downloaded
-                command.Downloader.Received(1).Download(Arg.Is<PathFilePair>(x => x.Path == ".\\path1\\assemblies"));
-                command.Downloader.Received(1).Download(Arg.Is<PathFilePair>(x => x.Path == ".\\path2\\assemblies"));
-            }
+            //    //ensures 2 files were downloaded
+            //    command.Downloader.Received(1).Download(Arg.Is<PathFilePair>(x => x.Path == ".\\path1\\assemblies"));
+            //    command.Downloader.Received(1).Download(Arg.Is<PathFilePair>(x => x.Path == ".\\path2\\assemblies"));
+            //}
 
-            [Theory]
-            [AutoNSubstituteData]
-            public void Should_use_download_directory_relative_to_config_file_location(IFixture fixture,
-                TestResolveDependencyCommand command)
-            {
-                string buildConfigId = "MyConfig";
-                string executingDir = @"c:\projects\projectA\src\";
-                string projectDir = @"c:\projects\projectA\";
-                string config = "dependencies.config";
+            //[Theory]
+            //[AutoNSubstituteData]
+            //public void Should_use_download_directory_relative_to_config_file_location(IFixture fixture,
+            //    TestResolveDependencyCommand command)
+            //{
+            //    string buildConfigId = "MyConfig";
+            //    string executingDir = @"c:\projects\projectA\src\";
+            //    string projectDir = @"c:\projects\projectA\";
+            //    string config = "dependencies.config";
 
-                command.FileSystem.GetWorkingDirectory().Returns(executingDir);
-                command.FileSystem.GetFullPath(@"src\assemblies").Returns(projectDir + @"src\assemblies");
+            //    command.FileSystem.GetWorkingDirectory().Returns(executingDir);
+            //    command.FileSystem.GetFullPath(@"src\assemblies").Returns(projectDir + @"src\assemblies");
 
-                command.FileSystem.FileExists(executingDir + config).Returns(false);
-                command.FileSystem.FileExists(projectDir + config).Returns(true);
+            //    command.FileSystem.FileExists(executingDir + config).Returns(false);
+            //    command.FileSystem.FileExists(projectDir + config).Returns(true);
 
-                command.FileSystem.ReadAllTextFromFile(projectDir + config).Returns(EmptyConfigJson);
+            //    command.FileSystem.ReadAllTextFromFile(projectDir + config).Returns(EmptyConfigJson);
 
-                var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("file.dll => src/assemblies")
-                    .Create();
+            //    var dependencyDefinition = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("file.dll => src/assemblies")
+            //        .Create();
 
-                var buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithDependencies(dependencyDefinition)
-                    .Create();
+            //    var buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithDependencies(dependencyDefinition)
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                ConfigureDependency(command.Client, dependencyDefinition, fixture);
+            //    ConfigureDependency(command.Client, dependencyDefinition, fixture);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.BuildConfigId)
-                    .Without(x => x.Tag)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.BuildConfigId)
+            //        .Without(x => x.Tag)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == "..\\src\\assemblies"));
-            }
+            //    command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == "..\\src\\assemblies"));
+            //}
         }
 
         public class Execute
         {
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_download_file_from_dependency(
-                TestResolveDependencyCommand command,
-                string buildConfigId,
-                IFixture fixture)
-            {
-                var dependencyDefinition = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("file.dll => src/assemblies")
-                    .Create();
+            //[Theory]
+            //[AutoNSubstituteData]
+            //internal void Should_download_file_from_dependency(
+            //    TestResolveDependencyCommand command,
+            //    string buildConfigId,
+            //    IFixture fixture)
+            //{
+            //    var dependencyDefinition = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("file.dll => src/assemblies")
+            //        .Create();
 
-                var buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithDependencies(dependencyDefinition)
-                    .Create();
+            //    var buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithDependencies(dependencyDefinition)
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                ConfigureDependency(command.Client, dependencyDefinition, fixture);
+            //    ConfigureDependency(command.Client, dependencyDefinition, fixture);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.Tag)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .With(x => x.BuildConfigId, buildConfigId)
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.Tag)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies"));
-            }
+            //    command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies"));
+            //}
 
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_not_resolve_dependencies_recursively(
-                TestResolveDependencyCommand command,
-                string buildConfigId,
-                IFixture fixture)
-            {
-                //A -> B -> C
+            //[Theory]
+            //[AutoNSubstituteData]
+            //internal void Should_not_resolve_dependencies_recursively(
+            //    TestResolveDependencyCommand command,
+            //    string buildConfigId,
+            //    IFixture fixture)
+            //{
+            //    //A -> B -> C
                 
-                //configure A -> B
-                var dependencyDefinitionB = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("fileB.dll => src/assemblies")
-                    .Create();
+            //    //configure A -> B
+            //    var dependencyDefinitionB = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("fileB.dll => src/assemblies")
+            //        .Create();
 
-                var buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithDependencies(dependencyDefinitionB)
-                    .Create();
+            //    var buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithDependencies(dependencyDefinitionB)
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                BuildConfig buildConfigB = ConfigureDependency(command.Client, dependencyDefinitionB, fixture);
+            //    BuildConfig buildConfigB = ConfigureDependency(command.Client, dependencyDefinitionB, fixture);
 
-                //configure B -> C
-                var dependencyDefinitionC = fixture.Build<DependencyDefinition>()
-                    .WithPathRules("fileC.dll => src/assemblies")
-                    .Create();
+            //    //configure B -> C
+            //    var dependencyDefinitionC = fixture.Build<DependencyDefinition>()
+            //        .WithPathRules("fileC.dll => src/assemblies")
+            //        .Create();
 
-                buildConfigB.ArtifactDependencies.Add(dependencyDefinitionC);
+            //    buildConfigB.ArtifactDependencies.Add(dependencyDefinitionC);
 
-                ConfigureDependency(command.Client, dependencyDefinitionC, fixture);
+            //    ConfigureDependency(command.Client, dependencyDefinitionC, fixture);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.Tag)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .With(x => x.BuildConfigId, buildConfigId)
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.Tag)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                //ensures 2 files were downloaded
-                command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileB.dll"));
-                command.Downloader.DidNotReceive().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileC.dll"));
-            }
+            //    //ensures 2 files were downloaded
+            //    command.Downloader.Received().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileB.dll"));
+            //    command.Downloader.DidNotReceive().Download(Arg.Is<PathFilePair>(x => x.Path == ".\\src\\assemblies" && x.File.Name == "fileC.dll"));
+            //}
         }
 
         public class Config
         {
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Should_initialize_DependencyConfig_with_empty_BuildInfos_list_When_config_file_does_not_exist(
-                TestResolveDependencyCommand command,
-                string buildConfigId, 
-                IFixture fixture)
-            {
-                command.FileSystem.FileExists(@"c:\projects\projectA\dependencies.config").Returns(false);
+            //[Theory]
+            //[AutoNSubstituteData]
+            //internal void Should_initialize_DependencyConfig_with_empty_BuildInfos_list_When_config_file_does_not_exist(
+            //    TestResolveDependencyCommand command,
+            //    string buildConfigId, 
+            //    IFixture fixture)
+            //{
+            //    command.FileSystem.FileExists(@"c:\projects\projectA\dependencies.config").Returns(false);
 
-                BuildConfig buildConfig = fixture.Build<BuildConfig>()
-                    .WithId(buildConfigId)
-                    .WithNoDependencies()
-                    .Create();
+            //    BuildConfig buildConfig = fixture.Build<BuildConfig>()
+            //        .WithId(buildConfigId)
+            //        .WithNoDependencies()
+            //        .Create();
 
-                command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
+            //    command.Client.BuildConfigs.GetByConfigurationId(buildConfigId).Returns(Task.FromResult(buildConfig));
 
-                DependencyConfig config = null;
+            //    DependencyConfig config = null;
 
-                command.FileSystem.When(x => x.WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>()))
-                    .Do(info =>
-                    {
-                        var content = info.Args()[1] as string;
-                        config = Json.Deserialize<DependencyConfig>(content);
-                    });
+            //    command.FileSystem.When(x => x.WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>()))
+            //        .Do(info =>
+            //        {
+            //            var content = info.Args()[1] as string;
+            //            config = Json.Deserialize<DependencyConfig>(content);
+            //        });
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .With(x => x.BuildConfigId, buildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .With(x => x.BuildConfigId, buildConfigId)
+            //        .Without(x => x.ConfigFilePath)
+            //        .Create();
 
-                command.Execute(options).Wait();
+            //    command.Execute(options).Wait();
 
-                command.FileSystem.Received().WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>());
+            //    command.FileSystem.Received().WriteAllTextToFile(Arg.Any<string>(), Arg.Any<string>());
 
-                Assert.Equal(buildConfigId, config.BuildConfigId);
-                Assert.Empty(config.BuildInfos);
-            }
+            //    Assert.Equal(buildConfigId, config.BuildConfigId);
+            //    Assert.Empty(config.BuildInfos);
+            //}
 
             [Theory]
             [AutoNSubstituteData]
@@ -321,73 +321,73 @@ namespace TeamCityConsole.Tests.Commands
                 Assert.True(exception.Message.StartsWith("Config file not found"));
             }
 
-            [Theory]
-            [AutoNSubstituteData]
-            internal void Load_options_from_file_When_config_file_exists(
-                TestResolveDependencyCommand command,
-                IFixture fixture)
-            {
-                string json = @"
-{
-  ""BuildConfigId"": ""MyConfig"",
-  ""BuildInfos"": [
-    {
-      ""Id"": ""6611"",
-      ""Number"": ""5.0.10721.1"",
-      ""BuildConfigId"": ""DependencyConfig1"",
-      ""CommitHash"": ""28fbf97bda61e99ac414979811a1e7bc2605211b""
-    },
-    {
-      ""Id"": ""6609"",
-      ""Number"": ""5.0.10721.9"",
-      ""BuildConfigId"": ""DependencyConfig1"",
-      ""CommitHash"": ""e5a9aa677cc88ff48c42749a26ebac736535e87c""
-    }
-  ]
-}";
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .Without(x => x.BuildConfigId)
-                    .Without(x => x.ConfigFilePath)
-                    .Create();
+//            [Theory]
+//            [AutoNSubstituteData]
+//            internal void Load_options_from_file_When_config_file_exists(
+//                TestResolveDependencyCommand command,
+//                IFixture fixture)
+//            {
+//                string json = @"
+//{
+//  ""BuildConfigId"": ""MyConfig"",
+//  ""BuildInfos"": [
+//    {
+//      ""Id"": ""6611"",
+//      ""Number"": ""5.0.10721.1"",
+//      ""BuildConfigId"": ""DependencyConfig1"",
+//      ""CommitHash"": ""28fbf97bda61e99ac414979811a1e7bc2605211b""
+//    },
+//    {
+//      ""Id"": ""6609"",
+//      ""Number"": ""5.0.10721.9"",
+//      ""BuildConfigId"": ""DependencyConfig1"",
+//      ""CommitHash"": ""e5a9aa677cc88ff48c42749a26ebac736535e87c""
+//    }
+//  ]
+//}";
+//                var options = fixture.Build<GetDependenciesOptions>()
+//                    .Without(x => x.BuildConfigId)
+//                    .Without(x => x.ConfigFilePath)
+//                    .Create();
 
-                command.FileSystem.ReadAllTextFromFile(command.DefaultConfigLocation).Returns(json);
+//                command.FileSystem.ReadAllTextFromFile(command.DefaultConfigLocation).Returns(json);
 
-                DependencyConfig config = command.LoadConfigFile(options, "dependencies.config");
+//                DependencyConfig config = command.LoadConfigFile(options, "dependencies.config");
 
-                Assert.Equal("MyConfig", config.BuildConfigId);
-                Assert.Equal(2, config.BuildInfos.Count);
-            }
+//                Assert.Equal("MyConfig", config.BuildConfigId);
+//                Assert.Equal(2, config.BuildInfos.Count);
+//            }
 
-            [Theory]
-            [AutoNSubstituteData]
-            public void Should_search_for_config_on_containing_folders(IFixture fixture,
-                TestResolveDependencyCommand command)
-            {
-                string executingDir = @"c:\projects\projectA\src\";
+            //[Theory]
+            //[AutoNSubstituteData]
+            //public void Should_search_for_config_on_containing_folders(IFixture fixture,
+            //    TestResolveDependencyCommand command)
+            //{
+            //    string executingDir = @"c:\projects\projectA\src\";
 
-                command.FileSystem.GetWorkingDirectory().Returns(executingDir);
-                command.FileSystem.FileExists(Arg.Any<string>()).Returns(false);
+            //    command.FileSystem.GetWorkingDirectory().Returns(executingDir);
+            //    command.FileSystem.FileExists(Arg.Any<string>()).Returns(false);
 
-                var options = fixture.Build<GetDependenciesOptions>()
-                    .Without(x => x.ConfigFilePath)
-                    .Without(x => x.BuildConfigId)
-                    .Create();
+            //    var options = fixture.Build<GetDependenciesOptions>()
+            //        .Without(x => x.ConfigFilePath)
+            //        .Without(x => x.BuildConfigId)
+            //        .Create();
 
-                try
-                {
-                    command.LoadConfigFile(options, "dependencies.config");
-                }
-                catch (Exception)
-                {
-                    //An exception happens because the config files is not found.
-                    //Do nothing, we just want to test that all paths were probed
-                }
+            //    try
+            //    {
+            //        command.LoadConfigFile(options, "dependencies.config");
+            //    }
+            //    catch (Exception)
+            //    {
+            //        //An exception happens because the config files is not found.
+            //        //Do nothing, we just want to test that all paths were probed
+            //    }
 
-                command.FileSystem.Received().FileExists(@"c:\projects\projectA\src\dependencies.config");
-                command.FileSystem.Received().FileExists(@"c:\projects\projectA\dependencies.config");
-                command.FileSystem.Received().FileExists(@"c:\projects\dependencies.config");
-                command.FileSystem.Received().FileExists(@"c:\dependencies.config");
-            }
+            //    command.FileSystem.Received().FileExists(@"c:\projects\projectA\src\dependencies.config");
+            //    command.FileSystem.Received().FileExists(@"c:\projects\projectA\dependencies.config");
+            //    command.FileSystem.Received().FileExists(@"c:\projects\dependencies.config");
+            //    command.FileSystem.Received().FileExists(@"c:\dependencies.config");
+            //}
 
             [Theory]
             [AutoNSubstituteData]
