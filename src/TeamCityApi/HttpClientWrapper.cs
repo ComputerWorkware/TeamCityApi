@@ -110,12 +110,15 @@ namespace TeamCityApi
                 Credentials = new NetworkCredential(username, password),
             };
 
+            var baseAddress = "http://" + hostname;
+
             var httpClient = new HttpClient(httpClientHandler)
             {
-                BaseAddress = new Uri("http://" + hostname)
+                BaseAddress = new Uri(baseAddress)
             };
 
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Add("Origin", baseAddress);
 
             return httpClient;
         }
