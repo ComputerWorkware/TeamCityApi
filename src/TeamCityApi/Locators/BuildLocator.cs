@@ -90,7 +90,7 @@ namespace TeamCityApi.Locators
 
         public BuildLocator WithNumber(string number, string buildConfigId)
         {
-            return With("number", string.Format("{0}", number))
+            return With("number", number.Trim())
                 .WithBuildConfiguration(bcLocator => bcLocator.WithId(buildConfigId));
         }
 
