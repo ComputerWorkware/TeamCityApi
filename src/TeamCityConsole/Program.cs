@@ -10,6 +10,7 @@ using Funq;
 using NLog;
 using TeamCityApi;
 using TeamCityApi.Clients;
+using TeamCityApi.Helpers;
 using TeamCityApi.Helpers.Git;
 using TeamCityApi.UseCases;
 using TeamCityConsole.Commands;
@@ -157,8 +158,8 @@ namespace TeamCityConsole
 
             AssemblyMetada assemblyMetada = new AssemblyMetada();
 
-            container.Register<IHttpClientWrapper>(new HttpClientWrapper(settings.TeamCityUri, settings.Username,
-                settings.Password));
+            container.Register<IHttpClientWrapper>(new HttpClientWrapper(settings.TeamCityUri, settings.TeamCityUsername,
+                settings.TeamCityPassword));
 
             container.Register<ITeamCityClient>(x => new TeamCityClient(x.Resolve<IHttpClientWrapper>()));
 
@@ -200,6 +201,8 @@ namespace TeamCityConsole
 
             container.Register<ICommand>(Verbs.CloneChildBuildConfig, x => new CloneChildBuildConfigCommand(x.Resolve<CloneChildBuildConfigUseCase>()));
 
+            container.Register<ICommand>(Verbs.DeepCloneBuildConfig, x => new DeepCloneBuildConfigCommand(x.Resolve<DeepCloneBuildConfigUseCase>()));
+
             container.Register<ICommand>(Verbs.DeleteClonedBuildChain, x => new DeleteClonedBuildChainCommand(x.Resolve<DeleteClonedBuildChainUseCase>()));
 
             container.Register<ICommand>(Verbs.ShowBuildChain, x => new ShowBuildChainCommand(x.Resolve<ShowBuildChainUseCase>()));
@@ -216,18 +219,27 @@ namespace TeamCityConsole
                 x.Resolve<IFileSystem>(),
                 x.Resolve<IFileDownloader>() ));
 
-            container.Register<List<Credential>>(x=>new List<Credential>
+            container.Register<List<GitCredential>>(x=>new List<GitCredential>
             {
-                new Credential
+                new GitCredential
                 {
                     HostName = "*",
-                    UserName = settings.Username,
-                    Password = settings.Password
+                    UserName = settings.TeamCityUsername,
+                    Password = settings.TeamCityPassword
                 }
             });
 
-            container.Register<IGitRepositoryFactory>(x => new GitRepositoryFactory(x.Resolve<List<Credential>>()));
-            container.Register<IVcsRootHelper>(x => new VcsRootHelper(x.Resolve<ITeamCityClient>(), x.Resolve<IGitRepositoryFactory>()));
+            container.Register<GitLabSettings>(x=> new GitLabSettings()
+                {
+                    GitLabUri = settings.GitLabUri,
+                    GitLabUsername = settings.GitLabUsername,
+                    GitLabPassword = settings.GitLabPassword
+                }
+            );
+
+            container.Register<IGitRepositoryFactory>(x => new GitRepositoryFactory(x.Resolve<List<GitCredential>>()));
+            container.Register<IGitLabClientFactory>(x => new GitLabClientFactory(x.Resolve<GitLabSettings>()));
+            container.Register<IVcsRootHelper>(x => new VcsRootHelper(x.Resolve<ITeamCityClient>(), x.Resolve<IGitRepositoryFactory>(), x.Resolve<IGitLabClientFactory>()));
 
             return container;
         }

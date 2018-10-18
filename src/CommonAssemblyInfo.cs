@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Computer Workware Inc.")]
-[assembly: AssemblyCopyright("Copyright Computer Workware Inc. 2014")]
+[assembly: AssemblyCopyright("Copyright Computer Workware Inc. 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyTitle("Vcs: LOCAL")]
-[assembly: AssemblyInformationalVersion("1.0.10728.0")]
-[assembly: AssemblyFileVersion("1.0.10728.0")]
+[assembly: AssemblyInformationalVersion("1.0.51018.0")]
+[assembly: AssemblyFileVersion("1.0.51018.0")]

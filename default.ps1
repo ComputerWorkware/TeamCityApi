@@ -1,4 +1,4 @@
-Framework "4.5.1"
+Framework "4.6.1"
 
 #required parameters:
 #$major_ver
@@ -20,7 +20,7 @@ properties {
     $voVersion = "$major_ver.$minor_ver.0.0"
     $fileVersion = "$major_ver.$minor_ver.$buildVer.$revisionVer"
     $assemblyVersion = $voVersion
-    $visualStudioVersion = "14.0"
+    $visualStudioVersion = "15.0"
 
 
     #general dirs

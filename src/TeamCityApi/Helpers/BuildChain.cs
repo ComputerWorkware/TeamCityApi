@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Graphs;
@@ -40,6 +42,13 @@ namespace TeamCityApi.Helpers
                     AddDirectedEdge(parentNode, childNode, 0);
                 }
             }
+        }
+
+        public IEnumerable<Build> GetParents(string childBuildConfigId)
+        {
+            return from GraphNode<Build> node in Nodes
+                where node.Neighbors.Any(n => n.Value.BuildTypeId == childBuildConfigId)
+                select node.Value;
         }
     }
 }

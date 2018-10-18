@@ -1,7 +1,7 @@
 ﻿using NSubstitute;
 using Ploeh.AutoFixture;
 using TeamCityApi.Clients;
-using TeamCityApi.Helpers.Git;
+using TeamCityApi.Helpers;
 using TeamCityApi.Tests.Helpers;
 using TeamCityApi.Tests.Scenarios;
 using TeamCityApi.UseCases;

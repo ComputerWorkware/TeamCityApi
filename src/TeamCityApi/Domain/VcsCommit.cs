@@ -12,6 +12,7 @@ namespace TeamCityApi.Domain
     {
         public string CommitSha { get; set; }
         public string RepositoryLocation { get; set; }
+        public string RepositoryNameWithNamespace { get; set; }
         public string BranchName { get; set; }
         public GitAuthenticationType AuthenticationType { get; set; }
         public string VcsRootId { get; set; }
@@ -33,6 +34,12 @@ namespace TeamCityApi.Domain
             if (property != null)
             {
                 RepositoryLocation = parameters.ReplaceInString(property.Value);
+            }
+
+            property = parameters.FirstOrDefault(x => x.Name == "git.repo.path");
+            if (property != null)
+            {
+                RepositoryNameWithNamespace = property.Value;
             }
 
             property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "authMethod");

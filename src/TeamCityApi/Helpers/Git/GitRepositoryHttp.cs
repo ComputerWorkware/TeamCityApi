@@ -10,9 +10,9 @@ namespace TeamCityApi.Helpers.Git
     {
         private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
-        private readonly List<Credential> _credentials;
+        private readonly List<GitCredential> _credentials;
 
-        public GitRepositoryHttp(string repositoryLocation, string tempClonePath, string sshKeyFolder, List<Credential> credentials) : base(repositoryLocation, tempClonePath, sshKeyFolder)
+        public GitRepositoryHttp(string repositoryLocation, string tempClonePath, string sshKeyFolder, List<GitCredential> credentials) : base(repositoryLocation, tempClonePath, sshKeyFolder)
         {
             _credentials = credentials;
         }

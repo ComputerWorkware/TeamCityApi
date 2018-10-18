@@ -43,7 +43,7 @@ namespace TeamCityConsole.Commands
             Settings settings = new Settings();
             settings.Load();
 
-            var client = new TeamCityClient(settings.TeamCityUri, settings.Username, settings.Password);
+            var client = new TeamCityClient(settings.TeamCityUri, settings.TeamCityUsername, settings.TeamCityPassword);
 
             Build build;
 
@@ -91,7 +91,7 @@ namespace TeamCityConsole.Commands
             Settings settings = new Settings();
             settings.Load();
 
-            var http = new HttpClientWrapper(settings.TeamCityUri, settings.Username, settings.Password);
+            var http = new HttpClientWrapper(settings.TeamCityUri, settings.TeamCityUsername, settings.TeamCityPassword);
 
             using (Stream stream = await http.GetStream(file.ContentHref))
             {

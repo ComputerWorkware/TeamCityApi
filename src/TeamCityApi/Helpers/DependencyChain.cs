@@ -218,6 +218,12 @@ namespace TeamCityApi.Helpers
             CurrentBuildConfig = buildConfig;
         }
 
+        public DependencyNode(BuildConfig buildConfig, Build build)
+        {
+            CurrentBuildConfig = buildConfig;
+            HistoricBuild = build;
+        }
+
         public DependencyNode()
         {
         }

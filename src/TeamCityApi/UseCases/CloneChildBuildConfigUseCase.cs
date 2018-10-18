@@ -52,7 +52,7 @@ namespace TeamCityApi.UseCases
                 Log.Info($"==== Branch {b.HistoricBuild.BuildTypeId} from Build #{b.HistoricBuild.Number} (id: {b.HistoricBuild.Id}) ====");
                 if (!_simulate)
                 {
-                    await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(b.HistoricBuild.Id, _newBranchName);
+                    await _vcsRootHelper.BranchUsingLocalGit(b.HistoricBuild.Id, _newBranchName);
                 }
             }
 

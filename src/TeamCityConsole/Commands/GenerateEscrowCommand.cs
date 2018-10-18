@@ -79,9 +79,9 @@ namespace TeamCityConsole.Commands
             string nugetUrl = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe";
             await DownloadNuget(nugetUrl, outputPath);
 
-            var credentialList = new List<Credential>
+            var credentialList = new List<GitCredential>
             {
-                new Credential
+                new GitCredential
                 {
                     HostName = "*",
                     UserName = generateEscrowOptions.User,
@@ -173,7 +173,7 @@ namespace TeamCityConsole.Commands
             Settings settings = new Settings();
             settings.Load();
 
-            var client = new TeamCityClient(settings.TeamCityUri, settings.Username, settings.Password);
+            var client = new TeamCityClient(settings.TeamCityUri, settings.TeamCityUsername, settings.TeamCityPassword);
 
             List<EscrowElement> escrowElements =
                 await _generateEscrowUseCase.BuildEscrowList(generateEscrowOptions.BuildId);
@@ -224,7 +224,7 @@ namespace TeamCityConsole.Commands
                 });
         }
 
-        private static void CloneRespository(EscrowElement element, string elementPath, List<Credential> credentialList)
+        private static void CloneRespository(EscrowElement element, string elementPath, List<GitCredential> credentialList)
         {
             if (!string.IsNullOrWhiteSpace(element.VersionControlHash))
             {

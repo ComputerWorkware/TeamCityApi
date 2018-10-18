@@ -26,12 +26,12 @@ namespace TeamCityConsole.Commands
 
             if (configOptions.UserName != null)
             {
-                _settings.Username = configOptions.UserName;
+                _settings.TeamCityUsername = configOptions.UserName;
             }
 
             if (configOptions.Password!= null)
             {
-                _settings.Password = configOptions.Password;
+                _settings.TeamCityPassword = configOptions.Password;
             }
 
             if (configOptions.TeamCityUri!= null)

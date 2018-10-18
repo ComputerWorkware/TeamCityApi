@@ -23,8 +23,8 @@ namespace TeamCityConsole.Tests.Commands
             {
                 setConfigCommand.Execute(setConfigOptions).Wait();
 
-                Assert.Equal(setConfigCommand.Settings.Username, setConfigOptions.UserName);
-                Assert.Equal(setConfigCommand.Settings.Password, setConfigOptions.Password);
+                Assert.Equal(setConfigCommand.Settings.TeamCityUsername, setConfigOptions.UserName);
+                Assert.Equal(setConfigCommand.Settings.TeamCityPassword, setConfigOptions.Password);
                 Assert.Equal(setConfigCommand.Settings.TeamCityUri, setConfigOptions.TeamCityUri);
                 Assert.Equal(setConfigCommand.Settings.SelfUpdateBuildConfigId, setConfigOptions.SelfUpdateBuildConfigId);
 
@@ -38,7 +38,7 @@ namespace TeamCityConsole.Tests.Commands
                 setConfigOptions.UserName = null;
                 setConfigCommand.Execute(setConfigOptions).Wait();
 
-                Assert.NotNull(setConfigCommand.Settings.Username);
+                Assert.NotNull(setConfigCommand.Settings.TeamCityUsername);
 
             }
 

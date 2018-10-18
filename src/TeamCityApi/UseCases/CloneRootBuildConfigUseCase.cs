@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
-using TeamCityApi.Helpers.Git;
+using TeamCityApi.Helpers;
 using TeamCityApi.Logging;
 
 namespace TeamCityApi.UseCases
@@ -36,7 +36,7 @@ namespace TeamCityApi.UseCases
             Log.InfoFormat("==== Branch {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);
             if (!simulate)
             {
-                await _vcsRootHelper.CloneAndBranchAndPushAndDeleteLocalFolder(sourceBuildId, newBranchName);
+                await _vcsRootHelper.BranchUsingLocalGit(sourceBuildId, newBranchName);
             }
 
             Log.InfoFormat("==== Clone {2} from Build #{1} (id: {0}) ====", sourceBuild.Id, sourceBuild.Number, sourceBuild.BuildConfig.Id);

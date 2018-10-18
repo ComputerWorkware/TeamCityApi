@@ -5,24 +5,28 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NGitLab.Models;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.Logging;
 using TeamCityApi.Model;
 using TeamCityApi.Util;
 
-namespace TeamCityApi.Helpers.Git
+namespace TeamCityApi.Helpers
 {
     public interface IVcsRootHelper
     {
         /// <summary>
-        /// Clones, branches, pushes cleans up local folder
+        /// Clones, branches, pushes, cleans up local folder
         /// </summary>
         /// <param name="buildId"></param>
         /// <param name="branchName"></param>
         /// <param name="newBuildConfigId">Used to update dependencies.config</param>
         /// <returns></returns>
-        Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName);
+        Task BranchUsingLocalGit(long buildId, string branchName);
+
+        Task BranchUsingGitLabApi(long buildId, string branchName);
     }
 
     public class VcsRootHelper : IVcsRootHelper
@@ -31,11 +35,13 @@ namespace TeamCityApi.Helpers.Git
 
         private readonly ITeamCityClient _client;
         private readonly IGitRepositoryFactory _gitRepositoryFactory;
+        private readonly IGitLabClientFactory _gitLabClientFactory;
 
-        public VcsRootHelper(ITeamCityClient client, IGitRepositoryFactory gitRepositoryFactory)
+        public VcsRootHelper(ITeamCityClient client, IGitRepositoryFactory gitRepositoryFactory, IGitLabClientFactory gitLabClientFactory)
         {
             _client = client;
             _gitRepositoryFactory = gitRepositoryFactory;
+            _gitLabClientFactory = gitLabClientFactory;
         }
 
         public async Task<VcsCommit> GetCommitInformationByBuildId(long buildId)
@@ -77,7 +83,7 @@ namespace TeamCityApi.Helpers.Git
 
         }
         
-        public async Task CloneAndBranchAndPushAndDeleteLocalFolder(long buildId, string branchName)
+        public async Task BranchUsingLocalGit(long buildId, string branchName)
         {
             VcsCommit commit = await GetCommitInformationByBuildId(buildId);
 
@@ -98,6 +104,34 @@ namespace TeamCityApi.Helpers.Git
             }
 
             gitRepository.DeleteFolder();
+        }
+
+        public async Task BranchUsingGitLabApi(long buildId, string branchName)
+        {
+            VcsCommit commit = await GetCommitInformationByBuildId(buildId);
+
+            if (commit == null)
+            {
+                Log.Info("Could not find commit for build. Skipping creation of branch step.");
+                return;
+            }
+
+            var gitLabClient = _gitLabClientFactory.GetGitLabClient();
+
+            var project = gitLabClient.Projects.Get(commit.RepositoryNameWithNamespace);
+
+            var repo = gitLabClient.GetRepository(project.Id);
+
+            var existingBranches = repo.Branches.All();
+
+            if (!existingBranches.Any(b => string.Equals(b.Name, branchName, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                repo.Branches.Create(new BranchCreate()
+                {
+                    Name = branchName,
+                    Ref = commit.CommitSha
+                });
+            }
         }
 
         public static string ToValidGitBranchName(string input)

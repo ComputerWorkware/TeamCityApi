@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers;
 using TeamCityApi.Helpers.Git;
 using TeamCityApi.Helpers.Graphs;
 using TeamCityApi.UseCases;
@@ -195,7 +196,7 @@ namespace TeamCityApi.TestsIntegration
             [Fact]
             public void CompareBuilds()
             {
-                var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("devciserver:8080", "ciserver", "ciserver"));
+                var compareBuildsUseCase = new CompareBuildsUseCase(new TeamCityClient("teamcityserver:8080", "user", "pass"));
                 compareBuildsUseCase.Execute(178416, 180701, false, false).Wait();
             }
         }
@@ -249,8 +250,9 @@ namespace TeamCityApi.TestsIntegration
             {
                 var teamCityClient = CreateTeamCityClient();
                 var gitRepositoryFactory = CreateGitRepositoryFactory();
+                var gitLabClientFactory = CreateGitLabClientFactory();
                 var buildConfigXmlClient = new BuildConfigXmlClient(teamCityClient, gitRepositoryFactory);
-                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory);
+                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory, gitLabClientFactory);
 
                 var cloneRootBuildConfigUseCase = new CloneRootBuildConfigUseCase(teamCityClient, buildConfigXmlClient, vcsRootHelper);
 
@@ -265,14 +267,32 @@ namespace TeamCityApi.TestsIntegration
             {
                 var teamCityClient = CreateTeamCityClient();
                 var gitRepositoryFactory = CreateGitRepositoryFactory();
+                var gitLabClientFactory = CreateGitLabClientFactory();
                 var buildConfigXmlClient = new BuildConfigXmlClient(teamCityClient, gitRepositoryFactory);
-                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory);
+                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory, gitLabClientFactory);
 
                 var cloneChildBuildConfigUseCase = new CloneChildBuildConfigUseCase(CreateTeamCityClient(), vcsRootHelper, buildConfigXmlClient);
 
                 cloneChildBuildConfigUseCase.Execute("Installers_Sunlife_PaymentCollections_Trunk", "Installers_Sunlife_VitalObjectsSuite_trunkTestingDependenciesConfig12", false).Wait();
             }
         }
+
+        public class DeepCloneBuildConfig
+        {
+            [Fact]
+            public void Should_deep_clone_build_config()
+            {
+                var teamCityClient = CreateTeamCityClient();
+                var gitRepositoryFactory = CreateGitRepositoryFactory();
+                var gitLabClientFactory = CreateGitLabClientFactory();
+                var buildConfigXmlClient = new BuildConfigXmlClient(teamCityClient, gitRepositoryFactory);
+                var vcsRootHelper = new VcsRootHelper(teamCityClient, gitRepositoryFactory, gitLabClientFactory);
+                var deleteClonedBuildChainUseCase = new DeepCloneBuildConfigUseCase(teamCityClient, vcsRootHelper, buildConfigXmlClient);
+
+                deleteClonedBuildChainUseCase.Execute(sourceBuildId: 522, simulate:false, newNameSuffix: "Deep Clone Test 8").Wait();
+            }
+        }
+
 
         public class DeleteClonedBuildChain
         {
@@ -334,20 +354,20 @@ namespace TeamCityApi.TestsIntegration
 
         private static ITeamCityClient CreateTeamCityClient()
         {
-            var http = new HttpClientWrapper("devciserver:8080", "dnolf", "kreskin");
+            var http = new HttpClientWrapper("teamcitytest:8080", "teamcity", "teamcity");
             var client = new TeamCityClient(http);
             return client;
         }
 
-        private static List<Credential> CreateGitCredentials()
+        private static List<GitCredential> CreateGitCredentials()
         {
-            return new List<Credential>
+            return new List<GitCredential>
             {
-                new Credential
+                new GitCredential
                 {
                     HostName = "*",
-                    UserName = "ciserver",
-                    Password = "ciserver"
+                    UserName = "user",
+                    Password = "pass"
                 }
             };
         }
@@ -355,6 +375,16 @@ namespace TeamCityApi.TestsIntegration
         private static IGitRepositoryFactory CreateGitRepositoryFactory()
         {
             return new GitRepositoryFactory(CreateGitCredentials());
+        }
+
+        private static GitLabSettings CreateGitLabSettings()
+        {
+            return new GitLabSettings() {GitLabUsername = "user", GitLabPassword = "pass", GitLabUri = "http://gitlabserver/"};
+        }
+
+        private static IGitLabClientFactory CreateGitLabClientFactory()
+        {
+            return new GitLabClientFactory(CreateGitLabSettings());
         }
     }
 }

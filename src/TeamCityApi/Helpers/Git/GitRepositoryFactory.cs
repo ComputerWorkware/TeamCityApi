@@ -6,7 +6,7 @@ using TeamCityApi.Logging;
 
 namespace TeamCityApi.Helpers.Git
 {
-    public class Credential
+    public class GitCredential
     {
         public string UserName { get; set; }
         public string Password { get; set; }
@@ -23,10 +23,10 @@ namespace TeamCityApi.Helpers.Git
     {
         private static readonly ILog Log = LogProvider.GetLogger(typeof(GitRepositoryFactory));
 
-        private readonly List<Credential> _credentials;
+        private readonly List<GitCredential> _credentials;
         private string SshKeyFolder { get; set; }
 
-        public GitRepositoryFactory(List<Credential> credentials)
+        public GitRepositoryFactory(List<GitCredential> credentials)
         {
             _credentials = credentials;
             SshKeyFolder = SshKeyHelper.GetSSHKeyFolder();

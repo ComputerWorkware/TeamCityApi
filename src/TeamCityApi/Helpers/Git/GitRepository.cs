@@ -233,7 +233,7 @@ namespace TeamCityApi.Helpers.Git
             {
                 foreach (var fileToStage in filesToStage)
                 {
-                    repo.Index.Add(fileToStage);
+                    Commands.Stage(repo, fileToStage); //https://github.com/libgit2/libgit2sharp/issues/1620
                 }
 
                 try
