@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using NLog;
@@ -36,6 +37,12 @@ namespace TeamCityConsole.Commands
         public async Task Execute(object options)
         {
             Log.Debug("Trying to self update");
+
+            if (String.IsNullOrEmpty(_settings.SelfUpdateBuildConfigId))
+            {
+                Log.Warn("Skipping self update as selfUpdateBuildConfigId app config is missing.");
+                return;
+            }
 
             Build build = await _client.Builds.LastSuccessfulBuildFromConfig(_settings.SelfUpdateBuildConfigId);
 
