@@ -1,6 +1,6 @@
 ﻿namespace TeamCityApi.Domain
 {
-    public class TemplateSummary
+    public class Template
     {
         public string Id { get; set; }
         public string Name { get; set; }

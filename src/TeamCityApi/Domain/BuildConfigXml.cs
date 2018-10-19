@@ -102,7 +102,7 @@ namespace TeamCityApi.Domain
         /// Ensure that cloned Build Config uses template used by current version of Build Config
         /// Because old templates might use VCS root, which is not available anymore
         /// </summary>
-        /// <param name="currentBuildConfig"></param>
+        /// <param name="currentBuildConfig">Latest version of the build configuration</param>
         public virtual void SwitchTemplateAndRepoToCurrentState(BuildConfig currentBuildConfig)
         {
             var settingsElement = (XmlElement)Xml.SelectSingleNode("/build-type/settings");
@@ -114,15 +114,26 @@ namespace TeamCityApi.Domain
                 return;
             }
 
+            if (currentBuildConfig.Templates.Count > 1)
+            {
+                throw new NotSupportedException("Currently we don't use multiple templates. If we will ever will then will need to implement this feature");
+            }
+
+            if (currentBuildConfig.Templates.Count == 0)
+            {
+                Log.Debug("Current version of the Build Configuration is not attached to any template. Skipping template switching step.");
+                return;
+            }
+
             var oldTemplateId = refAttribute.Value;
 
-            var newTemplateId = currentBuildConfig.Template.Id;
+            var newTemplateId = currentBuildConfig.Templates.BuildType.First().Id;
 
             if (oldTemplateId != newTemplateId)
             {
                 Log.Warn($"XML Switch template on {BuildConfigId} from {oldTemplateId} to {newTemplateId}");
 
-                settingsElement.SetAttribute("ref", currentBuildConfig.Template.Id);
+                settingsElement.SetAttribute("ref", newTemplateId);
                 _buildConfigXmlClient.Commit(this, $"TCC {BuildConfigId} Switch template from {oldTemplateId} to {newTemplateId}");
 
                 var currentGitRepoPathParameter = currentBuildConfig.Parameters[ParameterName.GitRepoPath];

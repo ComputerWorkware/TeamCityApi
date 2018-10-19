@@ -71,7 +71,8 @@
     <Compile Include="Domain\Property.cs" />
     <Compile Include="Domain\PropertyList.cs" />
     <Compile Include="Domain\Revision.cs" />
-    <Compile Include="Domain\TemplateSummary.cs" />
+    <Compile Include="Domain\Templates.cs" />
+    <Compile Include="Domain\Template.cs" />
     <Compile Include="Domain\Trigger.cs" />
     <Compile Include="Domain\VcsCommit.cs" />
     <Compile Include="Domain\VcsRoot.cs" />

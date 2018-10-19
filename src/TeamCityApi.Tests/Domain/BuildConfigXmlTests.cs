@@ -51,7 +51,10 @@ namespace TeamCityApi.Tests.Domain
                 {
                     new Property(ParameterName.GitRepoPath, currentRepoPath),
                 }})
-                .WithTemplate(new TemplateSummary() {Id = "BaseTemplateV5GitLab" })
+                .WithTemplates(  new Templates { BuildType = new List<Template>()
+                {
+                    new Template(){Id = "BaseTemplateV5GitLab" }
+                }})
                 .Create();
 
             oldVersion.SwitchTemplateAndRepoToCurrentState(currentVersion);

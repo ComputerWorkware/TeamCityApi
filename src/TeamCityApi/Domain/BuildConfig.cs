@@ -19,7 +19,7 @@ namespace TeamCityApi.Domain
 
         public ProjectSummary Project { get; set; }
 
-        public TemplateSummary Template { get; set; }
+        public Templates Templates { get; set; }
 
         [JsonProperty("steps")]
         public List<BuildStep> BuildSteps { get; set; }
