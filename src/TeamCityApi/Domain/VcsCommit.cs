@@ -39,7 +39,7 @@ namespace TeamCityApi.Domain
             property = parameters.FirstOrDefault(x => x.Name == "git.repo.path");
             if (property != null)
             {
-                RepositoryNameWithNamespace = property.Value;
+                RepositoryNameWithNamespace = parameters.ReplaceInString(property.Value);
             }
 
             property = vcsRoot.Properties.Property.FirstOrDefault(x => x.Name == "authMethod");
