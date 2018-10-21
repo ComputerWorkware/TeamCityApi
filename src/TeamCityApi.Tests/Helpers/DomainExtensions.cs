@@ -74,6 +74,7 @@ namespace TeamCityApi.Tests.Helpers
         public static IPostprocessComposer<BuildConfig> WithTemplates(
            this IPostprocessComposer<BuildConfig> composer, Templates templates)
         {
+            templates.Count = templates.BuildType.Count;
             return composer.With(x => x.Templates, templates);
         }
 
