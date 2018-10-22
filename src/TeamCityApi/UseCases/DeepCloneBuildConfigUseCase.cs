@@ -82,10 +82,17 @@ namespace TeamCityApi.UseCases
         private async Task<HashSet<DependencyNode>> GetBuildsToClone()
         {
             var buildsToClone = new HashSet<DependencyNode>();
-            foreach (var node in _buildChain.Nodes)
+            foreach (var buildNode in _buildChain.Nodes)
             {
-                var buildConfig = await _client.BuildConfigs.GetByConfigurationId(node.Value.BuildTypeId);
-                buildsToClone.Add(new DependencyNode(buildConfig, node.Value));
+                if (buildsToClone.Any(bc => bc.CurrentBuildConfig.Id == buildNode.Value.BuildTypeId))
+                {
+                    throw new Exception($"Build configuration {buildNode.Value.BuildTypeId} was already added to chain. " +
+                                        $"Build chain likely contains duplicate builds for the single configuration." +
+                                        $"To prevent it make sure that there is a snapshot dependency for each artifact dependency.");
+                }
+
+                var buildConfig = await _client.BuildConfigs.GetByConfigurationId(buildNode.Value.BuildTypeId);
+                buildsToClone.Add(new DependencyNode(buildConfig, buildNode.Value));
             }
 
             return buildsToClone;
