@@ -40,10 +40,19 @@ namespace TeamCityApi.Helpers.Git
         public IGitRepository Clone(GitAuthenticationType authenticationType, string repositoryLocation)
         {
             string tempFolderPath = "C:\\tmp";
-            string guidTempPath = RandomStringGenerator.GetSingleCase(5);
-            string temporaryClonePath = Path.Combine(tempFolderPath, guidTempPath);
 
-            Directory.CreateDirectory(temporaryClonePath);
+            string temporaryClonePath = "";
+
+            for (int i = 0; i < 100; i++)
+            {
+                string guidTempPath = RandomStringGenerator.GetSingleCase(8);
+                temporaryClonePath = Path.Combine(tempFolderPath, guidTempPath);
+                if (Directory.Exists(temporaryClonePath) == false)
+                {
+                    Directory.CreateDirectory(temporaryClonePath);
+                    break;
+                }
+            }
 
             Log.Info($"Clone Repository: {repositoryLocation} into {temporaryClonePath}");
 
