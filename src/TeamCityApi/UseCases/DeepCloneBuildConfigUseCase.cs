@@ -44,7 +44,7 @@ namespace TeamCityApi.UseCases
             _simulate = simulate;
             _sourceBuildConfig = await _client.BuildConfigs.GetByConfigurationId(sourceBuild.BuildTypeId);
             _newNameSuffix = newNameSuffix;
-            _newBranchName = "releases/" + VcsRootHelper.ToValidGitBranchName(_newNameSuffix);
+            _newBranchName = VcsRootHelper.ToValidGitBranchName(_newNameSuffix);
             _buildChainId = Guid.NewGuid().ToString();
             _buildChain = new BuildChain(_client.Builds, sourceBuild);
 
