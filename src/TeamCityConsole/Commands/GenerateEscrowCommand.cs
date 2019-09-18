@@ -94,13 +94,16 @@ namespace TeamCityConsole.Commands
 
                 string elementPath = _fileSystem.CombinePath(outputPath, element.BuildTypeId);
 
-                CloneRespository(element, elementPath, credentialList);
+                if (!Directory.Exists(elementPath))
+                {
+                    CloneRespository(element, elementPath, credentialList);
 
-                await FetchBuildArtifacts(element, elementPath);
+                    await FetchBuildArtifacts(element, elementPath);
 
-                await FetchArtifactDependencies(elementPath, element);
+                    await FetchArtifactDependencies(elementPath, element);
 
-                FetchNuGetPackages(outputPath, elementPath, element);
+                    FetchNuGetPackages(outputPath, elementPath, element);
+                }
             }
 
             Log.Info("================ Generate Escrow: done ================");
@@ -252,9 +255,17 @@ namespace TeamCityConsole.Commands
         {
             if (element.VersionControlPath.Contains("%system.teamcity.projectName%"))
             {
-                string[] projectNameParts = element.ProjectName.Split(new string[] {"::"},StringSplitOptions.None);
+                string[] projectNameParts;
+                if (element.ProjectName.Contains("::"))
+                {
+                    projectNameParts = element.ProjectName.Split(new string[] { "::" }, StringSplitOptions.None);
+                }
+                else
+                {
+                    projectNameParts = element.ProjectName.Split(new string[] { "/" }, StringSplitOptions.None);
+                }
 
-                element.VersionControlPath = element.VersionControlPath.Replace("%system.teamcity.projectName%", projectNameParts[projectNameParts.Length-1].Trim());
+                element.VersionControlPath = element.VersionControlPath.Replace("%system.teamcity.projectName%", projectNameParts[projectNameParts.Length-1].Replace(" ","").Trim());
                 return element.VersionControlPath;
             }
             return element.VersionControlPath;
@@ -363,7 +374,7 @@ namespace TeamCityConsole.Commands
                         files.Add(new PathFilePair
                         {
                             File = artifactRule.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
-                            Path = Path.Combine(basePath, artifactRule.Dest)
+                            Path = Path.Combine(basePath, artifactRule.Dest ?? "")
                         });
                     }
 
@@ -373,7 +384,7 @@ namespace TeamCityConsole.Commands
                     files.Add(new PathFilePair
                     {
                         File = artifactRule.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
-                        Path = Path.Combine(basePath, artifactRule.Dest)
+                        Path = Path.Combine(basePath, artifactRule.Dest ?? "")
                     });
                 }
             }

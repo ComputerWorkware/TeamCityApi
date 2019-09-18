@@ -7,6 +7,7 @@ using NLog;
 using TeamCityConsole.Commands;
 using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
+using System;
 
 namespace TeamCityConsole
 {
@@ -57,7 +58,14 @@ namespace TeamCityConsole
         private async Task HandleFileDownload(PathFilePair pair)
         {
             Log.Debug("Downloading {0} to {1}", pair.File.Name, pair.Path);
-            await _downloader.Download(pair.Path, pair.File);
+            try
+            {
+                await _downloader.Download(pair.Path, pair.File);
+            }
+            catch (Exception ex)
+            {
+                Log.Debug("Exception Occurred: " + ex.ToString());
+            }
             Log.Debug("Download complete: {0}", pair.File.Name);
         }
 

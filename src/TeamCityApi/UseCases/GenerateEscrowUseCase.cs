@@ -31,6 +31,7 @@ namespace TeamCityApi.UseCases
         public EscrowElement()
         {
             ArtifactDependencies = new List<EscrowArtifactDependency>();
+            VersionControlServer = "http://cwigitlab.computerworkware.com";
         }
     }
 
@@ -98,13 +99,23 @@ namespace TeamCityApi.UseCases
             element.ProjectName = build?.BuildConfig?.ProjectName;
 
             string[] versionElements = element.Number.Split('.');
-            element.RevisionVersion = Convert.ToInt32(versionElements[2]);
-            element.BuildNumberVersion = Convert.ToInt32(versionElements[3]);
+            if (versionElements.Count() >= 3)
+            {
+                element.RevisionVersion = Convert.ToInt32(versionElements[2]);
+            }
+
+            if (versionElements.Count() >= 4)
+            {
+                element.BuildNumberVersion = Convert.ToInt32(versionElements[3]);
+            }
 
             if (build.Revisions.Count > 0)
             {
                 element.VersionControlHash = build.Revisions[0]?.Version;
-                element.VersionControlHash = GetStringProperty(build.Revisions[0]?.VcsRootInstance.Parameters, "url").Replace(@"%git.repo.path%.git",String.Empty);
+                if (build.Revisions[0]?.VcsRootInstance.Parameters != null)
+                {
+                    element.VersionControlHash = GetStringProperty(build.Revisions[0]?.VcsRootInstance.Parameters, "url").Replace(@"%git.repo.path%.git", String.Empty);
+                }
 
             }
 

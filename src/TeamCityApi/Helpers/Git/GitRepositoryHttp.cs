@@ -54,17 +54,25 @@ namespace TeamCityApi.Helpers.Git
             Log.Debug($"Clone repository with Http: {RepositoryLocation} into {TempClonePath}");
             options.CredentialsProvider = (_url, _user, _cred) => LookupCredentials(_url, _user, _cred);
 
-            string clone = Repository.Clone(RepositoryLocation, TempClonePath, options);
-
-            if (string.IsNullOrWhiteSpace(clone))
+            string clone = string.Empty;
+            try
             {
-                Log.Error($"Could not clone repository: {RepositoryLocation}");
-            }
-            else
-            {
-                Log.Debug($"Repository cloned successfully: {clone}");
-            }
+                clone = Repository.Clone(RepositoryLocation, TempClonePath, options);
 
+                if (string.IsNullOrWhiteSpace(clone))
+                {
+                    Log.Error($"Could not clone repository: {RepositoryLocation}");
+                }
+                else
+                {
+                    Log.Debug($"Repository cloned successfully: {clone}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(string.Format("Cannot clone, may be SSH folder: {0}", ex.ToString()));
+                return false;
+            }
             return !string.IsNullOrWhiteSpace(clone);
         }
 

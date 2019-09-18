@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace TeamCityConsole.Utils
@@ -110,9 +111,16 @@ namespace TeamCityConsole.Utils
 
         public async Task CreateFileFromStreamAsync(string path, Stream stream)
         {
-            using (var fileStream = new FileStream(path, FileMode.Create))
+            try
             {
-                await stream.CopyToAsync(fileStream);
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await stream.CopyToAsync(fileStream);
+                }
+            }
+            catch (Exception ex)
+            {
+                return;
             }
         }
 
@@ -148,7 +156,18 @@ namespace TeamCityConsole.Utils
 
         public void ExtractToDirectory(string sourceArchiveFileName, string destDirectoryName)
         {
-            System.IO.Compression.ZipFile.ExtractToDirectory(sourceArchiveFileName, destDirectoryName);
+            using (var archive = System.IO.Compression.ZipFile.OpenRead(sourceArchiveFileName))
+            {
+                foreach(var entry in archive.Entries)
+                {
+                    var directory = Path.Combine(destDirectoryName,Path.GetDirectoryName(entry.FullName));
+                    if (!Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+                    entry.ExtractToFile(Path.Combine(destDirectoryName, entry.FullName), true);
+                }
+            }
         }
     }
 }

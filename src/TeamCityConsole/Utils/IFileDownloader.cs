@@ -52,7 +52,10 @@ namespace TeamCityConsole.Utils
             using (Stream stream = await _http.GetStream(file.ContentHref))
             {
                 EnsureDirectoryExists(destFileName);
-                await _fileSystem.CreateFileFromStreamAsync(destFileName, stream);
+                if (System.IO.File.Exists(destFileName) == false)
+                {
+                    await _fileSystem.CreateFileFromStreamAsync(destFileName, stream);
+                }
             }
 
             if (unzip)
