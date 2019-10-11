@@ -104,14 +104,42 @@ namespace TeamCityApi.TestsIntegration
             [Fact]
             public void GetAll()
             {
-                var client = CreateChnageClient();
+                var client = CreateChangeClient();
                 var changes = client.GetAll().Result;
+            }
+            
+            [Fact]
+            public void GetForBuild()
+            {
+                var client = CreateChangeClient();
+                var changes = client.GetForBuild(987200).Result;
+            }
+
+            [Fact]
+            public void GetForBuildConfig()
+            {
+                var client = CreateChangeClient();
+                var changes = client.GetForBuildConfig("Installers_VitalObjects_VitalObjectsSuite_Master").Result;
+            }
+
+            [Fact]
+            public void GetForBuildConfigSinceChange()
+            {
+                var client = CreateChangeClient();
+                var changes = client.GetForBuildConfig("Installers_VitalObjects_VitalObjectsSuite_Master", 85201).Result;
+            }
+
+            [Fact]
+            public void GetForBuildConfigPending()
+            {
+                var client = CreateChangeClient();
+                var changes = client.GetForBuildConfig("Installers_VitalObjects_VitalObjectsSuite_Master", true).Result;
             }
 
             [Fact]
             public void GetById()
             {
-                var client = CreateChnageClient();
+                var client = CreateChangeClient();
                 var change = client.GetById("4").Result;
             }
         }
@@ -318,7 +346,7 @@ namespace TeamCityApi.TestsIntegration
             }
         }
 
-        private static ChangeClient CreateChnageClient()
+        private static ChangeClient CreateChangeClient()
         {
             var http = CreateHttpClientWrapper();
             var client = new ChangeClient(http);

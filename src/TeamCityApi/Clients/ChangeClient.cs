@@ -7,6 +7,10 @@ namespace TeamCityApi.Clients
     public interface IChangeClient
     {
         Task<List<ChangeSummary>> GetAll();
+        Task<List<ChangeSummary>> GetForBuild(long buildId);
+        Task<List<ChangeSummary>> GetForBuildConfig(string buildConfigurationId);
+        Task<List<ChangeSummary>> GetForBuildConfig(string buildConfigurationId, long sinceChangeId);
+        Task<List<ChangeSummary>> GetForBuildConfig(string buildConfigurationId, bool pending);
         Task<Change> GetById(string changeId);
     }
 
@@ -22,6 +26,41 @@ namespace TeamCityApi.Clients
         }
 
         public async Task<List<ChangeSummary>> GetAll()
+        {
+            var changes = await _http.Get<List<ChangeSummary>>(_baseUri);
+
+            return changes;
+        }
+
+        public async Task<List<ChangeSummary>> GetForBuild(long buildId)
+        {
+            var changes = await _http.Get<List<ChangeSummary>>($"{_baseUri}?locator=build:(id:{buildId})");
+
+            return changes;
+        }
+
+        public async Task<List<ChangeSummary>> GetForBuildConfig(string buildConfigurationId)
+        {
+            var changes = await _http.Get<List<ChangeSummary>>($"{_baseUri}?locator=buildType:(id:{buildConfigurationId})");
+
+            return changes;
+        }
+
+        public async Task<List<ChangeSummary>> GetForBuildConfig(string buildConfigurationId, long sinceChangeId)
+        {
+            var changes = await _http.Get<List<ChangeSummary>>($"{_baseUri}?locator=buildType:(id:{buildConfigurationId}),sinceChange:(id:{sinceChangeId})");
+
+            return changes;
+        }
+
+        public async Task<List<ChangeSummary>> GetForBuildConfig(string buildConfigurationId, bool pending)
+        {
+            var changes = await _http.Get<List<ChangeSummary>>($"{_baseUri}?locator=buildType:(id:{buildConfigurationId}),pending:{pending.ToString().ToLower()}");
+
+            return changes;
+        }
+
+        public async Task<List<ChangeSummary>> GetForBuildConfig()
         {
             var changes = await _http.Get<List<ChangeSummary>>(_baseUri);
 
