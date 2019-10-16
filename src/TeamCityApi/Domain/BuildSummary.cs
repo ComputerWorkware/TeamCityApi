@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TeamCityApi.Clients;
 
@@ -15,6 +16,7 @@ namespace TeamCityApi.Domain
         public string State { get; set; }
         public string Status { get; set; }
         public string WebUrl { get; set; }
+        public List<ChangeSummary> Changes { get; set; }
 
         internal void SetBuildClient(IBuildClient buildClient)
         {

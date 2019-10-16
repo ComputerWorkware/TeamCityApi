@@ -70,6 +70,7 @@
     <Compile Include="Deserialization\JsonTests.cs" />
     <Compile Include="Domain\BuildConfigXmlTests.cs" />
     <Compile Include="Domain\PropertyListTests.cs" />
+    <Compile Include="Fields\BuildsFieldsTests.cs" />
     <Compile Include="Helpers\AutoNSubstituteDataAttribute.cs" />
     <Compile Include="Helpers\BuildConfigXmlGenerator.cs" />
     <Compile Include="Helpers\BuildDependencyGenerator.cs" />

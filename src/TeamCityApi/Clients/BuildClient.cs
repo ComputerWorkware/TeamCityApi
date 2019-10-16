@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamCityApi.Domain;
+using TeamCityApi.Fields;
 using TeamCityApi.Locators;
 
 namespace TeamCityApi.Clients
@@ -12,6 +13,7 @@ namespace TeamCityApi.Clients
         Task<Build> ById(long id);
         Task<Build> ByNumber(string number, string buildTypeId);
         Task<List<BuildSummary>> ByBuildLocator(Action<BuildLocator> locatorConfig);
+        Task<List<Build>> ByBuildLocatorWithFields(Action<BuildLocator> locatorConfig, Action<BuildsFields> fieldConfig);
         Task<List<File>> GetFiles(long buildId);
         Task<List<File>> GetFiles(long buildId,string folder, string locatorPattern);
         Task<Build> LastSuccessfulBuildFromConfig(string buildConfigId, string tag = null);
@@ -53,7 +55,7 @@ namespace TeamCityApi.Clients
 
             string requestUri = string.Format("/app/rest/builds?locator={0}", buildLocator);
 
-            var buildWrapper = await _http.Get<BuildWrapper>(requestUri);
+            var buildWrapper = await _http.Get<BuildsSummaryWrapper>(requestUri);
 
             if (buildWrapper == null || buildWrapper.Build == null || buildWrapper.Build.Count == 0)
             {
@@ -63,6 +65,31 @@ namespace TeamCityApi.Clients
             foreach (var buildSummary in buildWrapper.Build)
             {
                 buildSummary.SetBuildClient(this);
+            }
+
+            return buildWrapper.Build;
+        }
+
+        public async Task<List<Build>> ByBuildLocatorWithFields(Action<BuildLocator> locatorConfig, Action<BuildsFields> fieldConfig)
+        {
+            var buildLocator = new BuildLocator();
+            locatorConfig(buildLocator);
+
+            var buildsFields = new BuildsFields();
+            fieldConfig(buildsFields);
+
+            string requestUri = string.Format("/app/rest/builds?locator={0}&fields={1}", buildLocator, buildsFields);
+
+            var buildWrapper = await _http.Get<BuildsWrapper>(requestUri);
+
+            if (buildWrapper == null || buildWrapper.Build == null || buildWrapper.Build.Count == 0)
+            {
+                throw new Exception(string.Format("Could not get build from TeamCity by locator: \"{0}\" and fields \"{1}\"", buildLocator, buildsFields));
+            }
+
+            foreach (var build in buildWrapper.Build)
+            {
+                build.SetBuildClient(this);
             }
 
             return buildWrapper.Build;

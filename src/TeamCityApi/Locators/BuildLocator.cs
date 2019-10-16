@@ -15,6 +15,12 @@ namespace TeamCityApi.Locators
             return this;
         }
 
+        public BuildLocator WithId(long buildId)
+        {
+            Id = buildId;
+            return With("id", buildId.ToString());
+        }
+
         public BuildLocator IncludePersonal(bool value = true)
         {
             return With("personal", value.ToString());
@@ -67,10 +73,19 @@ namespace TeamCityApi.Locators
         {
             return With("count", maxResults.ToString());
         }
+        public BuildLocator WithCount(int count)
+        {
+            return With("count", count.ToString());
+        }
 
         public BuildLocator SinceBuild(BuildLocator locator)
         {
             return With("sinceBuild", string.Format("({0})", locator));
+        }
+
+        public BuildLocator SinceBuildId(long buildId)
+        {
+            return With("sinceBuild:id", buildId.ToString());
         }
 
         public BuildLocator WithStartIndex(int startIndex)

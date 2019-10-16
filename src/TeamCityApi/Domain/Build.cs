@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using TeamCityApi.Clients;
 
 namespace TeamCityApi.Domain
 {
     [DebuggerDisplay("Build: {Id}, {Number}")]
     public class Build
     {
+        private IBuildClient _buildClient;
+
         public long Id { get; set; }
         public string Number { get; set; }
         public string Status { get; set; }
@@ -28,6 +31,8 @@ namespace TeamCityApi.Domain
 
         public List<ChangeSummary> LastChanges { get; set; }
 
+        public List<Change> Changes { get; set; }
+
         public Properties Properties { get; set; }
 
         [JsonProperty("snapshot-dependencies")]
@@ -38,6 +43,11 @@ namespace TeamCityApi.Domain
 
         [JsonProperty("artifacts")]
         public ArtifactsReference ArtifactsReference { get; set; }
+
+        internal void SetBuildClient(IBuildClient buildClient)
+        {
+            _buildClient = buildClient;
+        }
 
         public override bool Equals(object obj)
         {

@@ -2,7 +2,7 @@
 
 namespace TeamCityApi.Domain
 {
-    public class BuildWrapper
+    public class BuildsSummaryWrapper
     {
         public string Count { get; set; }
 

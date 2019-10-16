@@ -9,11 +9,11 @@ namespace TeamCityApi.Domain
         public string Username { get; set; }
         public DateTime Date { get; set; }
         public string Href { get; set; }
-        public string WebLink { get; set; }
+        public string WebUrl { get; set; }
 
         public override string ToString()
         {
-            return string.Format("Id: {0}, Version: {1}, Date: {2}, Username: {3}, Href: {4}, WebLink: {5}", Id, Version, Date, Username, Href, WebLink);
+            return string.Format("Id: {0}, Version: {1}, Date: {2}, Username: {3}, Href: {4}, WebUrl: {5}", Id, Version, Date, Username, Href, WebUrl);
         }
     }
 }

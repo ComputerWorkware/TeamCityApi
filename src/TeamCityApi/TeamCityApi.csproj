@@ -52,11 +52,12 @@
     <Compile Include="Domain\BuildConfigXml.cs" />
     <Compile Include="Domain\BuildContinuationMode.cs" />
     <Compile Include="Domain\BuildDependency.cs" />
+    <Compile Include="Domain\BuildsWrapper.cs" />
     <Compile Include="Domain\BuildStep.cs" />
     <Compile Include="Domain\BuildSummary.cs" />
     <Compile Include="Domain\BuildConfig.cs" />
     <Compile Include="Domain\BuildConfigSummary.cs" />
-    <Compile Include="Domain\BuildWrapper.cs" />
+    <Compile Include="Domain\BuildsSummaryWrapper.cs" />
     <Compile Include="Domain\Change.cs" />
     <Compile Include="Domain\ChangeSummary.cs" />
     <Compile Include="Domain\CreateArtifactDependency.cs" />
@@ -80,6 +81,13 @@
     <Compile Include="Domain\VcsRootEntry.cs" />
     <Compile Include="Domain\VcsRootInstance.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Fields\BuildFields.cs" />
+    <Compile Include="Fields\FilesFields.cs" />
+    <Compile Include="Fields\FileFields.cs" />
+    <Compile Include="Fields\UserFields.cs" />
+    <Compile Include="Fields\ChangeFields.cs" />
+    <Compile Include="Fields\ChangesFields.cs" />
+    <Compile Include="Fields\BuildsFields.cs" />
     <Compile Include="Helpers\DependencyChain.cs" />
     <Compile Include="Helpers\BuildConfigChain.cs" />
     <Compile Include="Helpers\DiffMatchPatch.cs" />
@@ -162,6 +170,7 @@
     <EmbeddedResource Include="ssh\id_rsa.pub" />
     <EmbeddedResource Include="ssh\known_hosts" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

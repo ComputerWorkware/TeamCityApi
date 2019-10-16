@@ -9,6 +9,7 @@ using TeamCityApi.Domain;
 using TeamCityApi.Helpers;
 using TeamCityApi.Helpers.Git;
 using TeamCityApi.Helpers.Graphs;
+using TeamCityApi.Locators;
 using TeamCityApi.UseCases;
 using Xunit;
 using Xunit.Extensions;
@@ -24,6 +25,40 @@ namespace TeamCityApi.TestsIntegration
             var buildClient = CreateBuildClient();
 
             List<BuildSummary> buildSummaries = buildClient.ByBuildLocator(x => x.SinceDate(new DateTime(2014, 05, 11))).Result;
+        }
+
+        [Fact]
+        public void Build_ByLocatorWithFields()
+        {
+            var buildClient = CreateBuildClient();
+
+            List<Build> builds = buildClient.ByBuildLocatorWithFields(bl => 
+                bl
+                    .SinceBuildId(877898)
+                    .WithBuildConfiguration(bc => bc.WithId("Suite_Master"))
+                    .WithCount(10000)
+                ,
+                bf => bf
+                    .WithLong()
+                    .WithBuildFields(b => b
+                        .WithId()
+                        .WithNumber()
+                        .WithStatus()
+                        .WithFinishDate()
+                        .WithChangesFields(cs => cs
+                            .WithChangeFields(c => c
+                                .WithComment()
+                                .WithUserFields(u => u
+                                    .WithName()
+                                )
+                                .WithFilesFields(fs => fs
+                                    .WithFileFields(f => f
+                                        .WithChangeType()
+                                        .WithFile())
+                                )
+                            )
+                        )
+                    )).Result;
         }
 
         [Fact]
