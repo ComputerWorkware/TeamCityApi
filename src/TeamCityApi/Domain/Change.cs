@@ -13,6 +13,8 @@ namespace TeamCityApi.Domain
         public string WebLink { get; set; }
         public string Comment { get; set; }
 
+        public User User { get; set; }
+
         public List<FileRevision> Files { get; set; }
 
         public VcsRootInstance VcsRootInstance { get; set; }
