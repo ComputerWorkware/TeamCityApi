@@ -47,9 +47,11 @@ namespace TeamCityApi.TestsIntegration
                         .WithFinishDate()
                         .WithChangesFields(cs => cs
                             .WithChangeFields(c => c
+                                .WithId()
                                 .WithComment()
                                 .WithUserFields(u => u
                                     .WithName()
+                                    .WithUsername()
                                 )
                                 .WithFilesFields(fs => fs
                                     .WithFileFields(f => f

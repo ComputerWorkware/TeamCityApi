@@ -5,7 +5,7 @@ namespace TeamCityApi.Domain
 {
     public class Change
     {
-        public string Id { get; set; }
+        public long Id { get; set; }
         public string Version { get; set; }
         public string Username { get; set; }
         public DateTime Date { get; set; }
