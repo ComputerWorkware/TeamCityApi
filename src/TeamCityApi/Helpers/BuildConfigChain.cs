@@ -3,12 +3,15 @@ using System.Linq;
 using TeamCityApi.Clients;
 using TeamCityApi.Domain;
 using TeamCityApi.Helpers.Graphs;
+using TeamCityApi.Logging;
+using TeamCityApi.Util;
 
 namespace TeamCityApi.Helpers
 {
     public class BuildConfigChain : Graph<BuildConfig>
     {
         private readonly IBuildConfigClient _buildConfigClient;
+        private static readonly ILog Log = LogProvider.GetCurrentClassLogger();
 
         public BuildConfigChain(IBuildConfigClient buildConfigClient, BuildConfig rootBuildConfig)
         {
@@ -30,15 +33,28 @@ namespace TeamCityApi.Helpers
             {
                 foreach (var artifactDependency in node.Value.ArtifactDependencies)
                 {
-                    var dependencyBuildConfig = _buildConfigClient.GetByConfigurationId(artifactDependency.SourceBuildConfig.Id).Result;
-                    var childNode = new GraphNode<BuildConfig>(dependencyBuildConfig);
-
-                    if (!this.Contains(dependencyBuildConfig))
+                    BuildConfig dependencyBuildConfig = null;
+                    try
                     {
-                        AddBuildConfigWithDependents(childNode);
+                        dependencyBuildConfig = _buildConfigClient.GetByConfigurationId(artifactDependency.SourceBuildConfig.Id).Result;
+                    }
+                    catch (AggregateException e)
+                    {
+                        Log.Warn("Could not load BuildConfigId " + artifactDependency.SourceBuildConfig.Id + ". It could have been deleted or renamed.");
+                        Log.Warn(e.Message);
                     }
 
-                    AddDirectedEdge(node, childNode, 0);
+                    if (dependencyBuildConfig != null)
+                    {
+                        var childNode = new GraphNode<BuildConfig>(dependencyBuildConfig);
+
+                        if (!this.Contains(dependencyBuildConfig))
+                        {
+                            AddBuildConfigWithDependents(childNode);
+                        }
+
+                        AddDirectedEdge(node, childNode, 0);
+                    }
                 }
             }
         }
