@@ -53,6 +53,15 @@ namespace TeamCityApi.Clients
             return buildConfigs;
         }
 
+        public async Task<string> GetCsrfToken()
+        {
+            string requestUri = "/authenticationTest.html?csrf";
+
+            string token = await _http.GetString(requestUri);
+
+            return token;
+        }
+
         public async Task<List<BuildDependency>> GetAllSnapshotDependencies(string buildId)
         {
             string requestUri = string.Format("/app/rest/builds?locator=snapshotDependency:(to:(id:{0}),includeInitial:true),defaultFilter:false");
@@ -73,6 +82,8 @@ namespace TeamCityApi.Clients
 
         public async Task SetParameterValue(Action<BuildTypeLocator> buildTypeLocatorConfig, string name, string value, bool own = true)
         {
+            var csfrToken = await GetCsrfToken();
+
             var locator = new BuildTypeLocator();
             buildTypeLocatorConfig(locator);
 
@@ -80,7 +91,7 @@ namespace TeamCityApi.Clients
 
             string requestUri = string.Format("/app/rest/buildTypes/{0}/parameters/{1}", locator, name);
 
-            await _http.PutJson(requestUri, Json.Serialize(new Property(){Name = name, Value = value, Own = own}));
+            await _http.PutJson(requestUri, Json.Serialize(new Property(){Name = name, Value = value, Own = own}), new Dictionary<string, string> { { "X-TC-CSRF-Token", csfrToken } } );
         }
 
         public async Task CreateSnapshotDependency(CreateSnapshotDependency dependency)
