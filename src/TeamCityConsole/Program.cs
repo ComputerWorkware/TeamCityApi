@@ -189,6 +189,8 @@ namespace TeamCityConsole
 
             container.Register(x => new DeleteClonedBuildChainUseCase(x.Resolve<ITeamCityClient>()));
 
+            container.Register(x => new DeleteGitBranchesInBuildChainUseCase(x.Resolve<ITeamCityClient>(), x.Resolve<IGitLabClientFactory>()));
+
             container.Register(x => new ShowBuildChainUseCase(x.Resolve<ITeamCityClient>()));
 
             container.Register(x => new CompareBuildsUseCase(x.Resolve<ITeamCityClient>()));
@@ -206,6 +208,8 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.DeepCloneBuildConfig, x => new DeepCloneBuildConfigCommand(x.Resolve<DeepCloneBuildConfigUseCase>()));
 
             container.Register<ICommand>(Verbs.DeleteClonedBuildChain, x => new DeleteClonedBuildChainCommand(x.Resolve<DeleteClonedBuildChainUseCase>()));
+
+            container.Register<ICommand>(Verbs.DeleteGitBranchesInBuildChain, x => new DeleteGitBranchInBuildChainCommand(x.Resolve<DeleteGitBranchesInBuildChainUseCase>()));
 
             container.Register<ICommand>(Verbs.ShowBuildChain, x => new ShowBuildChainCommand(x.Resolve<ShowBuildChainUseCase>()));
 

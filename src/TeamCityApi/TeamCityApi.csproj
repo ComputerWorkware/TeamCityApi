@@ -119,6 +119,7 @@
     <Compile Include="UseCases\DeepCloneBuildConfigUseCase.cs" />
     <Compile Include="UseCases\CloneRootBuildConfigUseCase.cs" />
     <Compile Include="UseCases\CompareBuildsUseCase.cs" />
+    <Compile Include="UseCases\DeleteGitBranchesInBuildChainUseCase.cs" />
     <Compile Include="UseCases\DeleteClonedBuildChainUseCase.cs" />
     <Compile Include="Helpers\Git\GitRepository.cs" />
     <Compile Include="Helpers\Git\GitRepositoryFactory.cs" />

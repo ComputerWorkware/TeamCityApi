@@ -97,6 +97,7 @@
     <Compile Include="Commands\DeepCloneBuildConfigCommand.cs" />
     <Compile Include="Commands\CloneRootBuildConfigCommand.cs" />
     <Compile Include="Commands\CompareBuildsCommand.cs" />
+    <Compile Include="Commands\DeleteGitBranchInBuildChainCommand.cs" />
     <Compile Include="Commands\DeleteClonedBuildChainCommand.cs" />
     <Compile Include="Commands\GenerateEscrowCommand.cs" />
     <Compile Include="Commands\PropagateVersionCommand.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="Options\CloneRootBuildConfigOptions.cs" />
     <Compile Include="Options\CloneChildBuildConfigOptions.cs" />
     <Compile Include="Options\CompareBuildsOptions.cs" />
+    <Compile Include="Options\DeleteGitBranchInBuildChainOptions.cs" />
     <Compile Include="Options\GenerateEscrowOptions.cs" />
     <Compile Include="Options\PropagateVersionOptions.cs" />
     <Compile Include="Options\ShowVersionsOptions.cs" />
