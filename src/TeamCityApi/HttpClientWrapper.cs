@@ -31,6 +31,7 @@ namespace TeamCityApi
         public HttpClientWrapper(string hostname, string username, string password)
         {
             _httpClient = Create(username, password, hostname);
+            _httpClient.Timeout = Timeout.InfiniteTimeSpan;
         }
 
         public async Task<T> Get<T>(string url, params object[] args)
