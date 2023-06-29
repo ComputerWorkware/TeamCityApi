@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TeamCityApi.Util;
+using System.Threading;
 
 namespace TeamCityApi
 {
