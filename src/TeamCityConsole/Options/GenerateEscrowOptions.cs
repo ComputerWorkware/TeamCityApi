@@ -17,7 +17,7 @@ namespace TeamCityConsole.Options
         [Option('p', "password", Required = true, HelpText = "Password for the git server to fetch repositories")]
         public string Password { get; set; }
 
-        [Option('m', "manifestonly", Required = false, HelpText = "Generate Manifest document only.", DefaultValue = false)]
+        [Option('m', "manifestonly", Required = false, HelpText = "Generate Manifest document only.", Default = false)]
         public bool GenerateManifestOnly { get; set; }
     }
 }

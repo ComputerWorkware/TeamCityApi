@@ -8,7 +8,7 @@ namespace TeamCityConsole.Options
         [Option('c', "BuildConfigId", Required = true, HelpText = "Configuration Id")]
         public string BuildConfigId { get; set; }
 
-        [Option('o', "OutputDir", DefaultValue = "", HelpText = "Output directory for downloaded files")]
+        [Option('o', "OutputDir", Default = "", HelpText = "Output directory for downloaded files")]
         public string OutputDirectory { get; set; }
 
         [Option('t', "tag", Required = false, HelpText = "Optional tag for pulling artifacts.")]
