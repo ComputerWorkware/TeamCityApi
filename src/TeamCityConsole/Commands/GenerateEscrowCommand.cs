@@ -43,6 +43,13 @@ namespace TeamCityConsole.Commands
         {
             var generateEscrowOptions = options as GenerateEscrowOptions;
 
+            Log.Info("Received params: BuildId: {0},  User: {1},  Password: {2},  OutputDirectory: {3},  GenerateManifestOnly: {4}", 
+                generateEscrowOptions.BuildId, 
+                generateEscrowOptions.User, 
+                generateEscrowOptions.Password, 
+                generateEscrowOptions.OutputDirectory, 
+                generateEscrowOptions.GenerateManifestOnly);
+
             string outputPath = generateEscrowOptions.OutputDirectory;
             if (!outputPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 outputPath += Path.DirectorySeparatorChar.ToString();
