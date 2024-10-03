@@ -18,12 +18,14 @@ namespace TeamCityApi.UseCases
         public string VersionControlPath { get; set; }
         public string VersionControlHash { get; set; }
         public string VersionControlBranch { get; set; }
+        public int InitialYear { get; set; }
+        public int MajorVersion { get; set; }
+        public int MinorVersion { get; set; }
         public int RevisionVersion { get; set; }
         public int BuildNumberVersion { get; set; }
         public DateTime BuildStartDate { get; set; }
         public DateTime BuildFinishDate { get; set; }
         public string BuildAgentName { get; set; }
-        public Dictionary<string, string> BuildParameters { get; set; }        
         public List<EscrowArtifactDependency> ArtifactDependencies { get; set; }
 
         public EscrowElement()
@@ -38,7 +40,6 @@ namespace TeamCityApi.UseCases
         public string Number { get; set; }
         public long Id { get; set; }
         public string BuildTypeId { get; set; }
-        public List<string> ArtifactPathRules { get; set; } = new List<string>();
     }
 
 
@@ -58,7 +59,7 @@ namespace TeamCityApi.UseCases
             List<EscrowElement> escrowElements = new List<EscrowElement>();
             foreach (var node in buildChain1.Nodes)
             {
-                escrowElements.Add(await MapBuildIntoEscrowElement(node.Value));
+                escrowElements.Add(MapBuildIntoEscrowElement(node.Value));
             }
 
             return escrowElements;
@@ -80,7 +81,7 @@ namespace TeamCityApi.UseCases
             return await SaveDocument(escrowElements, outputFileName);
         }
 
-        private async Task<EscrowElement> MapBuildIntoEscrowElement(Build build)
+        EscrowElement MapBuildIntoEscrowElement(Build build)
         {
             var element = new EscrowElement
             {
@@ -92,8 +93,9 @@ namespace TeamCityApi.UseCases
                 Id = Convert.ToInt32(build.Id)
             };
 
-            element.BuildParameters = GetBuildProperties(build);
-
+            element.InitialYear = GetIntProperty(build, "initial_year");
+            element.MajorVersion = GetIntProperty(build, "majorversion");
+            element.MinorVersion = GetIntProperty(build, "minorversion");
             element.ProjectName = build?.BuildConfig?.ProjectName;
 
             string[] versionElements = element.Number.Split('.');
@@ -114,27 +116,22 @@ namespace TeamCityApi.UseCases
                 {
                     element.VersionControlHash = GetStringProperty(build.Revisions[0]?.VcsRootInstance.Parameters, "url").Replace(@"%git.repo.path%.git", String.Empty);
                 }
+
             }
 
             element.VersionControlPath = GetStringProperty(build, "git.repo.path");
             element.VersionControlBranch = GetStringProperty(build, "branch.name");
 
-            var artifactDependencies = await _teamCityClient.BuildConfigs.CreateArtifactDependencies(build.BuildTypeId);
             if (build.ArtifactDependencies != null)
             {
                 foreach (Dependency artifactDependency in build.ArtifactDependencies)
                 {
-                    var artificateDep = artifactDependencies.FirstOrDefault(d => d.SourceBuildConfig.Id == artifactDependency.BuildTypeId);
-                    var pathRules = artificateDep.Properties.Property.FirstOrDefault(x => string.Equals("pathRules", x.Name, StringComparison.InvariantCultureIgnoreCase));
-                    var artifactPathRules = pathRules == null ? new List<string>() : pathRules.Value.Split(new string[] { "\r\n", "\r", "\n" },StringSplitOptions.None).ToList();
-
                     element.ArtifactDependencies.Add(
                         new EscrowArtifactDependency()
                         {
                             BuildTypeId = artifactDependency.BuildTypeId,
                             Number = artifactDependency.Number,
-                            Id = artifactDependency.Id,
-                            ArtifactPathRules = artifactPathRules
+                            Id = artifactDependency.Id
                         });
                 }
             }
@@ -167,15 +164,6 @@ namespace TeamCityApi.UseCases
             return property.Value;
         }
 
-        public Dictionary<string, string> GetBuildProperties(Build build)
-        {
-            var properties = new Dictionary<string, string>();
-            foreach (var property in build.Properties.Property)
-            {
-                properties.Add(property.Name, property.Value);
-            }
-            return properties;
-        }
     }
 
 }

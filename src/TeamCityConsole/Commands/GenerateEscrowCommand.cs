@@ -319,20 +319,10 @@ namespace TeamCityConsole.Commands
                 return;
             }
 
-            Build build = null;
-
-            try
+            Build build = await _client.Builds.ById(escrowArtifact.Id);
+            if(build == null)
             {
-                build = await _client.Builds.ById(escrowArtifact.Id);
-                if (build == null)
-                {
-                    Log.Warn("Cannot find build for dependency: {0}", escrowArtifact.BuildTypeId);
-                    return;
-                }
-            }
-            catch(Exception ex)
-            {
-                Log.Error($"Failed to find build for dependency: {escrowArtifact.BuildTypeId}", ex);
+                Log.Warn("Cannot find build for dependency: {0}", escrowArtifact.BuildTypeId);
                 return;
             }
 

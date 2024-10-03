@@ -32,7 +32,6 @@ namespace TeamCityApi.Clients
             string sourceBuildTypeId, bool copyAllAssociatedSettings = true, bool shareVCSRoots = true);
         Task FreezeParameters(Action<BuildTypeLocator> buildTypeLocatorConfig, List<Property> targetParameters, List<Property> sourceParameters);
         Task<string> GenerateUniqueBuildConfigId(string projectId, string buildConfigName);
-        Task<List<DependencyDefinition>> CreateArtifactDependencies(string buildConfigId);
     }
 
     public class BuildConfigClient : IBuildConfigClient
@@ -311,13 +310,6 @@ namespace TeamCityApi.Clients
             }
 
             throw new Exception("Could not generate unique Build Configuration Id");
-        }
-
-        public async Task<List<DependencyDefinition>> CreateArtifactDependencies(string buildConfigId)
-        {
-            var url = string.Format("/app/rest/buildTypes/id:{0}/artifact-dependencies/", buildConfigId);
-            var json = await _http.GetString(url);
-            return Json.Deserialize<List<DependencyDefinition>>(json);
         }
     }
 }
