@@ -13,6 +13,7 @@ using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
 using System.Text.RegularExpressions;
 using TeamCityApi.Helpers.Git;
+using System.Xml.Linq;
 
 namespace TeamCityConsole.Commands
 {
@@ -76,6 +77,7 @@ namespace TeamCityConsole.Commands
             if (!String.IsNullOrEmpty(_majorVersion) || !String.IsNullOrEmpty(_minorVersion))
             {
                 UpdateAssemblyVersion();
+                UpdateDirectorBuildProps();
                 UpdateBuildVersion();
                 UpdateVersionIncVersion();
             }
@@ -284,6 +286,41 @@ namespace TeamCityConsole.Commands
                     regex.Replace(System.IO.File.ReadAllText(path),
                         $@"${{1}}{_majorVersion}.{_minorVersion}.0.0$3"));
             }
+        }
+
+        private void UpdateDirectorBuildProps()
+        {
+            var path = GetRootDirectory() + "\\src\\Directory.Build.props";
+            if (!System.IO.File.Exists(path))
+                return;
+
+            var doc = XDocument.Load(path);
+            var propertyGroup = doc.Root
+                .Elements("PropertyGroup")
+                .FirstOrDefault();
+
+            if(propertyGroup == null)
+                return;
+
+            var assemblyVersion = propertyGroup
+                .Elements("AssemblyVersion")
+                .FirstOrDefault();
+
+            if (assemblyVersion != null)
+            {
+                assemblyVersion.SetValue($"{_majorVersion}.{_minorVersion}.0.0");
+            }
+
+            var packageVersion = propertyGroup
+                .Elements("PackageVersion")
+                .FirstOrDefault();
+
+            if (packageVersion != null)
+            {
+                packageVersion.SetValue($"{_majorVersion}.{_minorVersion}.0.0");
+            }
+
+            doc.Save(path);
         }
 
         private void UpdateBuildVersion()
