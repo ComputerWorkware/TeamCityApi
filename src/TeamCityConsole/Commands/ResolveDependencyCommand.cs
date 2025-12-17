@@ -302,6 +302,15 @@ namespace TeamCityConsole.Commands
             if(propertyGroup == null)
                 return;
 
+            var version = propertyGroup
+                .Elements("Version")
+                .FirstOrDefault();
+
+            if (version != null)
+            {
+                version.SetValue($"{_majorVersion}.{_minorVersion}.0.0");
+            }
+
             var assemblyVersion = propertyGroup
                 .Elements("AssemblyVersion")
                 .FirstOrDefault();
