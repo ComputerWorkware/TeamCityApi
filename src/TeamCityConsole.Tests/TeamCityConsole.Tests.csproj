@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\ResolveDependencyCommandTests.cs" />
+    <Compile Include="Commands\ProjectInventoryCommandTests.cs" />
     <Compile Include="Commands\SetConfigCommandTests.cs" />
     <Compile Include="Commands\UpdateCommandTests.cs" />
     <Compile Include="DependencyConfigTests.cs" />

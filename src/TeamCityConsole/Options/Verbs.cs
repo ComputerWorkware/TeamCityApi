@@ -14,6 +14,7 @@
         public const string ShowBuildChain = "show-build-chain";
         public const string CompareBuilds = "compare-builds";
         public const string ShowVersions = "show-versions";
+        public const string ProjectInventory = "project-inventory";
         public const string PropagateVersion = "propagate-version";
         public const string GenerateEscrow = "generate-escrow";
     }

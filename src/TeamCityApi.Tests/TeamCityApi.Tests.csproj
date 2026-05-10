@@ -87,6 +87,7 @@
     <Compile Include="Scenarios\SingleBuildScenario.cs" />
     <Compile Include="UseCases\CloneChildBuildConfigUseCaseTests.cs" />
     <Compile Include="UseCases\CloneRootBuildConfigUseCaseTests.cs" />
+    <Compile Include="UseCases\ProjectInventoryUseCaseTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TeamCityApi\TeamCityApi.csproj">

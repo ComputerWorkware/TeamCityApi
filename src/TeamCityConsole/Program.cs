@@ -199,6 +199,8 @@ namespace TeamCityConsole
 
             container.Register(x => new ShowVersionsUseCase(x.Resolve<ITeamCityClient>()));
 
+            container.Register(x => new ProjectInventoryUseCase(x.Resolve<ITeamCityClient>()));
+
             container.Register(x => new GenerateEscrowUseCase(x.Resolve<ITeamCityClient>()));
 
             container.Register<ICommand>(Verbs.CloneRootBuildConfig, x => new CloneRootBuildConfigCommand(x.Resolve<CloneRootBuildConfigUseCase>()));
@@ -218,6 +220,10 @@ namespace TeamCityConsole
             container.Register<ICommand>(Verbs.PropagateVersion, x => new PropagateVersionCommand(x.Resolve<PropagateVersionUseCase>()));
 
             container.Register<ICommand>(Verbs.ShowVersions, x => new ShowVersionsCommand(x.Resolve<ShowVersionsUseCase>()));
+
+            container.Register<ICommand>(Verbs.ProjectInventory, x => new ProjectInventoryCommand(
+                x.Resolve<ProjectInventoryUseCase>(),
+                x.Resolve<IFileSystem>()));
 
             container.Register<ICommand>(Verbs.GenerateEscrow, x => new GenerateEscrowCommand(x.Resolve<ITeamCityClient>(),
                 x.Resolve<GenerateEscrowUseCase>(), 

@@ -10,6 +10,7 @@
         public const string InitialYear = "initial_year";
         public const string MajorVersion = "MajorVersion";
         public const string MinorVersion = "MinorVersion";
+        public const string ProjectInventory = "project.inventory";
 
         public const string VersionedSettingGitRepo = "VersionedSettingGitRepo";
 
