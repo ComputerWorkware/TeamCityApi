@@ -31,8 +31,9 @@ namespace TeamCityConsole.Tests.Utils
         [Fact]
         public void GetPackageFolderName_strips_nupkg_extension()
         {
-            Assert.Equal("Cwi.Core.1.2.3", AssembliesNupkgPackageCleaner.GetPackageFolderName("Cwi.Core.1.2.3.nupkg"));
-            Assert.Equal("Cwi.Core.1.2.3", AssembliesNupkgPackageCleaner.GetPackageFolderName(@"path\Cwi.Core.1.2.3.nupkg"));
+            Assert.Equal("GSABO\\1.2.3", AssembliesNupkgPackageCleaner.GetPackageFolderName(@"GSABO.1.2.3.nupkg"));
+            Assert.Equal("Cwi.Core\\1.2.3", AssembliesNupkgPackageCleaner.GetPackageFolderName("Cwi.Core.1.2.3.nupkg"));
+            Assert.Equal("Cwi.Core\\1.2.3", AssembliesNupkgPackageCleaner.GetPackageFolderName(@"path\Cwi.Core.1.2.3.nupkg"));
         }
 
         [Fact]
@@ -48,7 +49,7 @@ namespace TeamCityConsole.Tests.Utils
             var fileSystem = Substitute.For<IFileSystem>();
             var root = @"c:\projects\app";
             var packagesDir = Path.Combine(root, "src", "packages");
-            var packageCachePath = Path.Combine(packagesDir, "Cwi.Core.1.2.3");
+            var packageCachePath = Path.Combine(packagesDir, "Cwi.Core\\1.2.3");
             var assemblyPath = Path.Combine(root, @".\src\assemblies", "Cwi.Core.1.2.3.nupkg");
             var packagePath = Path.Combine(packageCachePath, "Cwi.Core.1.2.3.nupkg");
 

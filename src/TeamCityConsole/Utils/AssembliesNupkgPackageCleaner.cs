@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TeamCityConsole.Commands;
 
 namespace TeamCityConsole.Utils
@@ -42,11 +43,15 @@ namespace TeamCityConsole.Utils
 
             // Use version for NuGet sub folder.
             var filePath = Path.GetFileNameWithoutExtension(fileName);
-            var filePaths = filePath.Split('.');
-            if (filePaths.Length > 2)
+
+            int versionIndex = filePath
+                .Select((c, i) => new { Char = c, Index = i })
+                .FirstOrDefault(x => char.IsDigit(x.Char))?.Index ?? -1;
+
+            if(versionIndex > 0)
             {
-                var packageName = filePaths[0];
-                var packageVersion = string.Join(".", filePaths, 1, filePaths.Length - 1);
+                var packageName = filePath.Substring(0, versionIndex - 1);
+                var packageVersion = filePath.Substring(versionIndex, filePath.Length - versionIndex);
                 filePath = $"{packageName}\\{packageVersion}";
             }
             return filePath;
