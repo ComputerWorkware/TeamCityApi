@@ -188,3 +188,13 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 /package/
+
+**/.vs/
+
+**/.scannerwork/
+
+**/bw-output/
+
+**/report/
+
+**/.sonarqube/
