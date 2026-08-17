@@ -1,19 +1,20 @@
+using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using NLog;
+using System.Xml.Linq;
 using TeamCityApi;
+using TeamCityApi.Clients;
 using TeamCityApi.Domain;
+using TeamCityApi.Helpers.Git;
 using TeamCityApi.Model;
 using TeamCityConsole.Options;
 using TeamCityConsole.Utils;
 using File = TeamCityApi.Domain.File;
-using System.Text.RegularExpressions;
-using TeamCityApi.Helpers.Git;
-using System.Xml.Linq;
 
 namespace TeamCityConsole.Commands
 {
@@ -31,6 +32,8 @@ namespace TeamCityConsole.Commands
 
         private readonly Dictionary<string, BuildInfo> _builds = new Dictionary<string, BuildInfo>();
 
+        private readonly List<PathFilePair> _downloadedFiles = new List<PathFilePair>();
+
         private string _configFullPath;
 
         private string _majorVersion;
@@ -46,55 +49,68 @@ namespace TeamCityConsole.Commands
 
         public async Task Execute(object options)
         {
-            var dependenciesOptions = (GetDependenciesOptions)options;
+            var configFile = "[missing]";
 
-            var currentGitBranch = GitHelper.GetCurrentBranchName(_fileSystem.GetWorkingDirectory());
-            var configFile = $"{currentGitBranch}.config";
-
-            if (string.IsNullOrWhiteSpace(currentGitBranch))
+            try
             {
-                Log.Error("Current git branch is not found. Likely git is not initialized. Exiting the program");
-                return;
+                var dependenciesOptions = (GetDependenciesOptions)options;
+
+                var currentGitBranch = GitHelper.GetCurrentBranchName(_fileSystem.GetWorkingDirectory()).Trim();
+                if (string.IsNullOrWhiteSpace(currentGitBranch))
+                {
+                    Log.Error("Current git branch is not found. Likely git is not initialized. Exiting the program");
+                    return;
+                }
+
+                configFile = $"{currentGitBranch}.config";
+
+                Log.Debug("Resolving Dependencies: Config File: {0}, Tcc Directory: {1}", configFile, GetTccDirectory());
+
+                _configFullPath = dependenciesOptions.Force
+                    ? Path.Combine(GetTccDirectory(), configFile)
+                    : GetConfigFullPath(dependenciesOptions, configFile);
+
+                Log.Info("Using '{0}' as dependency config", _configFullPath);
+
+                _dependencyConfig = LoadConfigFile(dependenciesOptions, configFile);
+
+                DependencyConfig dependencyConfig =
+                    await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
+
+                Log.Info("Finished resolving dependencies");
+
+                var buildConfig = await _client.BuildConfigs.GetByConfigurationId(_dependencyConfig.BuildConfigId);
+                _majorVersion = buildConfig.Parameters[ParameterName.MajorVersion]?.Value;
+                _minorVersion = buildConfig.Parameters[ParameterName.MinorVersion]?.Value;
+
+                if (!String.IsNullOrEmpty(_majorVersion) || !String.IsNullOrEmpty(_minorVersion))
+                {
+                    UpdateAssemblyVersion();
+                    UpdateDirectorBuildProps();
+                    UpdateBuildVersion();
+                    UpdateVersionIncVersion();
+                }
+
+                Log.Info("Finished updating versions");
+
+                //only writes the file if changes were made to the config.
+                if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
+                {
+                    Log.Info("Updating config file...");
+                    string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
+                    _fileSystem.EnsureDirectoryExists(_configFullPath);
+                    _fileSystem.WriteAllTextToFile(_configFullPath, json);
+                    Log.Info("Done updating config file");
+                }
+
+                Log.Info("================ Get Dependencies: done ================");
             }
-
-            _configFullPath = dependenciesOptions.Force
-                ? Path.Combine(GetTccDirectory(), configFile)
-                : GetConfigFullPath(dependenciesOptions, configFile);
-
-            Log.Info("Using '{0}' as dependency config", _configFullPath);
-
-            _dependencyConfig = LoadConfigFile(dependenciesOptions, configFile);
-
-            DependencyConfig dependencyConfig =
-                await ResolveDependencies(_dependencyConfig.BuildConfigId, dependenciesOptions.Tag);
-
-            Log.Info("Finished resolving dependencies");
-
-            var buildConfig = await _client.BuildConfigs.GetByConfigurationId(_dependencyConfig.BuildConfigId);
-            _majorVersion = buildConfig.Parameters[ParameterName.MajorVersion]?.Value;
-            _minorVersion = buildConfig.Parameters[ParameterName.MinorVersion]?.Value;
-
-            if (!String.IsNullOrEmpty(_majorVersion) || !String.IsNullOrEmpty(_minorVersion))
+            catch(Exception ex)
             {
-                UpdateAssemblyVersion();
-                UpdateDirectorBuildProps();
-                UpdateBuildVersion();
-                UpdateVersionIncVersion();
+                var tccDir = GetTccDirectory();
+
+                Log.Error("Error occurred while resolving dependencies in TCCDir: {0}, Config File:{1}, Exception: {2}", configFile, tccDir, ex.Message);
             }
-
-            Log.Info("Finished updating versions");
-
-            //only writes the file if changes were made to the config.
-            if (_dependencyConfig.Equals(dependencyConfig) == false || dependenciesOptions.Force)
-            {
-                Log.Info("Updating config file...");
-                string json = JsonConvert.SerializeObject(dependencyConfig, Formatting.Indented);
-                _fileSystem.EnsureDirectoryExists(_configFullPath);
-                _fileSystem.WriteAllTextToFile(_configFullPath, json);
-                Log.Info("Done updating config file");
-            }
-
-            Log.Info("================ Get Dependencies: done ================");
         }
 
         public async Task<DependencyConfig> ResolveDependencies(string id, string tag)
@@ -104,6 +120,8 @@ namespace TeamCityConsole.Commands
             _downloadDataFlow.Complete();
 
             await _downloadDataFlow.Completion;
+
+            RemoveCachedPackagesForAssembliesNupkgs();
 
             var dependencyConfig = new DependencyConfig
             {
@@ -132,43 +150,65 @@ namespace TeamCityConsole.Commands
 
         private async Task ResolveDependency(DependencyDefinition dependency, string tag)
         {
-            Log.Debug("Trying to fetch dependency: {0}", dependency.SourceBuildConfig.Id);
-
-            if (_builds.ContainsKey(dependency.SourceBuildConfig.Id))
+            try
             {
-                Log.Info("Dependency already fetched. Skipping: {0}", dependency.SourceBuildConfig.Id);
-                return;
+                Log.Debug("Trying to fetch dependency: {0}", dependency.SourceBuildConfig.Id);
+
+                if (_builds.ContainsKey(dependency.SourceBuildConfig.Id))
+                {
+                    Log.Info("Dependency already fetched. Skipping: {0}", dependency.SourceBuildConfig.Id);
+                    return;
+                }
+
+                Build build;
+                if (dependency.Properties.Property["revisionName"].Value == "buildNumber")
+                {
+                    build = await _client.Builds.ByNumber(dependency.Properties.Property["revisionValue"].Value, dependency.SourceBuildConfig.Id);
+                }
+                else
+                {
+                    build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id, tag);
+                }
+
+                lock (_builds)
+                {
+                    _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));
+                }
+
+                Log.Debug("Downloading artifacts from: {0}-{1}", build.BuildTypeId, build.Number);
+
+                List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
+
+                //create fake files with the reference to the TC resources in order to download.
+                List<PathFilePair> files = artifactRules
+                    .Where(x => !x.Source.Contains("!*.nupkg"))
+                    .Select(x => new PathFilePair
+                    {
+                        File = x.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
+                        Path = Path.Combine(".", x.Dest)
+                    }).ToList();
+
+                //Handle nuget wildcard rules
+                foreach (var nugetRule in artifactRules.Where(x => x.Source.Contains("!*.nupkg")))
+                {
+                    var nugetFiles = await _client.Builds.GetFiles(build.Id, nugetRule.Source.Replace("!*.nupkg", ""), "*.nupkg");
+
+                    files.AddRange(nugetFiles
+                        .Select(x => new PathFilePair
+                        {
+                            File = x,
+                            Path = Path.Combine(".", nugetRule.Dest)
+                        }));
+                }
+
+                DownloadFiles(files); 
+
+                Log.Debug("Done fetching dependency for: {0}", dependency.SourceBuildConfig.Id);
             }
-
-            Build build;
-            if (dependency.Properties.Property["revisionName"].Value == "buildNumber")
+            catch (Exception ex)
             {
-                build = await _client.Builds.ByNumber(dependency.Properties.Property["revisionValue"].Value, dependency.SourceBuildConfig.Id);
+                Log.Debug("Failed to fetch dependency: {0}, Exception: {1}", dependency.SourceBuildConfig.Id, ex.Message);
             }
-            else 
-            {
-                build = await _client.Builds.LastSuccessfulBuildFromConfig(dependency.SourceBuildConfig.Id, tag);
-            }
-
-            lock (_builds)
-            {
-                _builds.Add(build.BuildTypeId, BuildInfo.FromBuild(build));                
-            }
-
-            Log.Debug("Downloading artifacts from: {0}-{1}", build.BuildTypeId, build.Number);
-
-            List<ArtifactRule> artifactRules = GetArtifactRules(dependency);
-
-            //create fake files with the reference to the TC resources in order to download.
-            List<PathFilePair> files = artifactRules.Select(x => new PathFilePair
-            {
-                File = x.CreateTeamCityFileReference(build.Href + "/artifacts/content/"),
-                Path = Path.Combine(".", x.Dest)
-            }).ToList();
-
-            DownloadFiles(files);
-
-            Log.Debug("Done fetching dependency for: {0}", dependency.SourceBuildConfig.Id);
         }
 
         private static List<ArtifactRule> GetArtifactRules(DependencyDefinition dependency)
@@ -191,8 +231,22 @@ namespace TeamCityConsole.Commands
         {
             foreach (var pair in files)
             {
+                lock (_downloadedFiles)
+                {
+                    _downloadedFiles.Add(pair);
+                }
+
                 _downloadDataFlow.Download(pair);
             }
+        }
+
+        private void RemoveCachedPackagesForAssembliesNupkgs()
+        {
+            AssembliesNupkgPackageCleaner.RemoveCachedPackages(
+                _fileSystem,
+                GetRootDirectory(),
+                _downloadedFiles,
+                message => Log.Info(message));
         }
 
         internal DependencyConfig LoadConfigFile(GetDependenciesOptions options, string fileName)

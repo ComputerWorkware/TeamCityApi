@@ -27,6 +27,7 @@ namespace TeamCityConsole
 
         static void Main(string[] args)
         {
+            ModuleInitializer.Run();
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
 
             Log = LogManager.GetCurrentClassLogger();
