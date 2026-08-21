@@ -380,7 +380,7 @@ namespace TeamCityConsole.Commands
 
             if (packageVersion != null)
             {
-                packageVersion.SetValue($"{_majorVersion}.{_minorVersion}.0.0");
+                packageVersion.SetValue($"{_majorVersion}.{_minorVersion}.0");
             }
 
             doc.Save(path);
