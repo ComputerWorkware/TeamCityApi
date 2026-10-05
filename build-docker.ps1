@@ -14,10 +14,8 @@
     Overrides the teamcitypassword appSetting.
 .PARAMETER GitLabUri
     Overrides the gitlaburi appSetting.
-.PARAMETER GitLabUsername
-    Overrides the gitlabusername appSetting.
-.PARAMETER GitLabPassword
-    Overrides the gitlabpassword appSetting.
+.PARAMETER GitLabToken
+    Overrides the gitlabtoken appSetting (GitLab access token with api scope).
 
 .ENVIRONMENT VARIABLES
     $env:initial_year               Base year for version calculation
@@ -81,8 +79,7 @@ param (
     [string] $TeamCityUsername,
     [string] $TeamCityPassword,
     [string] $GitLabUri,
-    [string] $GitLabUsername,
-    [string] $GitLabPassword
+    [string] $GitLabToken
 )
 
 # Load Environment Variables
@@ -168,11 +165,8 @@ if ($PSBoundParameters.ContainsKey("TeamCityPassword")) {
 if ($PSBoundParameters.ContainsKey("GitLabUri")) {
     $applicationSettingOverrides["gitlaburi"] = $GitLabUri
 }
-if ($PSBoundParameters.ContainsKey("GitLabUsername")) {
-    $applicationSettingOverrides["gitlabusername"] = $GitLabUsername
-}
-if ($PSBoundParameters.ContainsKey("GitLabPassword")) {
-    $applicationSettingOverrides["gitlabpassword"] = $GitLabPassword
+if ($PSBoundParameters.ContainsKey("GitLabToken")) {
+    $applicationSettingOverrides["gitlabtoken"] = $GitLabToken
 }
 
 function Set-ApplicationSettings {
