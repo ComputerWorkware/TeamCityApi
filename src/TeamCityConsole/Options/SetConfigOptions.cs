@@ -17,6 +17,9 @@ namespace TeamCityConsole.Options
         [Option('s', "selfUpdateConfig", Required = false, HelpText = "Self update bulid configuration Id.")]
         public string SelfUpdateBuildConfigId { get; set; }
 
+        [Option('g', "gitLabToken", Required = false, HelpText = "Personal/project access token (api scope) for connecting to GitLab.")]
+        public string GitLabToken { get; set; }
+
     }
 
 }

@@ -11,8 +11,7 @@ namespace TeamCityApi.Helpers.Git
     public class GitLabSettings
     {
         public string GitLabUri { get; set; }
-        public string GitLabUsername { get; set; }
-        public string GitLabPassword { get; set; }
+        public string GitLabToken { get; set; }
     }
 
     public interface IGitLabClientFactory
@@ -32,9 +31,12 @@ namespace TeamCityApi.Helpers.Git
 
         public GitLabClient GetGitLabClient()
         {
-            var client =  GitLabClient.Connect(GitLabSettings.GitLabUri, GitLabSettings.GitLabUsername, GitLabSettings.GitLabPassword);
+            if (string.IsNullOrWhiteSpace(GitLabSettings.GitLabToken))
+            {
+                throw new InvalidOperationException("GitLab access token is not configured. Set the 'gitlabtoken' app setting in TeamCityConsole.exe.config.");
+            }
 
-            return client;
+            return GitLabClient.Connect(GitLabSettings.GitLabUri, GitLabSettings.GitLabToken, NGitLab.Impl.Api.ApiVersion.V4);
         }
     }
 }

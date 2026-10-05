@@ -444,7 +444,7 @@ namespace TeamCityApi.TestsIntegration
 
         private static GitLabSettings CreateGitLabSettings()
         {
-            return new GitLabSettings() {GitLabUsername = "user", GitLabPassword = "pass", GitLabUri = "http://gitlabserver/"};
+            return new GitLabSettings() {GitLabToken = "token", GitLabUri = "http://gitlabserver/"};
         }
 
         private static IGitLabClientFactory CreateGitLabClientFactory()

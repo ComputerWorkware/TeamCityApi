@@ -44,6 +44,11 @@ namespace TeamCityConsole.Commands
                 _settings.SelfUpdateBuildConfigId = configOptions.SelfUpdateBuildConfigId;
             }
 
+            if (configOptions.GitLabToken != null)
+            {
+                _settings.GitLabToken = configOptions.GitLabToken;
+            }
+
             _settings.Save();
 
             await Task.FromResult(0); //just to hide build warning

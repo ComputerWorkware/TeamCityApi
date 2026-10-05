@@ -245,8 +245,7 @@ namespace TeamCityConsole
             container.Register<GitLabSettings>(x=> new GitLabSettings()
                 {
                     GitLabUri = settings.GitLabUri,
-                    GitLabUsername = settings.GitLabUsername,
-                    GitLabPassword = settings.GitLabPassword
+                    GitLabToken = settings.GitLabToken
                 }
             );
 
